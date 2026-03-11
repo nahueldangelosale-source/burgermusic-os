@@ -36,3 +36,8 @@ next-env.d.ts
 *.db
 *.sqlite
 *.sqlite3
+
+# GCP Service Account Keys (NUNCA subir)
+*-key.json
+gcp-key.json
+burgermusic-os-etl-*.json
