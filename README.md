@@ -7,21 +7,22 @@ Sistema de trazabilidad de mercadería para hamburgueserías. Reemplaza la gesti
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                    Frontend (Next.js)                    │
-│  Dashboard │ Recepción │ Cocina │ El Oráculo │ Ventas  │
+│  Dashboard │ Recepción │ Cocina │ Oráculo │ Finanzas   │
 └────────────────────────┬────────────────────────────────┘
-                         │ Server Actions
+                         │ Server Actions + RSC
 ┌────────────────────────▼────────────────────────────────┐
 │                   Backend (Next.js API)                  │
-│  stock-engine.ts │ auditor.ts │ forecasting.ts │ AI     │
+│  stock-engine.ts │ auditor.ts │ forecasting.ts │ ETL    │
 └────────────────────────┬────────────────────────────────┘
                          │ Drizzle ORM
 ┌────────────────────────▼────────────────────────────────┐
 │               Base de Datos (Turso / libSQL)            │
-│  products │ transactions (Ledger) │ recipes │ sync_state│
+│  products │ transactions (Ledger) │ daily_cash_closures │
+│  recipes  │ sync_state (per-tab)  │ inventory_snapshots │
 └─────────────────────────────────────────────────────────┘
                          │ ETL (googleapis)
 ┌────────────────────────▼────────────────────────────────┐
-│                   Google Sheets (Ventas)                 │
+│         Google Sheets (Cierres de Caja por Mes)         │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -42,11 +43,12 @@ Sistema de trazabilidad de mercadería para hamburgueserías. Reemplaza la gesti
 | Módulo | Ruta | Función |
 |:---|:---|:---|
 | **Dashboard** | `/dashboard` | KPIs, auditoría de stock, varianzas |
+| **Finanzas** | `/dashboard` (tab) | Flujo de caja, distribución de pagos, alertas de varianza |
 | **Recepción** | `/receive` | OCR de facturas de proveedores → `RECEIPT` |
 | **Cocina** | `/ingest` | Conteo físico vía WhatsApp → `COUNT` |
 | **El Oráculo** | `/dashboard/ordering` | Forecasting de compras (ADC × días) |
 | **Ventas** | `/sales` | Carga CSV/Excel → `SALE` |
-| **Sync** | `POST /api/sync/sales` | ETL automático desde Google Sheets |
+| **Sync Financiero** | `POST /api/sync/sales` | ETL de cierres de caja desde Google Sheets |
 | **Menú** | `/dashboard/menu` | Gestión de productos y recetas (BOM) |
 
 ## Setup Local
@@ -117,7 +119,7 @@ npm run build            # Build de producción
 npm run start            # Servidor de producción
 
 # ─── Calidad ───
-npm test                 # Correr tests (15 tests, 3 suites)
+npm test                 # Correr tests (16 tests, 3 suites)
 npm run test:watch       # Tests en modo watch
 npm run lint             # Linter (Biome)
 npm run format           # Auto-format (Biome)
@@ -150,9 +152,20 @@ El pipeline de GitHub Actions (`.github/workflows/ci.yml`) ejecuta en cada push/
 
 1. **Type Check** — `tsc --noEmit`
 2. **Lint** — `biome check .`
-3. **Tests** — `vitest run` (15 tests)
+3. **Tests** — `vitest run` (16 tests)
 
 Si cualquier paso falla, el pipeline se rompe (Fail-Fast).
+
+## ETL Financiero (Cierres de Caja)
+
+El ETL lee cierres de caja desde Google Sheets (una pestaña por mes: ENERO, FEBRERO, MARZO...) y los carga en la tabla `daily_cash_closures`.
+
+**Características:**
+- Lectura multi-pestaña automática
+- Idempotencia por pestaña (High-Water Mark en `sync_state`)
+- Parseo de moneda argentina (`$150.000,50`)
+- Campos: fecha, caja Z, turno, ventas mostrador/MP/delivery, totales, varianza
+- **REGLA**: Estos datos son financieros. NO alimentan el stock-engine.
 
 ## Licencia
 
