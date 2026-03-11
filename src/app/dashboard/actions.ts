@@ -242,3 +242,84 @@ export async function getAnalyticsData(): Promise<AnalyticsSummary> {
         categoryComposition
     };
 }
+
+// --- FINANCIAL METRICS (Cash Closure ETL) ---
+
+export interface FinancialMetrics {
+    monthlyRevenue: number;
+    totalCash: number;
+    totalMp: number;
+    totalDelivery: number;
+    cashPct: number;
+    mpPct: number;
+    deliveryPct: number;
+    yesterdayVariance: number | null;
+    varianceTrend: { date: string; variance: number }[];
+    closureCount: number;
+    currentMonth: string;
+}
+
+export async function getFinancialMetrics(): Promise<FinancialMetrics> {
+    const { dailyCashClosures } = await import("@/db/schema");
+
+    const now = new Date();
+    const monthPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+        "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+    // Fetch all closures for current month
+    const allClosures = await db.select().from(dailyCashClosures);
+    const monthClosures = allClosures.filter(c => c.date?.startsWith(monthPrefix));
+
+    if (monthClosures.length === 0) {
+        return {
+            monthlyRevenue: 0,
+            totalCash: 0,
+            totalMp: 0,
+            totalDelivery: 0,
+            cashPct: 0,
+            mpPct: 0,
+            deliveryPct: 0,
+            yesterdayVariance: null,
+            varianceTrend: [],
+            closureCount: 0,
+            currentMonth: monthNames[now.getMonth()],
+        };
+    }
+
+    // Aggregate totals
+    const monthlyRevenue = monthClosures.reduce((sum, c) => sum + (c.totalGlobal || 0), 0);
+    const totalCash = monthClosures.reduce((sum, c) => sum + (c.totalCash || 0), 0);
+    const totalMp = monthClosures.reduce((sum, c) => sum + (c.totalMp || 0), 0);
+    const totalDelivery = monthClosures.reduce((sum, c) => sum + (c.totalDelivery || 0), 0);
+
+    const grandTotal = totalCash + totalMp + totalDelivery;
+    const cashPct = grandTotal > 0 ? Math.round((totalCash / grandTotal) * 100) : 0;
+    const mpPct = grandTotal > 0 ? Math.round((totalMp / grandTotal) * 100) : 0;
+    const deliveryPct = grandTotal > 0 ? Math.round((totalDelivery / grandTotal) * 100) : 0;
+
+    // Yesterday's variance
+    const sorted = [...monthClosures].sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+    const yesterdayVariance = sorted.length > 0 ? (sorted[0].variance ?? null) : null;
+
+    // Last 7 days variance trend
+    const last7 = sorted.slice(0, 7).reverse();
+    const varianceTrend = last7.map(c => ({
+        date: c.date || "",
+        variance: c.variance || 0,
+    }));
+
+    return {
+        monthlyRevenue,
+        totalCash,
+        totalMp,
+        totalDelivery,
+        cashPct,
+        mpPct,
+        deliveryPct,
+        yesterdayVariance,
+        varianceTrend,
+        closureCount: monthClosures.length,
+        currentMonth: monthNames[now.getMonth()],
+    };
+}

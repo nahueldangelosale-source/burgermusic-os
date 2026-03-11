@@ -2,9 +2,10 @@
 
 import { useState, useTransition } from "react";
 import dynamic from "next/dynamic";
-import { TrendingUp, AlertOctagon, DollarSign, Package, BarChart3 } from "lucide-react";
+import { TrendingUp, AlertOctagon, DollarSign, Package, BarChart3, Banknote } from "lucide-react";
 import { GlassCard, VarianceBadge } from "@/components/ui/AntigravityAtoms";
-import { AnalyticsSummary } from "@/app/dashboard/actions";
+import { AnalyticsSummary, FinancialMetrics } from "@/app/dashboard/actions";
+import FinanceDashboard from "./FinanceDashboard";
 
 // Lazy-load recharts-heavy component for fluid tab switching
 const AnalyticsDashboard = dynamic(() => import("./AnalyticsDashboard"), {
@@ -30,14 +31,15 @@ interface AuditData {
 interface AuditDashboardProps {
     initialData: AuditData;
     analyticsData: AnalyticsSummary;
+    financialData: FinancialMetrics;
 }
 
-export default function AuditDashboard({ initialData, analyticsData }: AuditDashboardProps) {
+export default function AuditDashboard({ initialData, analyticsData, financialData }: AuditDashboardProps) {
     const { items, totalVarianceCost, totalSales, stockEffectiveness, lastAuditDate } = initialData;
-    const [activeTab, setActiveTab] = useState<"AUDIT" | "ANALYTICS">("AUDIT");
+    const [activeTab, setActiveTab] = useState<"AUDIT" | "ANALYTICS" | "FINANCE">("AUDIT");
     const [isPending, startTransition] = useTransition();
 
-    const switchTab = (tab: "AUDIT" | "ANALYTICS") => {
+    const switchTab = (tab: "AUDIT" | "ANALYTICS" | "FINANCE") => {
         startTransition(() => setActiveTab(tab));
     };
 
@@ -74,6 +76,12 @@ export default function AuditDashboard({ initialData, analyticsData }: AuditDash
                         className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === "ANALYTICS" ? "bg-brand-100 text-brand-600 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
                     >
                         Análisis Gráfico
+                    </button>
+                    <button
+                        onClick={() => switchTab("FINANCE")}
+                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === "FINANCE" ? "bg-emerald-100 text-emerald-600 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
+                    >
+                        <span className="flex items-center gap-1.5"><Banknote size={14} /> Finanzas</span>
                     </button>
                 </div>
             </header>
@@ -185,8 +193,10 @@ export default function AuditDashboard({ initialData, analyticsData }: AuditDash
                             </div>
                         )}
                     </GlassCard>
-                ) : (
+                ) : activeTab === "ANALYTICS" ? (
                     <AnalyticsDashboard data={analyticsData} />
+                ) : (
+                    <FinanceDashboard data={financialData} />
                 )}
             </div>
         </div>
