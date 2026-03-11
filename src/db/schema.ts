@@ -152,10 +152,29 @@ export const po_items = sqliteTable("po_items", {
   unit_cost_snapshot: integer("unit_cost_snapshot"),
 });
 
-// --- ESTADO DE SINCRONIZACIÓN (ETL) ---
+// --- ESTADO DE SINCRONIZACIÓN (ETL — por pestaña) ---
 export const syncState = sqliteTable('sync_state', {
-  id: text('id').primaryKey(),              // Ej: "google_sheets_sales"
-  lastSyncedDate: text('last_synced_date'), // Última fecha procesada
-  lastSyncedRow: integer('last_synced_row').default(0), // Última fila procesada
-  lastRunAt: text('last_run_at'),           // Timestamp del último sync
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  syncKey: text('sync_key').notNull().unique(), // Ej: "sheet_MARZO", "sheet_FEBRERO"
+  lastSyncedRow: integer('last_synced_row').default(0),
+  updatedAt: text('updated_at').default(sql`(CURRENT_TIMESTAMP)`),
+});
+
+// --- CIERRES DE CAJA DIARIOS (Flujo Financiero) ---
+export const dailyCashClosures = sqliteTable('daily_cash_closures', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  date: text('date').notNull(),              // Fecha del cierre (YYYY-MM-DD)
+  day: text('day'),                          // Día de la semana ("Lunes", "Martes")
+  zClose: real('z_close'),                   // Caja Z
+  shift: text('shift'),                      // Turno
+  salesCounter: real('sales_counter'),       // Ventas Mostrador
+  salesMpQr: real('sales_mp_qr'),            // Ventas MP QR
+  salesDelivery: real('sales_delivery'),     // Ventas Pedidos Ya
+  totalMp: real('total_mp'),                 // Total MercadoPago
+  totalCash: real('total_cash'),             // Total Efectivo
+  totalDelivery: real('total_delivery'),     // Total Delivery
+  totalGlobal: real('total_global'),         // Total Global
+  variance: real('variance'),               // Sobran/faltan
+  sheetMonth: text('sheet_month'),           // Pestaña origen (ej. "MARZO")
+  createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
 });

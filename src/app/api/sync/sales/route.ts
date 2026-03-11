@@ -1,9 +1,9 @@
 // src/app/api/sync/sales/route.ts
-// API Route protegida para ejecutar la sincronización de ventas desde Google Sheets.
-// Puede ser llamada manualmente o vía Vercel Cron.
+// API Route para sincronizar cierres de caja desde Google Sheets.
+// ⚠️ Este endpoint carga datos FINANCIEROS, NO de inventario.
 
 import { NextResponse } from "next/server";
-import { syncSalesFromSheet } from "@/integrations/google-sheets/sales-sync";
+import { syncCashClosures } from "@/integrations/google-sheets/sales-sync";
 import { getSession } from "@/lib/auth";
 
 export async function POST(request: Request) {
@@ -17,21 +17,26 @@ export async function POST(request: Request) {
             );
         }
 
-        console.log("🔄 Iniciando sincronización Google Sheets → Ledger...");
+        console.log("🔄 Iniciando sincronización Google Sheets → Cierres de Caja...");
 
-        const result = await syncSalesFromSheet();
+        const result = await syncCashClosures();
 
-        console.log(`✅ Sync completado: ${result.processed} procesadas, ${result.skipped} omitidas`);
+        console.log(`✅ Sync completado: ${result.totalProcessed} cierres cargados`);
 
         return NextResponse.json({
             success: true,
             data: {
-                processed: result.processed,
-                skipped: result.skipped,
-                errors: result.errors,
-                newWatermark: result.newWatermark,
+                totalProcessed: result.totalProcessed,
+                totalSkipped: result.totalSkipped,
+                tabs: result.tabResults.map(t => ({
+                    tab: t.tab,
+                    processed: t.processed,
+                    skipped: t.skipped,
+                    errors: t.errors,
+                    watermark: t.newWatermark,
+                })),
             },
-            message: `Sincronización completada: ${result.processed} ventas cargadas, ${result.skipped} omitidas. Marca de agua: fila ${result.newWatermark}.`,
+            message: `Sincronización completada: ${result.totalProcessed} cierres de caja cargados de ${result.tabResults.length} pestaña(s).`,
         });
     } catch (error: any) {
         console.error("❌ Sync Error:", error);

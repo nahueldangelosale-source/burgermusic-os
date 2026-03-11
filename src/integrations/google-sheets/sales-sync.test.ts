@@ -1,15 +1,14 @@
 // src/integrations/google-sheets/sales-sync.test.ts
-// Tests de idempotencia y lógica ETL para la sincronización Google Sheets → Ledger
+// Tests para el ETL de Cierres de Caja (Financial — NO inventory)
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // ─── STATE ──────────────────────────────────────────────────
-let mockSyncState: any = null;
-let mockInsertedTransactions: any[] = [];
+let mockSyncStates: Record<string, any> = {};
+let mockInsertedClosures: any[] = [];
 let mockSyncStateUpdates: any[] = [];
-let mockSheetRows: string[][] = [];
-
-// ─── MOCKS ──────────────────────────────────────────────────
+let mockSheetRows: Record<string, string[][]> = {};
+let mockTabs: string[] = [];
 
 // ─── MOCKS ──────────────────────────────────────────────────
 
@@ -17,15 +16,16 @@ vi.mock("@/db", () => ({
     db: {
         select: () => ({
             from: (table: any) => {
-                // Products catalog query returns directly (no .where())
-                // Must be thenable AND have .where() for syncState
-                const result = table === "sync_state_table"
-                    ? (mockSyncState ? [mockSyncState] : [])
-                    : []; // Empty catalog — SKUs won't match, OK for idempotency tests
-
+                const result: any[] = [];
                 const promiseLike = Promise.resolve(result);
-                // Attach .where() for syncState query chain
-                (promiseLike as any).where = () => Promise.resolve(result);
+                (promiseLike as any).where = (condition: any) => {
+                    // Extract sync_key from the condition mock
+                    const key = condition?.[1];
+                    if (key && mockSyncStates[key]) {
+                        return Promise.resolve([mockSyncStates[key]]);
+                    }
+                    return Promise.resolve([]);
+                };
                 return promiseLike;
             },
         }),
@@ -33,7 +33,10 @@ vi.mock("@/db", () => ({
             const tx = {
                 insert: (table: any) => ({
                     values: (v: any) => {
-                        if (table === "sync_state_table") {
+                        // Detect if it's a cash closure or sync_state insert
+                        if (v.sheetMonth !== undefined) {
+                            mockInsertedClosures.push(v);
+                        } else if (v.syncKey !== undefined) {
                             mockSyncStateUpdates.push(v);
                         }
                         return Promise.resolve();
@@ -54,138 +57,166 @@ vi.mock("@/db", () => ({
 }));
 
 vi.mock("@/db/schema", () => ({
-    products: "products_table",
+    dailyCashClosures: "daily_cash_closures_table",
     syncState: "sync_state_table",
 }));
 
 vi.mock("drizzle-orm", () => ({
-    eq: (...args: any[]) => args,
+    eq: (col: any, val: any) => [col, val],
 }));
 
 vi.mock("./client", () => ({
-    readSheetData: () => Promise.resolve(mockSheetRows),
-}));
-
-vi.mock("@/core/stock-engine", () => ({
-    recordTransaction: async (_tx: any, entry: any) => {
-        mockInsertedTransactions.push(entry);
+    readSheetData: (_id: string, range: string) => {
+        const tab = range.split("!")[0];
+        return Promise.resolve(mockSheetRows[tab] || []);
     },
+    listSheetTabs: () => Promise.resolve(mockTabs),
 }));
 
 // Set env for test
 process.env.GOOGLE_SHEETS_SPREADSHEET_ID = "test-sheet-id";
 
-import { syncSalesFromSheet } from "./sales-sync";
+import { syncCashClosures } from "./sales-sync";
 
-describe("Google Sheets ETL — Idempotencia (High-Water Mark)", () => {
+// ─── TESTS ──────────────────────────────────────────────────
+
+describe("Financial ETL — Cierres de Caja (Multi-pestaña)", () => {
 
     beforeEach(() => {
-        mockSyncState = null;
-        mockInsertedTransactions = [];
+        mockSyncStates = {};
+        mockInsertedClosures = [];
         mockSyncStateUpdates = [];
-        mockSheetRows = [];
+        mockSheetRows = {};
+        mockTabs = [];
     });
 
-    it("procesa todas las filas si no hay watermark previo", async () => {
-        mockSheetRows = [
-            ["Fecha", "Producto", "Cantidad", "Precio", "Ticket"],  // Header (row 0)
-            ["2026-03-10", "Mala Fama Doble", "3", "2500", "T-001"],  // row 1
-            ["2026-03-10", "Coca Cola", "2", "800", "T-001"],          // row 2
-            ["2026-03-11", "Smash Burger", "1", "1800", "T-002"],      // row 3
+    it("procesa todas las filas de una pestaña sin watermark previo", async () => {
+        mockTabs = ["MARZO"];
+        mockSheetRows["MARZO"] = [
+            ["Fecha", "Día", "Caja Z", "Turno", "V.Mostrador", "V.MP QR", "V.PedidosYa", "Total MP", "Total Ef", "Total Delivery", "Total Global", "Sobran/faltan"],
+            ["01/03/2026", "Sábado", "1", "Noche", "$150000", "$85000", "$42000", "$127000", "$150000", "$42000", "$319000", "$2500"],
+            ["02/03/2026", "Domingo", "2", "Noche", "$180000", "$95000", "$38000", "$133000", "$180000", "$38000", "$351000", "-$1200"],
         ];
 
-        // Mock catálogo (fuzzy match retorna null porque nuestro mock no tiene catalog propio)
-        // El test verifica la lógica de watermark, no el fuzzy match
-        const result = await syncSalesFromSheet();
+        const result = await syncCashClosures();
 
-        // Todas las filas deberían ser nuevas (skipped por no encontrar SKU, pero procesadas)
-        expect(result.newWatermark).toBe(3); // Última fila procesada
+        expect(result.totalProcessed).toBe(2);
+        expect(result.tabResults).toHaveLength(1);
+        expect(result.tabResults[0].tab).toBe("MARZO");
+        expect(result.tabResults[0].newWatermark).toBe(2);
     });
 
-    it("omite filas ya procesadas (watermark en fila 2)", async () => {
-        mockSyncState = {
-            id: "google_sheets_sales",
+    it("procesa múltiples pestañas mensuales", async () => {
+        mockTabs = ["MARZO", "FEBRERO", "Configuración"]; // "Configuración" no es un mes
+        mockSheetRows["MARZO"] = [
+            ["Fecha", "Día", "Caja Z"],
+            ["01/03/2026", "Sábado", "1"],
+        ];
+        mockSheetRows["FEBRERO"] = [
+            ["Fecha", "Día", "Caja Z"],
+            ["01/02/2026", "Sábado", "1"],
+            ["02/02/2026", "Domingo", "2"],
+        ];
+
+        const result = await syncCashClosures();
+
+        expect(result.totalProcessed).toBe(3); // 1 de MARZO + 2 de FEBRERO
+        expect(result.tabResults).toHaveLength(2); // Solo MARZO y FEBRERO, no "Configuración"
+    });
+
+    it("omite filas ya procesadas por pestaña (idempotencia)", async () => {
+        mockTabs = ["MARZO"];
+        mockSyncStates["sheet_MARZO"] = {
+            id: 1,
+            syncKey: "sheet_MARZO",
             lastSyncedRow: 2,
-            lastSyncedDate: "2026-03-10",
-            lastRunAt: "2026-03-10T20:00:00Z",
+            updatedAt: "2026-03-10T20:00:00Z",
         };
 
-        mockSheetRows = [
-            ["Fecha", "Producto", "Cantidad", "Precio", "Ticket"],  // Header (row 0)
-            ["2026-03-10", "Mala Fama Doble", "3", "2500", "T-001"],  // row 1 — ya procesada
-            ["2026-03-10", "Coca Cola", "2", "800", "T-001"],          // row 2 — ya procesada
-            ["2026-03-11", "Smash Burger", "1", "1800", "T-002"],      // row 3 — NUEVA
-            ["2026-03-11", "Papas Fritas", "4", "600", "T-003"],      // row 4 — NUEVA
+        mockSheetRows["MARZO"] = [
+            ["Fecha", "Día", "Caja Z", "Turno", "V.Mostrador"],
+            ["01/03/2026", "Sábado", "1", "Noche", "$150000"],   // row 1 — ya procesada
+            ["02/03/2026", "Domingo", "2", "Noche", "$180000"],  // row 2 — ya procesada
+            ["03/03/2026", "Lunes", "3", "Noche", "$120000"],    // row 3 — NUEVA
         ];
 
-        const result = await syncSalesFromSheet();
+        const result = await syncCashClosures();
 
-        // Solo filas 3 y 4 son nuevas
-        expect(result.newWatermark).toBe(4);
-        // Las filas 1 y 2 no deben haberse procesado (0 transacciones de esas filas)
+        expect(result.totalProcessed).toBe(1); // Solo fila 3
+        expect(result.tabResults[0].newWatermark).toBe(3);
+        expect(mockInsertedClosures).toHaveLength(1);
+        expect(mockInsertedClosures[0].sheetMonth).toBe("MARZO");
     });
 
     it("no duplica datos si se ejecuta dos veces con el mismo sheet", async () => {
-        // Primera ejecución
-        mockSheetRows = [
-            ["Fecha", "Producto", "Cantidad", "Precio", "Ticket"],
-            ["2026-03-10", "Hamburguesa", "5", "2000", "T-100"],
+        mockTabs = ["MARZO"];
+        mockSheetRows["MARZO"] = [
+            ["Fecha", "Día", "Caja Z"],
+            ["01/03/2026", "Sábado", "1"],
         ];
 
-        const result1 = await syncSalesFromSheet();
-        expect(result1.newWatermark).toBe(1);
+        const result1 = await syncCashClosures();
+        expect(result1.totalProcessed).toBe(1);
 
         // Simular que el watermark se guardó
-        mockSyncState = {
-            id: "google_sheets_sales",
+        mockSyncStates["sheet_MARZO"] = {
+            id: 1,
+            syncKey: "sheet_MARZO",
             lastSyncedRow: 1,
-            lastSyncedDate: "2026-03-10",
-            lastRunAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
         };
+        mockInsertedClosures = [];
 
-        // Limpiar transacciones insertadas
-        mockInsertedTransactions = [];
-
-        // Segunda ejecución (mismo sheet, sin filas nuevas)
-        const result2 = await syncSalesFromSheet();
-        expect(result2.processed).toBe(0);
-        expect(result2.newWatermark).toBe(1); // No cambió
-        expect(mockInsertedTransactions.length).toBe(0); // No insertó nada
+        // Segunda ejecución
+        const result2 = await syncCashClosures();
+        expect(result2.totalProcessed).toBe(0);
+        expect(mockInsertedClosures).toHaveLength(0);
     });
 
-    it("devuelve resultado vacío si el sheet solo tiene header", async () => {
-        mockSheetRows = [
-            ["Fecha", "Producto", "Cantidad", "Precio", "Ticket"],
+    it("parsea correctamente valores de moneda en formato argentino", async () => {
+        mockTabs = ["MARZO"];
+        mockSheetRows["MARZO"] = [
+            ["Fecha", "Día", "Caja Z", "Turno", "V.Mostrador", "V.MP QR", "V.PedidosYa", "Total MP", "Total Ef", "Total Delivery", "Total Global", "Sobran/faltan"],
+            ["05/03/2026", "Miércoles", "5", "Noche", "$150.000", "$85.000,50", "$42.000", "$127.000,50", "$150.000", "$42.000", "$319.000,50", "-$1.200"],
         ];
 
-        const result = await syncSalesFromSheet();
-        expect(result.processed).toBe(0);
-        expect(result.errors).toContain("Sheet vacío o solo tiene header");
+        const result = await syncCashClosures();
+
+        expect(result.totalProcessed).toBe(1);
+        expect(mockInsertedClosures[0].salesCounter).toBe(150000);
+        expect(mockInsertedClosures[0].salesMpQr).toBe(85000.5);
+        expect(mockInsertedClosures[0].totalGlobal).toBe(319000.5);
+        expect(mockInsertedClosures[0].variance).toBe(-1200);
     });
 
-    it("reporta error en filas con fecha inválida sin abortar el sync", async () => {
-        mockSheetRows = [
-            ["Fecha", "Producto", "Cantidad", "Precio", "Ticket"],
-            ["INVALIDA", "Hamburguesa", "5", "2000", "T-100"],
-            ["2026-03-11", "Coca Cola", "2", "800", "T-101"],
+    it("ignora pestañas que no son meses válidos", async () => {
+        mockTabs = ["MARZO", "Configuración", "Resumen Anual", "ABRIL"];
+        mockSheetRows["MARZO"] = [
+            ["Fecha", "Día"], ["01/03/2026", "Sábado"],
+        ];
+        mockSheetRows["ABRIL"] = [
+            ["Fecha", "Día"], ["01/04/2026", "Martes"],
         ];
 
-        const result = await syncSalesFromSheet();
-        // La primera fila de datos tiene fecha inválida, debería reportar error
-        expect(result.errors.some(e => e.includes("fecha inválida"))).toBe(true);
-        // La segunda fila debería procesarse (skipped por SKU no encontrado, pero procesada desde el Sheet)
-        expect(result.newWatermark).toBe(2);
+        const result = await syncCashClosures();
+
+        expect(result.tabResults).toHaveLength(2); // Solo MARZO y ABRIL
+        expect(result.tabResults.map(t => t.tab)).toEqual(["MARZO", "ABRIL"]);
     });
 
-    it("normaliza fechas en formato DD/MM/YYYY correctamente", async () => {
-        mockSheetRows = [
-            ["Fecha", "Producto", "Cantidad", "Precio", "Ticket"],
-            ["10/03/2026", "Test Product", "1", "100", "T-200"],
+    it("omite filas sin fecha (totales, subtítulos, filas vacías)", async () => {
+        mockTabs = ["MARZO"];
+        mockSheetRows["MARZO"] = [
+            ["Fecha", "Día", "Caja Z"],
+            ["01/03/2026", "Sábado", "1"],    // OK
+            ["", "", ""],                       // Fila vacía
+            ["TOTAL", "", "$500000"],           // Fila de total
+            ["02/03/2026", "Domingo", "2"],    // OK
         ];
 
-        const result = await syncSalesFromSheet();
-        // Should process row with DD/MM/YYYY format without error
-        expect(result.newWatermark).toBe(1);
-        expect(result.errors.filter(e => e.includes("fecha inválida")).length).toBe(0);
+        const result = await syncCashClosures();
+
+        expect(result.totalProcessed).toBe(2);
+        expect(result.tabResults[0].skipped).toBe(2); // 2 filas sin fecha válida
     });
 });

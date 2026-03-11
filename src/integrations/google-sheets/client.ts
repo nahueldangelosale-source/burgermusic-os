@@ -70,3 +70,30 @@ export async function readSheetData(
         throw new Error(`Google Sheets API Error: ${error.message}`);
     }
 }
+
+/**
+ * Lista todas las pestañas (tabs) de un spreadsheet.
+ * @returns Array de nombres de pestañas, ej: ["MARZO", "FEBRERO", "ENERO"]
+ */
+export async function listSheetTabs(spreadsheetId: string): Promise<string[]> {
+    const auth = getAuthClient();
+    const sheets = google.sheets({ version: "v4", auth });
+
+    try {
+        const response = await sheets.spreadsheets.get({
+            spreadsheetId,
+            fields: "sheets.properties.title",
+        });
+
+        const sheetList = response.data.sheets;
+        if (!sheetList || sheetList.length === 0) {
+            return [];
+        }
+
+        return sheetList
+            .map(s => s.properties?.title)
+            .filter((t): t is string => !!t);
+    } catch (error: any) {
+        throw new Error(`Google Sheets API Error (listTabs): ${error.message}`);
+    }
+}

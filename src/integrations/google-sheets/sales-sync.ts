@@ -1,211 +1,205 @@
 // src/integrations/google-sheets/sales-sync.ts
-// Motor ETL: Extract (Google Sheets) → Transform (fuzzy match) → Load (recordTransaction)
+// ETL de Cierres de Caja — Extract (Google Sheets multi-pestaña) → Transform → Load
+//
+// ⚠️ REGLA INNEGOCIABLE: Este módulo NO toca recordTransaction() ni stock-engine.ts.
+// Los datos son financieros (flujo de caja), NO de inventario.
 
 import { db } from "@/db";
-import { products, syncState } from "@/db/schema";
+import { dailyCashClosures, syncState } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { readSheetData } from "./client";
-import { recordTransaction } from "@/core/stock-engine";
-
-const SYNC_ID = "google_sheets_sales";
+import { readSheetData, listSheetTabs } from "./client";
 
 // ─── TIPOS ──────────────────────────────────────────────────
 
 interface SyncResult {
+    totalProcessed: number;
+    totalSkipped: number;
+    tabResults: TabResult[];
+}
+
+interface TabResult {
+    tab: string;
     processed: number;
     skipped: number;
     errors: string[];
     newWatermark: number;
 }
 
-interface ParsedRow {
-    rowIndex: number;
-    date: string;
-    productName: string;
-    quantity: number;
-    priceUnit: number;
-    ticketId: string;
-}
+// Meses válidos en español (para filtrar pestañas)
+const VALID_MONTHS = [
+    "ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO",
+    "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE",
+];
 
 // ─── UTILIDADES ─────────────────────────────────────────────
 
 /**
- * Normaliza una fecha en formato DD/MM/YYYY o YYYY-MM-DD a ISO YYYY-MM-DD.
+ * Limpia un valor de moneda: quita "$", ".", comas y espacios.
+ * "$12.500,50" → 12500.50
+ * "12500" → 12500
+ */
+function parseCurrency(raw: string | undefined | null): number {
+    if (!raw || raw === "" || raw === "-") return 0;
+    const cleaned = String(raw)
+        .replace(/\$/g, "")        // Quitar $
+        .replace(/\s/g, "")        // Quitar espacios
+        .replace(/\./g, "")        // Quitar puntos de miles (formato AR)
+        .replace(",", ".");        // Coma decimal → punto decimal
+    const val = parseFloat(cleaned);
+    return isNaN(val) ? 0 : val;
+}
+
+/**
+ * Normaliza una fecha. Acepta DD/MM/YYYY, YYYY-MM-DD, o texto con día incluido.
  */
 function normalizeDate(raw: string): string | null {
     if (!raw) return null;
     const trimmed = raw.trim();
 
-    // YYYY-MM-DD (ya está OK)
     if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
 
-    // DD/MM/YYYY
     const ddmmyyyy = trimmed.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
     if (ddmmyyyy) {
         const [, dd, mm, yyyy] = ddmmyyyy;
         return `${yyyy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`;
     }
 
-    // Fallback: intentar parseo JS
     const d = new Date(trimmed);
     if (!isNaN(d.getTime())) return d.toISOString().split("T")[0];
 
     return null;
 }
 
-/**
- * Fuzzy match: busca el producto más cercano del catálogo.
- * Misma lógica simple que /receive.
- */
-function fuzzyMatchProduct(
-    rawName: string,
-    catalog: { id: string; name: string; synonyms: string[] | null }[]
-): string | null {
-    const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9áéíóúñü]/g, "");
-    const target = normalize(rawName);
-
-    for (const p of catalog) {
-        const pName = normalize(p.name);
-        if (pName === target || pName.includes(target) || target.includes(pName)) {
-            return p.id;
-        }
-        // Buscar en sinónimos
-        if (p.synonyms) {
-            for (const syn of p.synonyms) {
-                const nSyn = normalize(syn);
-                if (nSyn === target || nSyn.includes(target) || target.includes(nSyn)) {
-                    return p.id;
-                }
-            }
-        }
-    }
-    return null;
-}
-
 // ─── ETL PRINCIPAL ──────────────────────────────────────────
 
 /**
- * Sincroniza ventas desde Google Sheets al Ledger.
- * Implementa idempotencia con High-Water Mark (lastSyncedRow).
+ * Sincroniza cierres de caja desde TODAS las pestañas mensuales del Google Sheet.
+ * Implementa idempotencia por pestaña con High-Water Mark (sync_key = "sheet_MARZO").
  */
-export async function syncSalesFromSheet(): Promise<SyncResult> {
+export async function syncCashClosures(): Promise<SyncResult> {
     const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
     if (!spreadsheetId) {
-        throw new Error("GOOGLE_SHEETS_SPREADSHEET_ID is not defined in environment variables");
+        throw new Error("GOOGLE_SHEETS_SPREADSHEET_ID is not defined");
     }
 
-    // 1. EXTRACT: Leer datos del Sheet
-    const rawRows = await readSheetData(spreadsheetId);
+    // 1. Obtener lista de pestañas del spreadsheet
+    const allTabs = await listSheetTabs(spreadsheetId);
+
+    // Filtrar solo pestañas que parezcan meses válidos
+    const monthTabs = allTabs.filter(tab =>
+        VALID_MONTHS.includes(tab.toUpperCase().trim())
+    );
+
+    if (monthTabs.length === 0) {
+        throw new Error(
+            `No se encontraron pestañas con nombres de meses válidos. Pestañas encontradas: ${allTabs.join(", ")}`
+        );
+    }
+
+    console.log(`📊 Pestañas detectadas: ${monthTabs.join(", ")}`);
+
+    // 2. Procesar cada pestaña
+    const tabResults: TabResult[] = [];
+    let totalProcessed = 0;
+    let totalSkipped = 0;
+
+    for (const tab of monthTabs) {
+        const result = await syncSingleTab(spreadsheetId, tab);
+        tabResults.push(result);
+        totalProcessed += result.processed;
+        totalSkipped += result.skipped;
+    }
+
+    return { totalProcessed, totalSkipped, tabResults };
+}
+
+/**
+ * Sincroniza una pestaña individual (ej. "MARZO").
+ */
+async function syncSingleTab(spreadsheetId: string, tab: string): Promise<TabResult> {
+    const syncKey = `sheet_${tab.toUpperCase()}`;
+    const errors: string[] = [];
+
+    // 1. EXTRACT: Leer datos del Sheet (pestaña específica)
+    const rawRows = await readSheetData(spreadsheetId, `${tab}!A:L`);
     if (rawRows.length <= 1) {
-        return { processed: 0, skipped: 0, errors: ["Sheet vacío o solo tiene header"], newWatermark: 0 };
+        return { tab, processed: 0, skipped: 0, errors: ["Pestaña vacía o solo header"], newWatermark: 0 };
     }
 
-    // 2. Obtener el High-Water Mark actual
+    // 2. Obtener High-Water Mark para esta pestaña
     const [state] = await db
         .select()
         .from(syncState)
-        .where(eq(syncState.id, SYNC_ID));
+        .where(eq(syncState.syncKey, syncKey));
 
     const lastSyncedRow = state?.lastSyncedRow ?? 0;
 
-    // 3. Obtener catálogo de productos para fuzzy match
-    const catalog = await db
-        .select({ id: products.id, name: products.name, synonyms: products.synonyms })
-        .from(products);
-
-    // 4. TRANSFORM: Parsear y filtrar filas nuevas (skip header = fila 0)
-    const newRows: ParsedRow[] = [];
-    const errors: string[] = [];
-
-    for (let i = 1; i < rawRows.length; i++) {
-        // Solo procesar filas después del watermark
-        if (i <= lastSyncedRow) continue;
-
-        const row = rawRows[i];
-        if (!row || row.length < 3) continue;
-
-        const date = normalizeDate(String(row[0]));
-        if (!date) {
-            errors.push(`Fila ${i + 1}: fecha inválida "${row[0]}"`);
-            continue;
-        }
-
-        const productName = String(row[1] || "").trim();
-        if (!productName) continue;
-
-        const quantity = parseFloat(String(row[2] || "0"));
-        if (isNaN(quantity) || quantity <= 0) {
-            errors.push(`Fila ${i + 1}: cantidad inválida "${row[2]}"`);
-            continue;
-        }
-
-        const priceUnit = parseFloat(String(row[3] || "0")) || 0;
-        const ticketId = String(row[4] || "").trim();
-
-        newRows.push({ rowIndex: i, date, productName, quantity, priceUnit, ticketId });
-    }
-
-    if (newRows.length === 0) {
-        return { processed: 0, skipped: errors.length, errors, newWatermark: lastSyncedRow };
-    }
-
-    // 5. LOAD: Insertar transacciones en el Ledger dentro de una transacción ACID
+    // 3. TRANSFORM + LOAD: Parsear y cargar filas nuevas
     let processed = 0;
     let skipped = 0;
     let maxRow = lastSyncedRow;
 
     await db.transaction(async (tx) => {
-        for (const row of newRows) {
-            // Fuzzy match del producto
-            const matchedSku = fuzzyMatchProduct(row.productName, catalog as any);
+        for (let i = 1; i < rawRows.length; i++) {
+            // Solo procesar filas después del watermark
+            if (i <= lastSyncedRow) continue;
 
-            if (!matchedSku) {
-                console.warn(
-                    `⚠️ Sync: Fila ${row.rowIndex + 1} omitida — SKU no encontrado para "${row.productName}"`
-                );
-                errors.push(`Fila ${row.rowIndex + 1}: SKU no encontrado para "${row.productName}"`);
+            const row = rawRows[i];
+            if (!row || row.length < 3) continue;
+
+            // Columna A = Fecha
+            const date = normalizeDate(String(row[0] || ""));
+            if (!date) {
+                // Si no tiene fecha, probablemente es una fila de encabezado/total/vacía
                 skipped++;
-                // Track max row even for skipped rows (they were "processed" from the Sheet's perspective)
-                if (row.rowIndex > maxRow) maxRow = row.rowIndex;
+                if (i > maxRow) maxRow = i;
                 continue;
             }
 
-            // Grabar en el Ledger vía recordTransaction (aplica signo negativo automáticamente)
-            await recordTransaction(tx, {
-                type: "SALE",
-                productSku: matchedSku,
-                quantity: row.quantity,          // Motor aplica signo -
-                costCentsAtTime: Math.round(row.priceUnit * 100),
-                referenceId: row.ticketId || `GSHEET-ROW-${row.rowIndex + 1}`,
-                notes: `Sync Google Sheets — "${row.productName}"`,
-                createdBy: "SHEETS_ETL",
-            });
+            // Mapeo de columnas: A=Fecha, B=Día, C=CajaZ, D=Turno,
+            // E=VentasMostrador, F=VentasMPQR, G=VentasPedidosYa,
+            // H=TotalMP, I=TotalEf, J=TotalDelivery, K=TotalGlobal, L=Sobran/faltan
+            await tx.insert(dailyCashClosures).values({
+                date,
+                day: String(row[1] || "").trim() || null,
+                zClose: parseCurrency(row[2]),
+                shift: String(row[3] || "").trim() || null,
+                salesCounter: parseCurrency(row[4]),
+                salesMpQr: parseCurrency(row[5]),
+                salesDelivery: parseCurrency(row[6]),
+                totalMp: parseCurrency(row[7]),
+                totalCash: parseCurrency(row[8]),
+                totalDelivery: parseCurrency(row[9]),
+                totalGlobal: parseCurrency(row[10]),
+                variance: parseCurrency(row[11]),
+                sheetMonth: tab.toUpperCase(),
+            } as any);
 
             processed++;
-            if (row.rowIndex > maxRow) maxRow = row.rowIndex;
+            if (i > maxRow) maxRow = i;
         }
 
-        // 6. Actualizar High-Water Mark (solo si hubo éxito)
+        // 4. Actualizar High-Water Mark para esta pestaña
         if (maxRow > lastSyncedRow) {
             if (state) {
                 await tx
                     .update(syncState)
                     .set({
                         lastSyncedRow: maxRow,
-                        lastSyncedDate: newRows[newRows.length - 1].date,
-                        lastRunAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString(),
                     } as any)
-                    .where(eq(syncState.id, SYNC_ID));
+                    .where(eq(syncState.syncKey, syncKey));
             } else {
                 await tx.insert(syncState).values({
-                    id: SYNC_ID,
+                    syncKey,
                     lastSyncedRow: maxRow,
-                    lastSyncedDate: newRows[newRows.length - 1].date,
-                    lastRunAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
                 } as any);
             }
         }
     });
 
-    return { processed, skipped, errors, newWatermark: maxRow };
+    console.log(`  ✅ ${tab}: ${processed} cierres cargados, ${skipped} filas omitidas`);
+
+    return { tab, processed, skipped, errors, newWatermark: maxRow };
 }
