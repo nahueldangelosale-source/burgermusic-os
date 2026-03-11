@@ -1,0 +1,26 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "Running AppSec secret scan..."
+
+# Obtenemos solo los archivos modificados a punto de ser commiteados
+FILES=$(git diff --cached --name-only | grep -E '\.(ts|tsx|js|jsx)$')
+
+if [ -z "$FILES" ]; then
+    exit 0
+fi
+
+# Regla de escaneo contra contraseñas hardcodeadas o identificadores de secretos
+if grep -q -E -i '("1234"|"super-secret"|AUTH_SECRET\s*=\s*"[^"]+")' $FILES; then
+    echo "🚨 ERROR DE SEGURIDAD (AppSec) 🚨"
+    echo "Se han detectado posibles secretos hardcodeados en los archivos preparados para el commit."
+    echo ""
+    echo "Archivos afectados:"
+    grep -l -E -i '("1234"|"super-secret"|AUTH_SECRET\s*=\s*"[^"]+")' $FILES
+    echo ""
+    echo "Solución: Pasa las credenciales por variables de entorno (process.env)."
+    echo "El commit ha sido bloqueado."
+    exit 1
+fi
+
+exit 0

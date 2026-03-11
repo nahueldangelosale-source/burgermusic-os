@@ -1,0 +1,217 @@
+[
+    {
+        "category": "Hamburguesas + papas fritas",
+        "products": [
+            {
+                "name": "CLASSIC",
+                "description": "Cheddar, Carne, Cheddar. (INCLUYE PAPAS).",
+                "price": "$11.100"
+            },
+            {
+                "name": "DUKO",
+                "description": "Cheddar, Panceta, Salsa CUARTO (INCLUYE PAPAS).",
+                "price": "$13.100"
+            },
+            {
+                "name": "CHARLY",
+                "description": "Cheddar, Cebolla y Salsa Cuarto. (INCLUYE PAPAS).",
+                "price": "$11.700"
+            },
+            {
+                "name": "MALA FAMA",
+                "description": "Cheddar, Panceta, Huevo, Cebolla Caramelizada, Salsa Barbacoa. (INCLUYE PAPAS).",
+                "price": "$14.200"
+            },
+            {
+                "name": "HC (Hernán Cattáneo)",
+                "description": "Cebolla Crispy, Panceta Picada, Doble Cheddar y Salsa Tasty. (INCLUYE PAPAS).",
+                "price": "$14.200"
+            },
+            {
+                "name": "RESIDENTE",
+                "description": "Pan de Queso, Provoleta, Queso Dambo, Cebolla Crispy, Salsa Sweet Chili (Picante Dulce). (INCLUYE PAPAS).",
+                "price": "$14.200"
+            },
+            {
+                "name": "BOB MARLEY",
+                "description": "cheddar + salsa guacamole. (INCLUYE PAPAS)",
+                "price": "$12.100"
+            },
+            {
+                "name": "KISS",
+                "description": "Pan de queso, morrones asados, huevo, cheddar y salsa tasty. (INCLUYE PAPAS)",
+                "price": "$12.900"
+            },
+            {
+                "name": "ROLLING STONES",
+                "description": "Cheddar, Cebolla y Morrón Salteados, Salsa Especial. (INCLUYE PAPAS).",
+                "price": "$12.300"
+            },
+            {
+                "name": "RED HOT",
+                "description": "Cheddar, lechuga, tomate, jamon, salsa especial (INCLUYE PAPAS)",
+                "price": "$12.800"
+            },
+            {
+                "name": "THE BEATLES",
+                "description": "Cheddar, Cebolla Morada, Pepinos, Lechuga, Tomate, Salsa \"Big Mac\". (INCLUYE PAPAS).",
+                "price": "$12.600"
+            },
+            {
+                "name": "AC/DC",
+                "description": "Cheddar, Cebolla Crispy, Panceta, Salsa Barbacoa. (INCLUYE PAPAS).",
+                "price": "$13.200"
+            },
+            {
+                "name": "FRIED ONION",
+                "description": "Homenaje a George Motz: Carne Smasheada con Cebolla, Doble Cheddar por Medallón, Mayonesa y Ketchup. (INCLUYE PAPAS).",
+                "price": "$12.800"
+            },
+            {
+                "name": "TECHNO CHICKEN",
+                "description": "medallon de pollo, cheddar, lechuga, tomate, cebolla, salsa bigmac. (INCLUYE PAPAS).",
+                "price": "$10.700"
+            },
+            {
+                "name": "GORILLAZ",
+                "description": "Aros de cebolla, panceta, doble Cheddar, salsa cuarto. (INCLUYE PAPAS).",
+                "price": "$13.800"
+            },
+            {
+                "name": "MADONNA Veggie",
+                "description": "Medallon veggie a eleccion + Queso, cebolla crispy, tomate, mayonesa not co. (INCLUYE PAPAS).",
+                "price": "$12.300"
+            },
+            {
+                "name": "PATRICIO REY",
+                "description": "Queso Provoleta + oregano, salsa criolla. (INCLUYE PAPAS).",
+                "price": "$13.500"
+            },
+            {
+                "name": "ALMA FUERTE pulled pork",
+                "description": "Sandwich de bondiola desmenuzada + cheddar + barbacoa + Papas fritas",
+                "price": "$13.500"
+            },
+            {
+                "name": "BIZARRAP Session #1",
+                "description": "Medallon de pollo crunch, doble cheddar, panceta, salsa barbacoa. (INCLUYE PAPAS).",
+                "price": "$10.500"
+            },
+            {
+                "name": "BIZARRAP Session #2",
+                "description": "Medallón de pollo crunch, cheddar,tomate,lechuga,cebolla y mostaza dulce. (INCLUYE PAPAS).",
+                "price": "$10.500"
+            },
+            {
+                "name": "Eminem",
+                "description": "doble smash, croissant,doble cheddar y panceta",
+                "price": "$17.600"
+            },
+            {
+                "name": "KIDS ROCK (menu infantil)",
+                "description": "4 unidades Ricosaurios de pollo + Papas individuales",
+                "price": "$7.500"
+            }
+        ]
+    },
+    {
+        "category": "Bebidas",
+        "products": [
+            {
+                "name": "villavicencio 500cc",
+                "description": "",
+                "price": "$2.100"
+            },
+            {
+                "name": "Coca Cola 1.5 lts",
+                "description": "",
+                "price": "$4.300"
+            },
+            {
+                "name": "Coca Cola Zero 1.5 Lts",
+                "description": "",
+                "price": "$4.300"
+            },
+            {
+                "name": "SpriTe 1.5 lts",
+                "description": "",
+                "price": "$4.300"
+            },
+            {
+                "name": "lata Sprite 354cc",
+                "description": "",
+                "price": "$2.500"
+            },
+            {
+                "name": "lata Coca-Cola 354cc",
+                "description": "",
+                "price": "$2.500"
+            },
+            {
+                "name": "Levite de naranja 500ml",
+                "description": "",
+                "price": "$2.100"
+            },
+            {
+                "name": "Levite de manzana 500ml",
+                "description": "",
+                "price": "$2.100"
+            },
+            {
+                "name": "Levite de pomelo 500ml",
+                "description": "",
+                "price": "$2.100"
+            },
+            {
+                "name": "Levite de pomelo 1,5lt",
+                "description": "",
+                "price": "$2.800"
+            },
+            {
+                "name": "Levite de manzana 1.5 lts",
+                "description": "",
+                "price": "$2.800"
+            },
+            {
+                "name": "Cerveza Heineken Lata 473cc",
+                "description": "",
+                "price": "$3.700"
+            },
+            {
+                "name": "Andes Rubia Lata 473cc",
+                "description": "",
+                "price": "$3.000"
+            },
+            {
+                "name": "Andes IPA",
+                "description": "",
+                "price": "$3.000"
+            },
+            {
+                "name": "Stella artois lata",
+                "description": "Cerveza Artesanal Schmeckt Gut s de 500cc",
+                "price": "$3.700"
+            },
+            {
+                "name": "Heineken Laton 710ml",
+                "description": "",
+                "price": "$5.000"
+            },
+            {
+                "name": "Sprite 500 ml",
+                "description": "Sprite 500 ml",
+                "price": "$2.400"
+            },
+            {
+                "name": "Fanta 500 ml",
+                "description": "",
+                "price": "$2.400"
+            },
+            {
+                "name": "Paso de los Toros 500 ml",
+                "description": "",
+                "price": "$2.400"
+            }
+        ]
+    }
+]

@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    --foreground-rgb: 15, 23, 42;
+    --background-start-rgb: 248, 250, 252;
+    --background-end-rgb: 241, 245, 249;
+}
+
+body {
+    color: rgb(var(--foreground-rgb));
+    background: linear-gradient(to bottom,
+            transparent,
+            rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb));
+    font-feature-settings: "rlig" 1, "calt" 1;
+    /* Tipografía más legible */
+}
+
+/* 
+  Antigravity Utils 
+  Preferencia: Usar clases de Tailwind (bg-glass, shadow-levitate) 
+  Esto se mantiene por compatibilidad con componentes existentes
+*/
+.glass-panel {
+    background-color: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: theme('boxShadow.levitate');
+}
