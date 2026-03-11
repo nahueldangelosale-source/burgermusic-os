@@ -151,3 +151,11 @@ export const po_items = sqliteTable("po_items", {
   quantity_ordered: real("quantity_ordered"),
   unit_cost_snapshot: integer("unit_cost_snapshot"),
 });
+
+// --- ESTADO DE SINCRONIZACIÓN (ETL) ---
+export const syncState = sqliteTable('sync_state', {
+  id: text('id').primaryKey(),              // Ej: "google_sheets_sales"
+  lastSyncedDate: text('last_synced_date'), // Última fecha procesada
+  lastSyncedRow: integer('last_synced_row').default(0), // Última fila procesada
+  lastRunAt: text('last_run_at'),           // Timestamp del último sync
+});
