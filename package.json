@@ -8,8 +8,11 @@
         "start": "next start",
         "lint": "biome check .",
         "format": "biome check --write .",
+        "test": "vitest run",
+        "test:watch": "vitest",
         "db:push": "drizzle-kit push",
-        "db:seed": "tsx src/db/seed.ts"
+        "db:seed": "tsx src/db/seed.ts",
+        "db:migrate-ledger": "tsx scripts/migrate-ledger.ts"
     },
     "dependencies": {
         "@ai-sdk/google": "^1.1.0",
