@@ -60,14 +60,27 @@ export const priceHistory = sqliteTable('price_history', {
   createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
 });
 
-// --- TRANSACCIONES (Depende de Productos) ---
+// --- LEDGER DE TRANSACCIONES (Patrón Kardex) ---
+export const TRANSACTION_TYPES = [
+  "RECEIPT",      // +qty. Entrada por factura de proveedor
+  "SALE",         // -qty. Salida por venta (explosionada por BOM)
+  "ADJUSTMENT",   // ±qty. Corrección manual (merma, robo, error)
+  "WASTE",        // -qty. Desperdicio (producto vencido, quemado)
+  "COUNT",        // ±qty. Ajuste por conteo físico (snapshot → delta)
+] as const;
+
+export type TransactionType = typeof TRANSACTION_TYPES[number];
+
 export const transactions = sqliteTable('transactions', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   date: text('date').notNull(),
-  type: text('type').notNull(),
-  productSku: text('product_sku').references(() => products.id),
-  quantity: real('quantity').notNull(), // Changed to real to support kg/L
-  referenceId: text('reference_id'),
+  type: text('type', { enum: TRANSACTION_TYPES }).notNull(),
+  productSku: text('product_sku').references(() => products.id).notNull(),
+  quantity: real('quantity').notNull(), // +positivo = entrada, -negativo = salida
+  costCentsAtTime: integer('cost_cents_at_time').default(0), // Costo unitario congelado
+  referenceId: text('reference_id'),    // ID de factura, venta POS, etc.
+  notes: text('notes'),                 // "Merma por vencimiento", etc.
+  createdBy: text('created_by'),        // userId que registró
   createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
 });
 

@@ -1,6 +1,7 @@
 import { db } from "@/db";
 import { products, recipes, transactions, inventorySnapshots } from "@/db/schema";
 import { sql, eq, and, gte, sum, desc } from "drizzle-orm";
+import { getAllCurrentStock } from "@/core/stock-engine";
 
 // TIPO DE DATO PARA SUGERENCIA DE COMPRA
 export interface RestockSuggestion {
@@ -24,7 +25,7 @@ export interface RestockSuggestion {
  * Calcula:
  * 1. Consumo promedio diario (ADC) de los últimos 7 días.
  * 2. Proyecta necesidad para X días.
- * 3. Resta el stock actual.
+ * 3. Resta el stock actual (ahora real, desde el Ledger).
  */
 export async function calculateRestockNeeds(daysToCover: number = 3): Promise<RestockSuggestion[]> {
     // 1. Obtener Ventas de los últimos 7 días
@@ -43,10 +44,11 @@ export async function calculateRestockNeeds(daysToCover: number = 3): Promise<Re
         .groupBy(transactions.productSku);
 
     // Mapa de Ventas: { "MALA_FAMA_DOBLE": 50, ... }
+    // Nota: SALE es negativo en el Ledger, usar Math.abs
     const salesMap = new Map<string, number>();
     salesData.forEach(s => {
         if (s.productSku && s.totalSold) {
-            salesMap.set(s.productSku, Number(s.totalSold));
+            salesMap.set(s.productSku, Math.abs(Number(s.totalSold)));
         }
     });
 
@@ -58,12 +60,8 @@ export async function calculateRestockNeeds(daysToCover: number = 3): Promise<Re
         }
     });
 
-    // 3. Obtener Stock Actual (Snapshot más reciente + Movimientos posteriores)
-    // SIMPLIFICACIÓN MVP: Usamos el último snapshot conocido o 0 si no hay.
-    // LÓGICA IDEAL: Stock = Último Snapshot + Compras - Ventas (usando recetas).
-    // Para este MVP fase F, asumiremos que el "Stock Actual" es calculable o se puede estimar.
-    // DADO QUE NO TENEMOS UN "LIVE STOCK" PERFECTO AÚN, VAMOS A USAR UN DATO SIMULADO O CALCULADO.
-    // Vamos a calcular el consumo teórico de INSUMOS basado en las ventas.
+    // 3. Obtener Stock Actual REAL desde el Ledger
+    const stockMap = await getAllCurrentStock();
 
     const ingredientConsumption = new Map<string, number>(); // Sku -> Total consumido en 7 días
 
@@ -96,14 +94,13 @@ export async function calculateRestockNeeds(daysToCover: number = 3): Promise<Re
         const consumption7Days = ingredientConsumption.get(product.id) || 0;
         const avgDailyConsumption = consumption7Days / 7;
 
-        // TODO: En Fase Real, leer stock. Aquí asumimos stock bajo para forzar sugerencia en demo.
-        // O mejor: Si no hay datos de stock, asumimos 0 para que sugiera comprar TODO lo necesario.
-        const currentStock = 0;
+        // Stock REAL del Ledger (ya no es 0)
+        const currentStock = stockMap.get(product.id) ?? 0;
 
         const needed = avgDailyConsumption * daysToCover;
         const suggestion = Math.max(0, needed - currentStock);
 
-        if (suggestion <= 0 && avgDailyConsumption === 0) continue; // No pedir si no se usa y no se necesita
+        if (suggestion <= 0 && avgDailyConsumption === 0) continue;
 
         const supplierName = product.supplier?.name || "Desconocido";
 
@@ -115,6 +112,8 @@ export async function calculateRestockNeeds(daysToCover: number = 3): Promise<Re
             });
         }
 
+        const stockStatus = currentStock <= 0 ? "CRITICAL" : (suggestion > 0 ? "LOW" : "OK");
+
         suggestionsBySupplier.get(product.supplierId)!.items.push({
             productId: product.id,
             productName: product.name,
@@ -122,11 +121,12 @@ export async function calculateRestockNeeds(daysToCover: number = 3): Promise<Re
             currentStock,
             avgDailyConsumption,
             daysToCover,
-            suggestedQuantity: Math.ceil(suggestion), // Redondear hacia arriba
+            suggestedQuantity: Math.ceil(suggestion),
             unitCost: product.costCents || 0,
-            status: suggestion > 0 ? "LOW" : "OK"
+            status: stockStatus
         });
     }
 
     return Array.from(suggestionsBySupplier.values());
 }
+

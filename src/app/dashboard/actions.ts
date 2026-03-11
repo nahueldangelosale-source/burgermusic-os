@@ -3,6 +3,7 @@
 import { db } from "@/db";
 import { products, recipes, transactions, inventorySnapshots } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
+import { getAllCurrentStock } from "@/core/stock-engine";
 
 interface AuditItem {
     id: string; // SKU
@@ -38,18 +39,8 @@ export async function getAuditData(): Promise<AuditSummary> {
         recipeMap.set(r.productSku, list);
     }
 
-    // 2. Fetch Latest Snapshots (The "Real" Count)
-    const allSnapshots = await db
-        .select()
-        .from(inventorySnapshots)
-        .orderBy(desc(inventorySnapshots.date)); // Latest first
-
-    const latestSnapshotMap = new Map<string, typeof allSnapshots[0]>();
-    for (const s of allSnapshots) {
-        if (!latestSnapshotMap.has(s.productSku)) {
-            latestSnapshotMap.set(s.productSku, s);
-        }
-    }
+    // 2. Fetch REAL stock from Ledger (SUM of all transactions)
+    const stockMap = await getAllCurrentStock();
 
     // 3. Fetch Transactions
     const allTransactions = await db
@@ -82,24 +73,23 @@ export async function getAuditData(): Promise<AuditSummary> {
     const items: AuditItem[] = [];
     let itemsTotalVarianceCost = 0;
 
-    const relevantSkus = new Set([...theoreticalUsage.keys(), ...latestSnapshotMap.keys()]);
+    const relevantSkus = new Set([...theoreticalUsage.keys(), ...stockMap.keys()]);
 
     for (const sku of relevantSkus) {
         const product = allProducts.find(p => p.id === sku);
         if (!product) continue;
 
-        const realObj = latestSnapshotMap.get(sku);
-        const real = realObj ? realObj.actualCount : 0;
+        // Stock real del Ledger (SUM de transacciones)
+        const real = stockMap.get(sku) ?? 0;
 
-        // Calculate PURCHASES
+        // Calculate PURCHASES (solo entradas positivas)
         const productPurchases = allTransactions
-            .filter(t => t.productSku === sku && t.type === 'PURCHASE')
+            .filter(t => t.productSku === sku && t.type === 'RECEIPT')
             .reduce((sum, t) => sum + t.quantity, 0);
 
         const totalOut = theoreticalUsage.get(sku) || 0;
 
-        // FORMULA: Theoretical Stock = Start + Purchases - Usage (Sales)
-        // Ignoring Start Stock for now as per previous logic (or assuming 0 relative to period)
+        // FORMULA: Theoretical Stock = Purchases - Usage (teórico)
         const theoreticalStock = productPurchases - totalOut;
         const variance = real - theoreticalStock;
 
@@ -111,7 +101,7 @@ export async function getAuditData(): Promise<AuditSummary> {
 
         let status: "CRITICAL" | "PROFIT" | "NEUTRAL" | "PENDING" = "NEUTRAL";
 
-        if (!realObj) status = "PENDING";
+        if (real === 0 && productPurchases === 0) status = "PENDING";
         else if (variance < -0.5) status = "CRITICAL";
         else if (variance > 0.5) status = "PROFIT";
 
@@ -130,11 +120,23 @@ export async function getAuditData(): Promise<AuditSummary> {
         });
     }
 
+    // 6. Calculate real KPIs
+    const totalSalesRevenue = sales.reduce((acc, sale) => {
+        const product = allProducts.find(p => p.id === sale.productSku);
+        return acc + (Math.abs(sale.quantity) * (product?.sellingPrice || 0) / 100);
+    }, 0);
+
+    const itemsWithData = items.filter(i => i.status !== "PENDING");
+    const itemsWithinTolerance = itemsWithData.filter(i => Math.abs(i.variance) <= 0.5);
+    const effectiveness = itemsWithData.length > 0
+        ? Math.round((itemsWithinTolerance.length / itemsWithData.length) * 100)
+        : 100;
+
     return {
-        totalSales: 0, // Placeholder
+        totalSales: totalSalesRevenue,
         totalVarianceCost: itemsTotalVarianceCost,
-        stockEffectiveness: 98.5, // Placeholder
-        lastAuditDate: latestSnapshotMap.size > 0 ? new Date().toISOString() : null,
+        stockEffectiveness: effectiveness,
+        lastAuditDate: new Date().toISOString(),
         items
     };
 }

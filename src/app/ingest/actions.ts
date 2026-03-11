@@ -7,6 +7,7 @@ import { products, inventorySnapshots } from "@/db/schema";
 import { InventoryReportSchema } from "@/agents/translator/schema";
 import { revalidatePath } from "next/cache";
 import { DetectedItem } from "@/agents/translator/types";
+import { getCurrentStock, recordTransaction } from "@/core/stock-engine";
 
 export async function verifyKitchenPin(pin: string) {
     const validPin = process.env.KITCHEN_PIN;
@@ -49,21 +50,38 @@ export async function parseInventoryMessage(rawText: string) {
     return object;
 }
 
-// 2. Accion de Guardado (Base de Datos)
+// 2. Accion de Guardado (Base de Datos) — Con Ledger COUNT
 export async function saveInventory(items: DetectedItem[]) {
-    // Guardamos solo los items validos
-    for (const item of items) {
-        if (item.matchedSkuId) {
-            await db.insert(inventorySnapshots).values({
-                productSku: item.matchedSkuId,
-                actualCount: item.quantity,
-                rawInput: item.rawInput,
-                reportedBy: "WebApp User",
-                // schema defaults handled by database
-            } as any);
+    await db.transaction(async (tx) => {
+        for (const item of items) {
+            if (item.matchedSkuId) {
+                // A. Guardar snapshot de conteo físico
+                await tx.insert(inventorySnapshots).values({
+                    productSku: item.matchedSkuId,
+                    actualCount: item.quantity,
+                    rawInput: item.rawInput,
+                    reportedBy: "WebApp User",
+                } as any);
+
+                // B. Calcular delta: (conteo físico) − (stock calculado del Ledger)
+                const calculatedStock = await getCurrentStock(item.matchedSkuId);
+                const delta = item.quantity - calculatedStock;
+
+                // C. Si hay diferencia, registrar transacción COUNT para reconciliar
+                if (Math.abs(delta) > 0.01) {
+                    await recordTransaction(tx, {
+                        type: "COUNT",
+                        productSku: item.matchedSkuId,
+                        quantity: delta, // Puede ser + o -, ADJUSTMENT/COUNT acepta signo libre
+                        notes: `Ajuste por conteo físico. Reportado: ${item.quantity}, Calculado: ${calculatedStock.toFixed(2)}`,
+                        createdBy: "KITCHEN",
+                    });
+                }
+            }
         }
-    }
+    });
 
     revalidatePath("/ingest");
     return { success: true };
 }
+

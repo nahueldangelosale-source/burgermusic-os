@@ -2,10 +2,11 @@
 
 import { parseInvoice } from "@/lib/ai/invoice-parser";
 import { db } from "@/db";
-import { suppliers, receptions, products, transactions, priceHistory } from "@/db/schema";
+import { suppliers, receptions, products, priceHistory } from "@/db/schema";
 import { sql, eq } from "drizzle-orm";
 import { getSession } from "@/lib/auth";
 import { z } from "zod";
+import { recordTransaction } from "@/core/stock-engine";
 
 export async function processInvoice(formData: FormData) {
     try {
@@ -151,22 +152,22 @@ export async function confirmInvoice(data: any) {
                     const conversionFactor = item.conversion_factor || 1;
                     const finalQuantity = quantityReceived * conversionFactor;
 
-                    // A. Update Stock (Insert 'PURCHASE' transaction)
-                    await tx.insert(transactions).values({
-                        date: new Date().toISOString(),
-                        type: "PURCHASE",
-                        productSku: productSku,
-                        quantity: finalQuantity,
-                        referenceId: receptionId,
-                    } as any);
-
-                    // B. Update Cost logic
-                    // unit_price is per invoice unit.
-                    // system_unit_cost = (unit_price / conversion_factor)
+                    // B. Calculate system unit cost
                     const invoiceUnitCost = item.unit_price;
                     const systemUnitCostCents = Math.round((invoiceUnitCost / conversionFactor) * 100);
 
-                    // Fetch current cost to check for change
+                    // A. Record RECEIPT transaction in Ledger
+                    await recordTransaction(tx, {
+                        type: "RECEIPT",
+                        productSku: productSku,
+                        quantity: finalQuantity,
+                        costCentsAtTime: systemUnitCostCents,
+                        referenceId: receptionId,
+                        notes: `Factura ${invoice.invoice_number}`,
+                        createdBy: session.user.id,
+                    });
+
+                    // C. Fetch current cost to check for change
                     const [currentProduct] = await tx
                         .select({ costCents: products.costCents })
                         .from(products)
@@ -174,14 +175,13 @@ export async function confirmInvoice(data: any) {
 
                     if (currentProduct && currentProduct.costCents !== systemUnitCostCents) {
                         // Log Price History
-                        // DISABLED FOR DEPLOYMENT DUE TO TYPE ERROR
-                        // await tx.insert(priceHistory).values({
-                        //     productSku: productSku,
-                        //     oldCost: currentProduct?.costCents || 0,
-                        //     newCost: systemUnitCostCents,
-                        //     changedBy: session.user.id,
-                        //     changeReason: `Invoice ${invoice.invoice_number}`,
-                        // } as any);
+                        await tx.insert(priceHistory).values({
+                            productSku: productSku,
+                            oldCost: currentProduct?.costCents || 0,
+                            newCost: systemUnitCostCents,
+                            changedBy: session.user.id,
+                            changeReason: `Factura ${invoice.invoice_number}`,
+                        } as any);
 
                         // Update Product Cost
                         await tx.update(products)
