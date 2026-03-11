@@ -178,3 +178,17 @@ export const dailyCashClosures = sqliteTable('daily_cash_closures', {
   sheetMonth: text('sheet_month'),           // Pestaña origen (ej. "MARZO")
   createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
 });
+
+// --- RELATIONS ---
+import { relations } from 'drizzle-orm';
+
+export const productsRelations = relations(products, ({ one }) => ({
+  supplier: one(suppliers, {
+    fields: [products.supplierId],
+    references: [suppliers.id],
+  }),
+}));
+
+export const suppliersRelations = relations(suppliers, ({ many }) => ({
+  products: many(products),
+}));

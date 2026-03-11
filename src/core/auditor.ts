@@ -38,6 +38,7 @@ export async function runDailyAudit(date: string): Promise<AuditItem[]> {
         if (productRecipes.length > 0) {
             // Tiene receta (ej: Hamburguesa -> Carne + Pan)
             for (const ingredient of productRecipes) {
+                if (!ingredient.ingredientSku) continue;
                 const qty = ingredient.quantity * sale.quantity;
                 const current = theoreticalUsage.get(ingredient.ingredientSku) || 0;
                 theoreticalUsage.set(ingredient.ingredientSku, current + qty);
@@ -65,7 +66,8 @@ export async function runDailyAudit(date: string): Promise<AuditItem[]> {
         // Nota: Esto se refinará cuando tengamos historial continuo. 
         // Si no hay reporte de stock hoy, el consumo real es 0 (o desconocido).
         const stockReport = endStock.find(s => s.productSku === sku);
-        const real = stockReport ? (productInfo.safetyStock - stockReport.actualCount) : 0; // Simulacion simple para MVP
+        const safetyStock = productInfo.safetyStock ?? 0;
+        const real = stockReport ? (safetyStock - stockReport.actualCount) : 0; // Simulacion simple para MVP
 
         // En realidad, sin stock de ayer, solo podemos mostrar el TEÓRICO vs NADA.
         // Marcamos como "NO_DATA" si no hubo conteo físico hoy.
@@ -73,7 +75,8 @@ export async function runDailyAudit(date: string): Promise<AuditItem[]> {
 
         // Cálculo de Varianza (Solo si hay auditoría física)
         const variance = hasAudit ? (teo - real) : 0;
-        const costLost = variance * (productInfo.costCents / 100);
+        const currentCost = productInfo.costCents ?? 0;
+        const costLost = variance * (currentCost / 100);
 
         report.push({
             sku,

@@ -1,6 +1,6 @@
 import 'dotenv/config'; // Carga .env para el script local
 import { db } from './index'; // Tu conexión exportada
-import { products } from './schema';
+import { products, users } from './schema';
 
 async function seed() {
     console.log('🌱 Sembrando base de datos...');
@@ -51,7 +51,18 @@ async function seed() {
 
     await db.insert(products).values(items).onConflictDoNothing();
 
-    console.log('✅ Base de datos poblada con 5 productos base (SKUs Texto).');
+    // Sembrar Manager Default (PIN: 1234)
+    const bcrypt = await import('bcryptjs');
+    const hashedPin = await bcrypt.hash('1234', 10);
+    
+    await db.insert(users).values({
+        id: 'admin',
+        name: 'Manager',
+        role: 'MANAGER',
+        pin_hash: hashedPin
+    }).onConflictDoNothing();
+
+    console.log('✅ Base de datos poblada con 5 productos y Manager (PIN: 1234).');
     process.exit(0);
 }
 

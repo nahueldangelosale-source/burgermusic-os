@@ -16,10 +16,10 @@
     },
     "dependencies": {
         "@ai-sdk/google": "^1.1.0",
-        "@clerk/nextjs": "^6.37.4",
         "@libsql/client": "^0.14.0",
         "ai": "^4.1.0",
         "autoprefixer": "^10.4.24",
+        "bcryptjs": "^3.0.3",
         "clsx": "^2.1.0",
         "dotenv": "^16.4.0",
         "drizzle-orm": "^0.39.0",
@@ -36,6 +36,7 @@
     },
     "devDependencies": {
         "@biomejs/biome": "1.9.0",
+        "@types/bcryptjs": "^2.4.6",
         "@types/node": "^20",
         "@types/react": "^19",
         "@types/react-dom": "^19",

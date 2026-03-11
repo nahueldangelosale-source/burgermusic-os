@@ -47,7 +47,7 @@ export default function AnalyticsDashboard({ data }: { data: AnalyticsSummary })
                                 tickFormatter={(val) => `$${val / 1000}k`}
                             />
                             <Tooltip
-                                formatter={(val: number) => currency.format(val)}
+                                formatter={(val: any) => currency.format(val as number)}
                                 labelFormatter={(label) => new Date(label).toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
                                 contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}
                             />
@@ -83,7 +83,7 @@ export default function AnalyticsDashboard({ data }: { data: AnalyticsSummary })
                             />
                             <Tooltip
                                 cursor={{ fill: 'rgba(0,0,0,0.05)' }}
-                                formatter={(val: number) => [val, 'Unidades']}
+                                formatter={(val: any) => [val, 'Unidades']}
                             />
                             <Bar dataKey="quantity" fill="#10B981" radius={[0, 4, 4, 0]} barSize={32} />
                         </BarChart>
@@ -114,7 +114,7 @@ export default function AnalyticsDashboard({ data }: { data: AnalyticsSummary })
                                 ))}
                             </Pie>
                             <Tooltip
-                                formatter={(val: number) => currency.format(val)}
+                                formatter={(val: any) => currency.format(val as number)}
                             />
                             <Legend />
                         </PieChart>

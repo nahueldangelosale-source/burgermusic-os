@@ -30,14 +30,27 @@ export async function processInvoice(formData: FormData) {
         }
 
         // --- PROCESS AI RESULTS ---
-        const rawData = aiResult.data;
+        interface AIInvoiceData {
+            supplier_name: string;
+            invoice_number: string;
+            total_amount: number;
+            items: {
+                description: string;
+                quantity: number;
+                unit_price: number;
+                total_price: number;
+                unit?: string;
+            }[];
+        }
+
+        const rawData = aiResult.data as AIInvoiceData;
 
         // 1. FUZZY MATCH SUPPLIER
         const allSuppliers = await db.select().from(suppliers);
-        let matchedSupplierId = null;
-        let matchedSupplierName = rawData.supplier_name;
+        let matchedSupplierId: string | null = null;
+        let matchedSupplierName = rawData.supplier_name || "Unknown Supplier";
 
-        if (allSuppliers.length > 0) {
+        if (allSuppliers.length > 0 && rawData.supplier_name) {
             const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
             const target = normalize(rawData.supplier_name);
             const match = allSuppliers.find(s => normalize(s.name).includes(target) || target.includes(normalize(s.name)));

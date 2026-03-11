@@ -4,25 +4,31 @@ import { db } from "@/db"; // Server-only
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { encrypt, decrypt } from "@/lib/session"; // Edge-compatible utils
+import bcrypt from "bcryptjs";
 
 export async function login(pin: string) {
-    // 1. Find user by PIN (In production, find by ID then compare Hash)
-    // Since we don't have a keypad for ID, we assume distinct PINs for MVP or a list to pick from.
-    // For this MVP, we will query by pin_hash (assuming unique PINs for simplicity)
-    const user = await db.query.users.findFirst({
-        where: eq(users.pin_hash, pin),
-    });
+    // 1. Fetch all users to compare hash (In prod, find by ID/User then compare)
+    // Since this is a PIN-only login for speed, we iterate.
+    const allUsers = await db.select().from(users);
+    
+    let matchedUser = null;
+    for (const user of allUsers) {
+        if (await bcrypt.compare(pin, user.pin_hash)) {
+            matchedUser = user;
+            break;
+        }
+    }
 
-    if (!user) return null;
+    if (!matchedUser) return null;
 
     // 2. Create Session
     const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-    const session = await encrypt({ user, expires });
+    const session = await encrypt({ user: matchedUser, expires });
 
     // 3. Set Cookie
     (await cookies()).set("session", session, { expires, httpOnly: true });
 
-    return user;
+    return matchedUser;
 }
 
 export async function logout() {
