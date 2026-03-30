@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1773891481140,
+      "tag": "0000_safe_giant_girl",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1773945812803,
+      "tag": "0001_mixed_sue_storm",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1774011747800,
+      "tag": "0002_curved_omega_flight",
+      "breakpoints": true
+    }
+  ]
+}

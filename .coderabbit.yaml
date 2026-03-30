@@ -1,0 +1,101 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.yaml
+
+language: "es"
+tone_instructions: "Directo y técnico. Sin elogios. Enfócate en violaciones de Zero-Trust, Soft Deletes, y anti-patrones de React 19."
+
+early_access: true
+
+reviews:
+  profile: "assertive"
+  request_changes_workflow: true
+  high_level_summary: true
+  high_level_summary_placeholder: "@coderabbitai resumen"
+  auto_title_placeholder: "[BurgerMusic]"
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+  sequence_diagrams: false
+  changed_files_summary: true
+  labeling_instructions: []
+  path_filters: []
+  path_instructions: []
+  abort_on_close: true
+
+  tools:
+    shellcheck:
+      enabled: true
+    ruff:
+      enabled: true
+    markdownlint:
+      enabled: true
+    github-checks:
+      enabled: true
+      timeout_ms: 90000
+    languagetool:
+      enabled: true
+      enabled_only: false
+      level: "default"
+      enabled_rules: []
+      disabled_rules:
+        - "WHITESPACE_RULE"
+    biome:
+      enabled: true
+    hadolint:
+      enabled: true
+    swiftlint:
+      enabled: false
+    phpstan:
+      enabled: false
+    golangci-lint:
+      enabled: false
+
+chat:
+  auto_reply: true
+
+knowledge_base:
+  learnings:
+    scope: "global"
+  issues:
+    scope: "global"
+  jira:
+    project_keys: []
+  linear:
+    team_keys: []
+  pull_requests:
+    scope: "global"
+
+  # ── REGLAS ESTRICTAS DE GOBERNANZA (Antigravity 2026) ──
+  opt_out: false
+  rules:
+    - pattern: "**/*.ts"
+      instructions: |
+        REGLA A — Violación Zero-Trust (storeId por defecto):
+        Bloquear INMEDIATAMENTE si se detecta la inyección de un `storeId` hardcodeado
+        como cadena literal (ej: `storeId: "centro"`, `store_id: "default"`) en cualquier
+        Server Action, Route Handler o consulta Drizzle ORM que NO sea un archivo de seed
+        o test (`seed*.ts`, `test*.ts`, `e2e*.ts`).
+        Justificación: El tenant ID DEBE provenir exclusivamente de la sesión autenticada
+        vía `getSession()` o `withTenant()`. Cualquier valor estático es una brecha de
+        aislamiento multi-tenant.
+
+    - pattern: "src/actions/**/*.ts"
+      instructions: |
+        REGLA B — DELETE Físico Prohibido (Inmutabilidad Forense):
+        Bloquear INMEDIATAMENTE si se detecta el uso de `db.delete()`, `tx.delete()`,
+        o cualquier variante de `DELETE FROM` en SQL crudo dentro de Server Actions.
+        Justificación: Todas las eliminaciones deben ser Soft Deletes mediante
+        `.set({ deletedAt: new Date() })`. Los DELETE físicos destruyen la trazabilidad
+        forense y violan el estándar de auditoría SOC2/ISO27001.
+        Excepción ÚNICA: Archivos en `src/scripts/` y `src/db/seed*.ts` para gestión
+        de datos de desarrollo.
+
+    - pattern: "src/app/**/*.tsx"
+      instructions: |
+        REGLA C — Anti-Patrón React 19 (Estado Global para Mutaciones):
+        Bloquear INMEDIATAMENTE si se detecta el uso de `useState` + `useEffect` para
+        realizar mutaciones de datos (fetch → setState → render). En React 19 con
+        Server Actions, las mutaciones DEBEN usar `useActionState`, `useFormStatus`,
+        o `useOptimistic` en combinación con `<form action={serverAction}>`.
+        Uso aceptable de `useEffect`: logging de errores en Error Boundaries,
+        inicialización de librerías de terceros (Charts, Maps), y suscripciones a
+        eventos del navegador (resize, scroll).

@@ -1,16 +1,29 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    reactStrictMode: true,
-    poweredByHeader: false,
-    serverExternalPackages: ['pdf-parse'],
-    images: {
-        remotePatterns: [
-            {
-                protocol: 'https',
-                hostname: '**',
-            },
-        ],
+  serverExternalPackages: [
+    "pino",
+    "pino-pretty",
+    "@opentelemetry/sdk-node",
+    "@opentelemetry/auto-instrumentations-node",
+    "@opentelemetry/api",
+    "googleapis",
+    "xlsx",
+    "bcryptjs",
+    "dotenv",
+  ],
+  experimental: {
+    viewTransition: true,
+    optimizePackageImports: [
+      "lucide-react",
+      "recharts",
+      "framer-motion",
+      "sonner",
+      "@radix-ui/react-slot",
+    ],
+    serverActions: {
+      bodySizeLimit: '10mb',
     },
+  },
 };
 
 export default nextConfig;

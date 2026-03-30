@@ -1,0 +1,212 @@
+[2026-03-25T15:30:01.412Z] getSellableProducts called
+[2026-03-25T15:30:01.544Z] getSellableProducts called
+[2026-03-25T15:30:04.538Z] getSellableProducts called
+[2026-03-25T15:30:04.646Z] getSellableProducts called
+[2026-03-25T15:30:04.897Z] getSellableProducts called
+[2026-03-25T15:30:04.978Z] getSellableProducts called
+[2026-03-25T15:30:05.495Z] getSellableProducts called
+[2026-03-25T15:30:05.556Z] getSellableProducts called
+[2026-03-25T15:30:05.626Z] getSellableProducts called
+[2026-03-25T15:30:05.700Z] getSellableProducts called
+[2026-03-25T15:30:05.770Z] getSellableProducts called
+[2026-03-25T15:30:06.007Z] getSellableProducts called
+[2026-03-25T15:30:06.079Z] getSellableProducts called
+[2026-03-25T15:30:06.156Z] getSellableProducts called
+[2026-03-25T15:30:06.360Z] getSellableProducts called
+[2026-03-25T15:30:06.565Z] getSellableProducts called
+[2026-03-25T15:30:06.822Z] getSellableProducts called
+[2026-03-25T15:30:07.011Z] getSellableProducts called
+[2026-03-25T15:30:07.073Z] getSellableProducts called
+[2026-03-25T15:30:07.205Z] getSellableProducts called
+[2026-03-25T15:30:07.363Z] getSellableProducts called
+[2026-03-25T15:30:28.878Z] getSellableProducts called
+[2026-03-25T15:30:37.585Z] getSellableProducts called
+[2026-03-25T15:30:37.612Z] getSellableProducts returned 0 rows
+[2026-03-25T15:30:37.686Z] getSellableProducts called
+[2026-03-25T15:30:37.705Z] getSellableProducts returned 0 rows
+[2026-03-25T15:30:38.235Z] getSellableProducts called
+[2026-03-25T15:30:38.274Z] getSellableProducts returned 0 rows
+[2026-03-25T15:30:38.348Z] getSellableProducts called
+[2026-03-25T15:30:38.368Z] getSellableProducts returned 0 rows
+[2026-03-25T15:30:38.902Z] getSellableProducts called
+[2026-03-25T15:30:38.918Z] getSellableProducts returned 0 rows
+[2026-03-25T15:30:38.974Z] getSellableProducts called
+[2026-03-25T15:30:38.984Z] getSellableProducts returned 0 rows
+[2026-03-25T15:30:39.020Z] getSellableProducts called
+[2026-03-25T15:30:39.034Z] getSellableProducts returned 0 rows
+[2026-03-25T15:30:39.069Z] getSellableProducts called
+[2026-03-25T15:30:39.083Z] getSellableProducts returned 0 rows
+[2026-03-25T15:30:39.276Z] getSellableProducts called
+[2026-03-25T15:30:39.292Z] getSellableProducts returned 0 rows
+[2026-03-25T15:30:39.335Z] getSellableProducts called
+[2026-03-25T15:30:39.350Z] getSellableProducts returned 0 rows
+[2026-03-25T15:30:39.533Z] getSellableProducts called
+[2026-03-25T15:30:39.549Z] getSellableProducts returned 0 rows
+[2026-03-25T15:30:39.729Z] getSellableProducts called
+[2026-03-25T15:30:39.743Z] getSellableProducts returned 0 rows
+[2026-03-25T15:30:44.708Z] getSellableProducts called
+[2026-03-25T15:30:45.194Z] getSellableProducts returned 0 rows
+[2026-03-25T15:30:49.624Z] getSellableProducts called
+[2026-03-25T15:30:49.855Z] getSellableProducts returned 0 rows
+[2026-03-25T15:30:50.754Z] getSellableProducts called
+[2026-03-25T15:30:50.968Z] getSellableProducts returned 0 rows
+[2026-03-25T15:31:45.073Z] getSellableProducts - DB URL: libsql://burger-musi... 
+[2026-03-25T15:31:45.105Z] getSellableProducts returned 0 rows
+[2026-03-25T15:31:45.792Z] getSellableProducts - DB URL: libsql://burger-musi... 
+[2026-03-25T15:31:45.814Z] getSellableProducts returned 0 rows
+[2026-03-25T15:31:46.597Z] getSellableProducts - DB URL: libsql://burger-musi... 
+[2026-03-25T15:31:46.616Z] getSellableProducts returned 0 rows
+[2026-03-25T15:31:46.670Z] getSellableProducts - DB URL: libsql://burger-musi... 
+[2026-03-25T15:31:46.685Z] getSellableProducts returned 0 rows
+[2026-03-25T15:31:46.722Z] getSellableProducts - DB URL: libsql://burger-musi... 
+[2026-03-25T15:31:46.735Z] getSellableProducts returned 0 rows
+[2026-03-25T15:31:46.768Z] getSellableProducts - DB URL: libsql://burger-musi... 
+[2026-03-25T15:31:46.778Z] getSellableProducts returned 0 rows
+[2026-03-25T15:31:46.919Z] getSellableProducts - DB URL: libsql://burger-musi... 
+[2026-03-25T15:31:46.930Z] getSellableProducts returned 0 rows
+[2026-03-25T15:31:47.105Z] getSellableProducts - DB URL: libsql://burger-musi... 
+[2026-03-25T15:31:47.123Z] getSellableProducts returned 0 rows
+[2026-03-25T15:31:52.350Z] getSellableProducts - DB URL: libsql://burger-musi... 
+[2026-03-25T15:31:52.540Z] getSellableProducts returned 0 rows
+[2026-03-25T15:32:06.203Z] getSellableProducts - DB URL: libsql://burger-musi... 
+[2026-03-25T15:32:06.871Z] getSellableProducts - DB URL: libsql://burger-musi... 
+[2026-03-25T15:32:07.448Z] getSellableProducts - DB URL: libsql://burger-musi... 
+[2026-03-25T15:32:07.537Z] getSellableProducts - DB URL: libsql://burger-musi... 
+[2026-03-25T15:32:07.639Z] getSellableProducts - DB URL: libsql://burger-musi... 
+[2026-03-25T15:32:07.755Z] getSellableProducts - DB URL: libsql://burger-musi... 
+[2026-03-25T15:32:08.195Z] getSellableProducts result count 0, samples: []
+[2026-03-25T15:32:08.239Z] getSellableProducts result count 0, samples: []
+[2026-03-25T15:32:08.284Z] getSellableProducts result count 0, samples: []
+[2026-03-25T15:32:08.321Z] getSellableProducts result count 0, samples: []
+[2026-03-25T15:32:08.363Z] getSellableProducts result count 0, samples: []
+[2026-03-25T15:32:08.411Z] getSellableProducts result count 0, samples: []
+[2026-03-25T15:32:08.562Z] getSellableProducts - DB URL: libsql://burger-musi... 
+[2026-03-25T15:32:08.580Z] getSellableProducts result count 0, samples: []
+[2026-03-25T15:32:08.685Z] getSellableProducts - DB URL: libsql://burger-musi... 
+[2026-03-25T15:32:08.698Z] getSellableProducts result count 0, samples: []
+[2026-03-25T15:32:13.285Z] getSellableProducts - DB URL: libsql://burger-musi... 
+[2026-03-25T15:32:13.477Z] getSellableProducts result count 0, samples: []
+[2026-03-25T15:32:15.500Z] getSellableProducts - DB URL: libsql://burger-musi... 
+[2026-03-25T15:32:15.696Z] getSellableProducts result count 0, samples: []
+[2026-03-25T15:32:17.995Z] getSellableProducts - DB URL: libsql://burger-musi... 
+[2026-03-25T15:32:18.182Z] getSellableProducts result count 0, samples: []
+[2026-03-25T15:32:19.722Z] getSellableProducts - DB URL: libsql://burger-musi... 
+[2026-03-25T15:32:19.927Z] getSellableProducts result count 0, samples: []
+[2026-03-25T15:32:31.385Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:32:31.403Z] getSellableProducts result count 0, samples: []
+[2026-03-25T15:32:31.452Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:32:31.471Z] getSellableProducts result count 0, samples: []
+[2026-03-25T15:32:32.496Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:32:32.510Z] getSellableProducts result count 0, samples: []
+[2026-03-25T15:32:32.631Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:32:32.657Z] getSellableProducts result count 0, samples: []
+[2026-03-25T15:32:33.081Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:32:33.096Z] getSellableProducts result count 0, samples: []
+[2026-03-25T15:32:33.144Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:32:33.161Z] getSellableProducts result count 0, samples: []
+[2026-03-25T15:32:33.208Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:32:33.223Z] getSellableProducts result count 0, samples: []
+[2026-03-25T15:32:33.265Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:32:33.281Z] getSellableProducts result count 0, samples: []
+[2026-03-25T15:32:33.508Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:32:33.530Z] getSellableProducts result count 0, samples: []
+[2026-03-25T15:32:33.614Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:32:33.635Z] getSellableProducts result count 0, samples: []
+[2026-03-25T15:32:33.789Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:32:33.799Z] getSellableProducts result count 0, samples: []
+[2026-03-25T15:32:34.003Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:32:34.033Z] getSellableProducts result count 0, samples: []
+[2026-03-25T15:32:36.298Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:32:36.496Z] getSellableProducts result count 0, samples: []
+[2026-03-25T15:32:51.731Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:32:51.857Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:32:52.644Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:32:52.708Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:32:53.177Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:32:53.226Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:32:53.272Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:32:53.325Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:32:53.577Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:32:53.637Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:32:53.793Z] DEBUG - Total Products: {"c":128}, Sample: {"id":"INS_CEBOLLA"}
+[2026-03-25T15:32:53.863Z] DEBUG - Total Products: {"c":128}, Sample: {"id":"INS_CEBOLLA"}
+[2026-03-25T15:32:53.953Z] DEBUG - Total Products: {"c":128}, Sample: {"id":"INS_CEBOLLA"}
+[2026-03-25T15:32:54.018Z] DEBUG - Total Products: {"c":128}, Sample: {"id":"INS_CEBOLLA"}
+[2026-03-25T15:32:54.109Z] DEBUG - Total Products: {"c":128}, Sample: {"id":"INS_CEBOLLA"}
+[2026-03-25T15:32:54.196Z] DEBUG - Total Products: {"c":128}, Sample: {"id":"INS_CEBOLLA"}
+[2026-03-25T15:32:54.262Z] DEBUG - Total Products: {"c":128}, Sample: {"id":"INS_CEBOLLA"}
+[2026-03-25T15:32:54.342Z] DEBUG - Total Products: {"c":128}, Sample: {"id":"INS_CEBOLLA"}
+[2026-03-25T15:32:54.428Z] DEBUG - Total Products: {"c":128}, Sample: {"id":"INS_CEBOLLA"}
+[2026-03-25T15:32:54.487Z] DEBUG - Total Products: {"c":128}, Sample: {"id":"INS_CEBOLLA"}
+[2026-03-25T15:32:54.750Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:32:54.789Z] DEBUG - Total Products: {"c":128}, Sample: {"id":"INS_CEBOLLA"}
+[2026-03-25T15:32:55.006Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:32:55.054Z] DEBUG - Total Products: {"c":128}, Sample: {"id":"INS_CEBOLLA"}
+[2026-03-25T15:32:58.880Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:32:59.351Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:32:59.654Z] DEBUG - Total Products: {"c":128}, Sample: {"id":"INS_CEBOLLA"}
+[2026-03-25T15:32:59.725Z] DEBUG - Total Products: {"c":128}, Sample: {"id":"INS_CEBOLLA"}
+[2026-03-25T15:39:03.502Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:39:03.550Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:39:04.604Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:39:04.698Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:39:05.081Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:39:05.125Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:39:05.173Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:39:05.205Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:39:05.238Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:39:05.351Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:39:07.562Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:39:07.657Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:39:11.374Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:39:11.420Z] DIAG - Products: [{"id":"INS_CEBOLLA"},{"id":"INS_CHEDDAR"},{"id":"INS_LECHUGA"},{"id":"INS_PANCETA"},{"id":"INS_PAPA_BASTON_PORCION"}], Raw: [{"id":"RAW-2 UNIDADES TOST"},{"id":"RAW-4 UNIDADES RICO"},{"id":"RAW-ADEREZO CESAR"},{"id":"RAW-ANDES IPA LATA "},{"id":"RAW-ANDES RUBIA LAT"}]
+[2026-03-25T15:39:11.598Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:39:11.637Z] DIAG - Products: [{"id":"INS_CEBOLLA"},{"id":"INS_CHEDDAR"},{"id":"INS_LECHUGA"},{"id":"INS_PANCETA"},{"id":"INS_PAPA_BASTON_PORCION"}], Raw: [{"id":"RAW-2 UNIDADES TOST"},{"id":"RAW-4 UNIDADES RICO"},{"id":"RAW-ADEREZO CESAR"},{"id":"RAW-ANDES IPA LATA "},{"id":"RAW-ANDES RUBIA LAT"}]
+[2026-03-25T15:39:11.975Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:39:12.056Z] DIAG - Products: [{"id":"INS_CEBOLLA"},{"id":"INS_CHEDDAR"},{"id":"INS_LECHUGA"},{"id":"INS_PANCETA"},{"id":"INS_PAPA_BASTON_PORCION"}], Raw: [{"id":"RAW-2 UNIDADES TOST"},{"id":"RAW-4 UNIDADES RICO"},{"id":"RAW-ADEREZO CESAR"},{"id":"RAW-ANDES IPA LATA "},{"id":"RAW-ANDES RUBIA LAT"}]
+[2026-03-25T15:39:12.160Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:39:12.219Z] DIAG - Products: [{"id":"INS_CEBOLLA"},{"id":"INS_CHEDDAR"},{"id":"INS_LECHUGA"},{"id":"INS_PANCETA"},{"id":"INS_PAPA_BASTON_PORCION"}], Raw: [{"id":"RAW-2 UNIDADES TOST"},{"id":"RAW-4 UNIDADES RICO"},{"id":"RAW-ADEREZO CESAR"},{"id":"RAW-ANDES IPA LATA "},{"id":"RAW-ANDES RUBIA LAT"}]
+[2026-03-25T15:39:12.782Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:39:12.813Z] DIAG - Products: [{"id":"INS_CEBOLLA"},{"id":"INS_CHEDDAR"},{"id":"INS_LECHUGA"},{"id":"INS_PANCETA"},{"id":"INS_PAPA_BASTON_PORCION"}], Raw: [{"id":"RAW-2 UNIDADES TOST"},{"id":"RAW-4 UNIDADES RICO"},{"id":"RAW-ADEREZO CESAR"},{"id":"RAW-ANDES IPA LATA "},{"id":"RAW-ANDES RUBIA LAT"}]
+[2026-03-25T15:39:12.870Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:39:12.894Z] DIAG - Products: [{"id":"INS_CEBOLLA"},{"id":"INS_CHEDDAR"},{"id":"INS_LECHUGA"},{"id":"INS_PANCETA"},{"id":"INS_PAPA_BASTON_PORCION"}], Raw: [{"id":"RAW-2 UNIDADES TOST"},{"id":"RAW-4 UNIDADES RICO"},{"id":"RAW-ADEREZO CESAR"},{"id":"RAW-ANDES IPA LATA "},{"id":"RAW-ANDES RUBIA LAT"}]
+[2026-03-25T15:39:12.946Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:39:12.972Z] DIAG - Products: [{"id":"INS_CEBOLLA"},{"id":"INS_CHEDDAR"},{"id":"INS_LECHUGA"},{"id":"INS_PANCETA"},{"id":"INS_PAPA_BASTON_PORCION"}], Raw: [{"id":"RAW-2 UNIDADES TOST"},{"id":"RAW-4 UNIDADES RICO"},{"id":"RAW-ADEREZO CESAR"},{"id":"RAW-ANDES IPA LATA "},{"id":"RAW-ANDES RUBIA LAT"}]
+[2026-03-25T15:39:13.024Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:39:13.049Z] DIAG - Products: [{"id":"INS_CEBOLLA"},{"id":"INS_CHEDDAR"},{"id":"INS_LECHUGA"},{"id":"INS_PANCETA"},{"id":"INS_PAPA_BASTON_PORCION"}], Raw: [{"id":"RAW-2 UNIDADES TOST"},{"id":"RAW-4 UNIDADES RICO"},{"id":"RAW-ADEREZO CESAR"},{"id":"RAW-ANDES IPA LATA "},{"id":"RAW-ANDES RUBIA LAT"}]
+[2026-03-25T15:39:13.104Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:39:13.129Z] DIAG - Products: [{"id":"INS_CEBOLLA"},{"id":"INS_CHEDDAR"},{"id":"INS_LECHUGA"},{"id":"INS_PANCETA"},{"id":"INS_PAPA_BASTON_PORCION"}], Raw: [{"id":"RAW-2 UNIDADES TOST"},{"id":"RAW-4 UNIDADES RICO"},{"id":"RAW-ADEREZO CESAR"},{"id":"RAW-ANDES IPA LATA "},{"id":"RAW-ANDES RUBIA LAT"}]
+[2026-03-25T15:39:13.174Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:39:13.198Z] DIAG - Products: [{"id":"INS_CEBOLLA"},{"id":"INS_CHEDDAR"},{"id":"INS_LECHUGA"},{"id":"INS_PANCETA"},{"id":"INS_PAPA_BASTON_PORCION"}], Raw: [{"id":"RAW-2 UNIDADES TOST"},{"id":"RAW-4 UNIDADES RICO"},{"id":"RAW-ADEREZO CESAR"},{"id":"RAW-ANDES IPA LATA "},{"id":"RAW-ANDES RUBIA LAT"}]
+[2026-03-25T15:39:13.430Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:39:13.454Z] DIAG - Products: [{"id":"INS_CEBOLLA"},{"id":"INS_CHEDDAR"},{"id":"INS_LECHUGA"},{"id":"INS_PANCETA"},{"id":"INS_PAPA_BASTON_PORCION"}], Raw: [{"id":"RAW-2 UNIDADES TOST"},{"id":"RAW-4 UNIDADES RICO"},{"id":"RAW-ADEREZO CESAR"},{"id":"RAW-ANDES IPA LATA "},{"id":"RAW-ANDES RUBIA LAT"}]
+[2026-03-25T15:39:13.645Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:39:13.685Z] DIAG - Products: [{"id":"INS_CEBOLLA"},{"id":"INS_CHEDDAR"},{"id":"INS_LECHUGA"},{"id":"INS_PANCETA"},{"id":"INS_PAPA_BASTON_PORCION"}], Raw: [{"id":"RAW-2 UNIDADES TOST"},{"id":"RAW-4 UNIDADES RICO"},{"id":"RAW-ADEREZO CESAR"},{"id":"RAW-ANDES IPA LATA "},{"id":"RAW-ANDES RUBIA LAT"}]
+[2026-03-25T15:39:21.794Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:39:22.512Z] DIAG - Products: [{"id":"INS_CEBOLLA"},{"id":"INS_CHEDDAR"},{"id":"INS_LECHUGA"},{"id":"INS_PANCETA"},{"id":"INS_PAPA_BASTON_PORCION"}], Raw: [{"id":"RAW-2 UNIDADES TOST"},{"id":"RAW-4 UNIDADES RICO"},{"id":"RAW-ADEREZO CESAR"},{"id":"RAW-ANDES IPA LATA "},{"id":"RAW-ANDES RUBIA LAT"}]
+[2026-03-25T15:39:59.215Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:39:59.266Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:40:00.166Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:40:00.292Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:40:00.872Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:40:00.908Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:40:00.943Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:40:00.979Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:40:01.015Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:40:01.052Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:40:01.462Z] PDR CHECK - Count: {"c":0}, Latest IDs: [{"id":"SRV_ENVIO"},{"id":"PRD_X2_TOSTADO_CLASICO"},{"id":"PRD_X2_TOSTADO_AMERICANO"},{"id":"PRD_VILLAVICENCIO_500CC"},{"id":"PRD_VERDURA"}]
+[2026-03-25T15:40:01.512Z] PDR CHECK - Count: {"c":0}, Latest IDs: [{"id":"SRV_ENVIO"},{"id":"PRD_X2_TOSTADO_CLASICO"},{"id":"PRD_X2_TOSTADO_AMERICANO"},{"id":"PRD_VILLAVICENCIO_500CC"},{"id":"PRD_VERDURA"}]
+[2026-03-25T15:40:01.604Z] PDR CHECK - Count: {"c":0}, Latest IDs: [{"id":"SRV_ENVIO"},{"id":"PRD_X2_TOSTADO_CLASICO"},{"id":"PRD_X2_TOSTADO_AMERICANO"},{"id":"PRD_VILLAVICENCIO_500CC"},{"id":"PRD_VERDURA"}]
+[2026-03-25T15:40:01.678Z] PDR CHECK - Count: {"c":0}, Latest IDs: [{"id":"SRV_ENVIO"},{"id":"PRD_X2_TOSTADO_CLASICO"},{"id":"PRD_X2_TOSTADO_AMERICANO"},{"id":"PRD_VILLAVICENCIO_500CC"},{"id":"PRD_VERDURA"}]
+[2026-03-25T15:40:01.741Z] PDR CHECK - Count: {"c":0}, Latest IDs: [{"id":"SRV_ENVIO"},{"id":"PRD_X2_TOSTADO_CLASICO"},{"id":"PRD_X2_TOSTADO_AMERICANO"},{"id":"PRD_VILLAVICENCIO_500CC"},{"id":"PRD_VERDURA"}]
+[2026-03-25T15:40:01.809Z] PDR CHECK - Count: {"c":0}, Latest IDs: [{"id":"SRV_ENVIO"},{"id":"PRD_X2_TOSTADO_CLASICO"},{"id":"PRD_X2_TOSTADO_AMERICANO"},{"id":"PRD_VILLAVICENCIO_500CC"},{"id":"PRD_VERDURA"}]
+[2026-03-25T15:40:01.882Z] PDR CHECK - Count: {"c":0}, Latest IDs: [{"id":"SRV_ENVIO"},{"id":"PRD_X2_TOSTADO_CLASICO"},{"id":"PRD_X2_TOSTADO_AMERICANO"},{"id":"PRD_VILLAVICENCIO_500CC"},{"id":"PRD_VERDURA"}]
+[2026-03-25T15:40:01.946Z] PDR CHECK - Count: {"c":0}, Latest IDs: [{"id":"SRV_ENVIO"},{"id":"PRD_X2_TOSTADO_CLASICO"},{"id":"PRD_X2_TOSTADO_AMERICANO"},{"id":"PRD_VILLAVICENCIO_500CC"},{"id":"PRD_VERDURA"}]
+[2026-03-25T15:40:02.019Z] PDR CHECK - Count: {"c":0}, Latest IDs: [{"id":"SRV_ENVIO"},{"id":"PRD_X2_TOSTADO_CLASICO"},{"id":"PRD_X2_TOSTADO_AMERICANO"},{"id":"PRD_VILLAVICENCIO_500CC"},{"id":"PRD_VERDURA"}]
+[2026-03-25T15:40:02.076Z] PDR CHECK - Count: {"c":0}, Latest IDs: [{"id":"SRV_ENVIO"},{"id":"PRD_X2_TOSTADO_CLASICO"},{"id":"PRD_X2_TOSTADO_AMERICANO"},{"id":"PRD_VILLAVICENCIO_500CC"},{"id":"PRD_VERDURA"}]
+[2026-03-25T15:40:02.224Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:40:02.257Z] PDR CHECK - Count: {"c":0}, Latest IDs: [{"id":"SRV_ENVIO"},{"id":"PRD_X2_TOSTADO_CLASICO"},{"id":"PRD_X2_TOSTADO_AMERICANO"},{"id":"PRD_VILLAVICENCIO_500CC"},{"id":"PRD_VERDURA"}]
+[2026-03-25T15:40:02.430Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:40:02.458Z] PDR CHECK - Count: {"c":0}, Latest IDs: [{"id":"SRV_ENVIO"},{"id":"PRD_X2_TOSTADO_CLASICO"},{"id":"PRD_X2_TOSTADO_AMERICANO"},{"id":"PRD_VILLAVICENCIO_500CC"},{"id":"PRD_VERDURA"}]
+[2026-03-25T15:40:07.100Z] getSellableProducts - DB URL: libsql://burger-musi..., Token Len: 279
+[2026-03-25T15:40:07.818Z] PDR CHECK - Count: {"c":0}, Latest IDs: [{"id":"SRV_ENVIO"},{"id":"PRD_X2_TOSTADO_CLASICO"},{"id":"PRD_X2_TOSTADO_AMERICANO"},{"id":"PRD_VILLAVICENCIO_500CC"},{"id":"PRD_VERDURA"}]

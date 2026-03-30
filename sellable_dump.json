@@ -1,0 +1,814 @@
+[
+  {
+    "id": "PROD-CLASSIC",
+    "sku": "SKU-33ANQ8",
+    "category": "HAMBURGUESAS",
+    "priceCents": 415639,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-DUKO",
+    "sku": "SKU-ROPJ3",
+    "category": "HAMBURGUESAS",
+    "priceCents": 888680,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-CHARLY",
+    "sku": "SKU-CQ5QIR",
+    "category": "HAMBURGUESAS",
+    "priceCents": 529926,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-MALA FAMA",
+    "sku": "SKU-TVC21G",
+    "category": "HAMBURGUESAS",
+    "priceCents": 962890,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-HC (HERNÁN CATT",
+    "sku": "SKU-OQD4FN",
+    "category": "HAMBURGUESAS",
+    "priceCents": 602945,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-RESIDENTE",
+    "sku": "SKU-8LNIMA",
+    "category": "HAMBURGUESAS",
+    "priceCents": 474011,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-BOB MARLEY",
+    "sku": "SKU-NZ87K",
+    "category": "HAMBURGUESAS",
+    "priceCents": 1031111,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-KISS",
+    "sku": "SKU-842TSD",
+    "category": "HAMBURGUESAS",
+    "priceCents": 610361,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-ROLLING STONES",
+    "sku": "SKU-INUPAH",
+    "category": "HAMBURGUESAS",
+    "priceCents": 455518,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-RED HOT",
+    "sku": "SKU-2OZQ3L",
+    "category": "HAMBURGUESAS",
+    "priceCents": 495300,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-THE BEATLES",
+    "sku": "SKU-ISP53Q",
+    "category": "HAMBURGUESAS",
+    "priceCents": 787812,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-AC/DC",
+    "sku": "SKU-Y6IM1E",
+    "category": "HAMBURGUESAS",
+    "priceCents": 499653,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-FRIED ONION",
+    "sku": "SKU-VABAJI",
+    "category": "HAMBURGUESAS",
+    "priceCents": 656410,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-TECHNO CHICKEN",
+    "sku": "SKU-EOSU7",
+    "category": "HAMBURGUESAS",
+    "priceCents": 491514,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-GORILLAZ",
+    "sku": "SKU-2W9RQC",
+    "category": "HAMBURGUESAS",
+    "priceCents": 827860,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-MADONNA VEGGIE",
+    "sku": "SKU-GZECEAA",
+    "category": "HAMBURGUESAS",
+    "priceCents": 1142469,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-PATRICIO REY",
+    "sku": "SKU-SKCIA6",
+    "category": "HAMBURGUESAS",
+    "priceCents": 722107,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-ALMA FUERTE PUL",
+    "sku": "SKU-S9MZEN",
+    "category": "HAMBURGUESAS",
+    "priceCents": 417889,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-BIZARRAP SESSIO",
+    "sku": "SKU-HQPD3Q",
+    "category": "HAMBURGUESAS",
+    "priceCents": 651102,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-EMINEM",
+    "sku": "SKU-7N513H",
+    "category": "HAMBURGUESAS",
+    "priceCents": 971325,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-KIDS ROCK (MENU",
+    "sku": "SKU-MJ3XDH",
+    "category": "HAMBURGUESAS",
+    "priceCents": 625392,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-PAPAS QUEEN",
+    "sku": "SKU-C2TO8L",
+    "category": "PARA ACOMPAÑAR",
+    "priceCents": 539541,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-PAPAS CHEDDAR",
+    "sku": "SKU-4775AB",
+    "category": "PARA ACOMPAÑAR",
+    "priceCents": 883585,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-PAPAS MERCURY",
+    "sku": "SKU-Q03UTA",
+    "category": "PARA ACOMPAÑAR",
+    "priceCents": 657429,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-AROS DE CEBOLLA",
+    "sku": "SKU-8V1QR7",
+    "category": "PARA ACOMPAÑAR",
+    "priceCents": 1133114,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-NUGGETS DE POLL",
+    "sku": "SKU-2H1YHQ",
+    "category": "PARA ACOMPAÑAR",
+    "priceCents": 974044,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-FREESTYLE",
+    "sku": "SKU-7YG67B",
+    "category": "PICADAS BEAT",
+    "priceCents": 471596,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-RIHANNA",
+    "sku": "SKU-XZHM4R",
+    "category": "ENSALADAS POP / MENU SALUDABLE",
+    "priceCents": 547252,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-LADY GAGA",
+    "sku": "SKU-1QRF9Q",
+    "category": "ENSALADAS POP / MENU SALUDABLE",
+    "priceCents": 519920,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-FRANUI",
+    "sku": "SKU-FJWVLH",
+    "category": "POSTRES",
+    "priceCents": 468474,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-TOSTADO AMERICA",
+    "sku": "SKU-GP6MIQ",
+    "category": "TOSTADOS",
+    "priceCents": 693007,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-TOSTADO CLASICO",
+    "sku": "SKU-OU5ZEA",
+    "category": "TOSTADOS",
+    "priceCents": 981763,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-X2 TOSTADO AMER",
+    "sku": "SKU-24LSX9",
+    "category": "TOSTADOS",
+    "priceCents": 1176440,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-X2 TOSTADO CLAS",
+    "sku": "SKU-ZV7ROM",
+    "category": "TOSTADOS",
+    "priceCents": 503440,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-VILLAVICENCIO 5",
+    "sku": "SKU-LI10S",
+    "category": "BEBIDAS",
+    "priceCents": 580661,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-COCA COLA 1.5 L",
+    "sku": "SKU-RHL5RJ",
+    "category": "BEBIDAS",
+    "priceCents": 811097,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-COCA COLA ZERO ",
+    "sku": "SKU-MAFDR",
+    "category": "BEBIDAS",
+    "priceCents": 897932,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-SPRITE 1.5 LTS",
+    "sku": "SKU-F7TTKN",
+    "category": "BEBIDAS",
+    "priceCents": 1026183,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-LATA SPRITE 354",
+    "sku": "SKU-X72EZB",
+    "category": "BEBIDAS",
+    "priceCents": 588799,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-LATA COCA-COLA ",
+    "sku": "SKU-DYGR7W",
+    "category": "BEBIDAS",
+    "priceCents": 947440,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-LEVITE DE NARAN",
+    "sku": "SKU-459V7S",
+    "category": "BEBIDAS",
+    "priceCents": 1157084,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-LEVITE DE MANZA",
+    "sku": "SKU-1M2UOV",
+    "category": "BEBIDAS",
+    "priceCents": 666164,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-LEVITE DE POMEL",
+    "sku": "SKU-L0ZOU",
+    "category": "BEBIDAS",
+    "priceCents": 950516,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-CERVEZA HEINEKE",
+    "sku": "SKU-CHH2NL",
+    "category": "BEBIDAS",
+    "priceCents": 1180799,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-ANDES RUBIA LAT",
+    "sku": "SKU-QVA2IA",
+    "category": "BEBIDAS",
+    "priceCents": 750896,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-ANDES IPA LATA ",
+    "sku": "SKU-51MXF",
+    "category": "BEBIDAS",
+    "priceCents": 1134545,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-STELLA ARTOIS L",
+    "sku": "SKU-8FO5N",
+    "category": "BEBIDAS",
+    "priceCents": 853739,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PROD-LATA SCHWEPPES ",
+    "sku": "SKU-I3O4G5",
+    "category": "BEBIDAS",
+    "priceCents": 685276,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_CLASSIC",
+    "sku": "PRD_CLASSIC",
+    "category": "GENERAL",
+    "priceCents": 1110000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_DUKO",
+    "sku": "PRD_DUKO",
+    "category": "GENERAL",
+    "priceCents": 1310000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_CHARLY",
+    "sku": "PRD_CHARLY",
+    "category": "GENERAL",
+    "priceCents": 1170000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_MALA_FAMA",
+    "sku": "PRD_MALA_FAMA",
+    "category": "GENERAL",
+    "priceCents": 1420000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_HC_HERNN_CATTNEO",
+    "sku": "PRD_HC_HERNN_CATTNEO",
+    "category": "GENERAL",
+    "priceCents": 1420000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_RESIDENTE",
+    "sku": "PRD_RESIDENTE",
+    "category": "GENERAL",
+    "priceCents": 1420000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_BOB_MARLEY",
+    "sku": "PRD_BOB_MARLEY",
+    "category": "GENERAL",
+    "priceCents": 1210000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_KISS",
+    "sku": "PRD_KISS",
+    "category": "GENERAL",
+    "priceCents": 1800000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_ROLLING_STONES",
+    "sku": "PRD_ROLLING_STONES",
+    "category": "GENERAL",
+    "priceCents": 1230000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_RED_HOT",
+    "sku": "PRD_RED_HOT",
+    "category": "GENERAL",
+    "priceCents": 1280000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_THE_BEATLES",
+    "sku": "PRD_THE_BEATLES",
+    "category": "GENERAL",
+    "priceCents": 1260000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_ACDC",
+    "sku": "PRD_ACDC",
+    "category": "GENERAL",
+    "priceCents": 1320000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_FRIED_ONION",
+    "sku": "PRD_FRIED_ONION",
+    "category": "GENERAL",
+    "priceCents": 1280000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_TECHNO_CHICKEN",
+    "sku": "PRD_TECHNO_CHICKEN",
+    "category": "GENERAL",
+    "priceCents": 1070000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_GORILLAZ",
+    "sku": "PRD_GORILLAZ",
+    "category": "GENERAL",
+    "priceCents": 1380000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_MADONNA_VEGGIE",
+    "sku": "PRD_MADONNA_VEGGIE",
+    "category": "GENERAL",
+    "priceCents": 1230000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_PATRICIO_REY",
+    "sku": "PRD_PATRICIO_REY",
+    "category": "GENERAL",
+    "priceCents": 1350000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_ALMA_FUERTE_PULLED_PORK",
+    "sku": "PRD_ALMA_FUERTE_PULLED_PORK",
+    "category": "GENERAL",
+    "priceCents": 1350000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_BIZARRAP_SESSION_1",
+    "sku": "PRD_BIZARRAP_SESSION_1",
+    "category": "GENERAL",
+    "priceCents": 1050000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_BIZARRAP_SESSION_2",
+    "sku": "PRD_BIZARRAP_SESSION_2",
+    "category": "GENERAL",
+    "priceCents": 1050000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_EMINEM",
+    "sku": "PRD_EMINEM",
+    "category": "GENERAL",
+    "priceCents": 1760000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_KIDSROCK",
+    "sku": "PRD_KIDSROCK",
+    "category": "GENERAL",
+    "priceCents": 750000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_PAPAS_QUEEN",
+    "sku": "PRD_PAPAS_QUEEN",
+    "category": "GENERAL",
+    "priceCents": 880000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_PAPAS_CHEDDAR",
+    "sku": "PRD_PAPAS_CHEDDAR",
+    "category": "GENERAL",
+    "priceCents": 870000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_PAPAS_MERCURY",
+    "sku": "PRD_PAPAS_MERCURY",
+    "category": "GENERAL",
+    "priceCents": 1220000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_AROS_DE_CEBOLLA__PAPAS",
+    "sku": "PRD_AROS_DE_CEBOLLA__PAPAS",
+    "category": "GENERAL",
+    "priceCents": 860000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_NUGGETS_DE_POLLO__PAPAS",
+    "sku": "PRD_NUGGETS_DE_POLLO__PAPAS",
+    "category": "GENERAL",
+    "priceCents": 900000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_FREESTYLE",
+    "sku": "PRD_FREESTYLE",
+    "category": "GENERAL",
+    "priceCents": 2160000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_RIHANNA",
+    "sku": "PRD_RIHANNA",
+    "category": "GENERAL",
+    "priceCents": 1050000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_LADY_GAGA",
+    "sku": "PRD_LADY_GAGA",
+    "category": "GENERAL",
+    "priceCents": 1050000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_FRANUI",
+    "sku": "PRD_FRANUI",
+    "category": "GENERAL",
+    "priceCents": 900000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_TOSTADO_AMERICANO__LEVITE",
+    "sku": "PRD_TOSTADO_AMERICANO__LEVITE",
+    "category": "GENERAL",
+    "priceCents": 680000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_TOSTADO_CLASICO__LEVITE",
+    "sku": "PRD_TOSTADO_CLASICO__LEVITE",
+    "category": "GENERAL",
+    "priceCents": 680000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_X2_TOSTADO_AMERICANO",
+    "sku": "PRD_X2_TOSTADO_AMERICANO",
+    "category": "GENERAL",
+    "priceCents": 950000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_X2_TOSTADO_CLASICO",
+    "sku": "PRD_X2_TOSTADO_CLASICO",
+    "category": "GENERAL",
+    "priceCents": 950000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_VILLAVICENCIO_500CC",
+    "sku": "PRD_VILLAVICENCIO_500CC",
+    "category": "GENERAL",
+    "priceCents": 210000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_COCA_COLA_15_LTS",
+    "sku": "PRD_COCA_COLA_15_LTS",
+    "category": "GENERAL",
+    "priceCents": 530000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_COCA_COLA_ZERO_15_LTS",
+    "sku": "PRD_COCA_COLA_ZERO_15_LTS",
+    "category": "GENERAL",
+    "priceCents": 530000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_SPRITE_15_LTS",
+    "sku": "PRD_SPRITE_15_LTS",
+    "category": "GENERAL",
+    "priceCents": 530000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_LATA_SPRITE_354CC",
+    "sku": "PRD_LATA_SPRITE_354CC",
+    "category": "GENERAL",
+    "priceCents": 250000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_LATACOCACOLAZERO",
+    "sku": "PRD_LATACOCACOLAZERO",
+    "category": "GENERAL",
+    "priceCents": 250000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_LATA_COCACOLA_354CC",
+    "sku": "PRD_LATA_COCACOLA_354CC",
+    "category": "GENERAL",
+    "priceCents": 250000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_LEVITE_DE_NARANJA_500ML",
+    "sku": "PRD_LEVITE_DE_NARANJA_500ML",
+    "category": "GENERAL",
+    "priceCents": 210000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_LEVITE_DE_MANZANA_500ML",
+    "sku": "PRD_LEVITE_DE_MANZANA_500ML",
+    "category": "GENERAL",
+    "priceCents": 210000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_LEVITE_DE_POMELO_500ML",
+    "sku": "PRD_LEVITE_DE_POMELO_500ML",
+    "category": "GENERAL",
+    "priceCents": 210000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_LEVITE_DE_POMELO_15LT",
+    "sku": "PRD_LEVITE_DE_POMELO_15LT",
+    "category": "GENERAL",
+    "priceCents": 280000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_LEVITE_DE_MANZANA_15_LTS",
+    "sku": "PRD_LEVITE_DE_MANZANA_15_LTS",
+    "category": "GENERAL",
+    "priceCents": 280000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_CERVEZA_HEINEKEN_LATA_473CC",
+    "sku": "PRD_CERVEZA_HEINEKEN_LATA_473CC",
+    "category": "GENERAL",
+    "priceCents": 450000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_ANDES_RUBIA_LATA_473CC",
+    "sku": "PRD_ANDES_RUBIA_LATA_473CC",
+    "category": "GENERAL",
+    "priceCents": 400000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_ANDES_IPA_LATA_473CC",
+    "sku": "PRD_ANDES_IPA_LATA_473CC",
+    "category": "GENERAL",
+    "priceCents": 400000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_ANDESROJALATA473CC",
+    "sku": "PRD_ANDESROJALATA473CC",
+    "category": "GENERAL",
+    "priceCents": 400000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_STELLA_ARTOIS_LATA",
+    "sku": "PRD_STELLA_ARTOIS_LATA",
+    "category": "GENERAL",
+    "priceCents": 450000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_LATA_SCHWEPPES_POMELO_ZERO",
+    "sku": "PRD_LATA_SCHWEPPES_POMELO_ZERO",
+    "category": "GENERAL",
+    "priceCents": 250000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_JOHNLENNON",
+    "sku": "PRD_JOHNLENNON",
+    "category": "GENERAL",
+    "priceCents": 1600000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_PINKFLOYD",
+    "sku": "PRD_PINKFLOYD",
+    "category": "GENERAL",
+    "priceCents": 1900000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_ELVISPRESLEY",
+    "sku": "PRD_ELVISPRESLEY",
+    "category": "GENERAL",
+    "priceCents": 2700000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_MICHAELJACKSON",
+    "sku": "PRD_MICHAELJACKSON",
+    "category": "GENERAL",
+    "priceCents": 1800000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_CREEDENCE",
+    "sku": "PRD_CREEDENCE",
+    "category": "GENERAL",
+    "priceCents": 2100000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_MICKJAGGERMEDIANA",
+    "sku": "PRD_MICKJAGGERMEDIANA",
+    "category": "GENERAL",
+    "priceCents": 1900000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_FREDDIEMERCURY",
+    "sku": "PRD_FREDDIEMERCURY",
+    "category": "GENERAL",
+    "priceCents": 2100000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_LEDZEPPELIN",
+    "sku": "PRD_LEDZEPPELIN",
+    "category": "GENERAL",
+    "priceCents": 2100000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_JOHNNYRIVERS",
+    "sku": "PRD_JOHNNYRIVERS",
+    "category": "GENERAL",
+    "priceCents": 1900000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_CARNE",
+    "sku": "PRD_CARNE",
+    "category": "GENERAL",
+    "priceCents": 250000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_POLLO",
+    "sku": "PRD_POLLO",
+    "category": "GENERAL",
+    "priceCents": 250000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_CEBOLLAYQUESO",
+    "sku": "PRD_CEBOLLAYQUESO",
+    "category": "GENERAL",
+    "priceCents": 250000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_JAMONYQUESO",
+    "sku": "PRD_JAMONYQUESO",
+    "category": "GENERAL",
+    "priceCents": 250000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_VERDURA",
+    "sku": "PRD_VERDURA",
+    "category": "GENERAL",
+    "priceCents": 250000,
+    "liveMarginCents": 0
+  },
+  {
+    "id": "PRD_CAPRESE",
+    "sku": "PRD_CAPRESE",
+    "category": "GENERAL",
+    "priceCents": 250000,
+    "liveMarginCents": 0
+  }
+]

@@ -1,0 +1,63 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - complementary [ref=e3]:
+    - generic [ref=e5]:
+      - generic [ref=e7]: BM
+      - heading "BurgerMusic OS" [level=2] [ref=e8]
+    - navigation [ref=e9]:
+      - button "C-Level Operativo" [ref=e11]:
+        - text: C-Level Operativo
+        - img [ref=e12]
+      - button "Infraestructura & Supply" [ref=e15]:
+        - text: Infraestructura & Supply
+        - img [ref=e16]
+      - button "Finanzas Trinchera & IA" [ref=e19]:
+        - text: Finanzas Trinchera & IA
+        - img [ref=e20]
+    - generic [ref=e22]:
+      - generic [ref=e23]:
+        - img [ref=e25]
+        - generic [ref=e28]:
+          - paragraph [ref=e29]: Gabriel Naveiro
+          - paragraph [ref=e30]: OWNER_GLOBAL
+      - button "Cerrar Sesión" [ref=e31]:
+        - img [ref=e32]
+        - text: Cerrar Sesión
+  - main [ref=e35]:
+    - generic [ref=e36]:
+      - generic [ref=e37]:
+        - 'heading "COMMAND CENTER: TESORERÍA" [level=1] [ref=e38]'
+        - paragraph [ref=e39]: Zero-Trust Financial Ingestion • Estándar Antigravity 2026
+      - generic [ref=e40]:
+        - generic [ref=e44]:
+          - heading "Ingesta de Comprobantes" [level=2] [ref=e46]:
+            - img [ref=e48]
+            - text: Ingesta de Comprobantes
+          - generic [ref=e50]:
+            - button "Escáner AI" [ref=e51]
+            - button "Carga Manual" [ref=e52]
+          - generic [ref=e53]:
+            - generic [ref=e54]:
+              - generic [ref=e55]:
+                - generic [ref=e56]: Proveedor Originador
+                - combobox "Proveedor Originador" [ref=e57]:
+                  - option "Seleccionar Proveedor..." [selected]
+              - generic [ref=e58]:
+                - generic [ref=e59]: Factura Digital
+                - generic [ref=e60]:
+                  - button "Factura Digital Arrastre Factura o Remito PDF / JPG / PNG" [ref=e61] [cursor=pointer]
+                  - generic [ref=e62]:
+                    - img [ref=e64]
+                    - generic [ref=e66]:
+                      - paragraph [ref=e67]: Arrastre Factura o Remito
+                      - paragraph [ref=e68]: PDF / JPG / PNG
+            - button "Detonar Scan AI" [ref=e69]:
+              - generic [ref=e70]: Detonar Scan AI
+        - generic [ref=e73]:
+          - heading "Libro Mayor Certificado" [level=2] [ref=e74]:
+            - img [ref=e76]
+            - text: Libro Mayor Certificado
+          - generic [ref=e78]: Sincronizado O(1)
+```
