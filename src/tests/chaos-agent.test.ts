@@ -195,7 +195,7 @@ async function testMalformedJSON(): Promise<{
       allRejected = false;
       rejectionReasons.push(`Round ${i}: UNEXPECTEDLY PASSED validation`);
     } else {
-      rejectionReasons.push(`Round ${i}: Rejected (${result.error.errors.length} issues)`);
+      rejectionReasons.push(`Round ${i}: Rejected (${result.error.issues.length} issues)`);
     }
 
     // INVARIANT: No retry loop — each attempt runs exactly once

@@ -87,8 +87,8 @@ export function withAgenticGateway<T extends z.ZodTypeAny, R>(
     const parseResult = context.schema.safeParse(payload);
 
     if (!parseResult.success) {
-      const errorMsg = parseResult.error.errors
-        .map((e) => `${e.path.join(".")}: ${e.message}`)
+      const errorMsg = parseResult.error.issues
+        .map((e: { path: PropertyKey[]; message: string }) => `${e.path.join(".")}: ${e.message}`)
         .join(" | ");
 
       await appendLedger({

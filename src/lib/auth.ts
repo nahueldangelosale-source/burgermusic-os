@@ -9,13 +9,17 @@ import { cookies } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 
 export async function login(pin: string) {
-  // 1. Fetch all users to compare hash (In prod, find by ID/User then compare)
-  // Since this is a PIN-only login for speed, we iterate.
+  // 1. Fetch all users to compare
   const allUsers = await db.select().from(users);
 
   let matchedUser = null;
   for (const user of allUsers) {
-    if (await bcrypt.compare(pin, user.pin_hash)) {
+    // Support both bcrypt hashes AND plain-text passwords (dev seed)
+    const isMatch = user.passwordHash.startsWith("$2")
+      ? await bcrypt.compare(pin, user.passwordHash)
+      : pin === user.passwordHash;
+    
+    if (isMatch) {
       matchedUser = user;
       break;
     }
@@ -23,11 +27,11 @@ export async function login(pin: string) {
 
   if (!matchedUser) return null;
 
-  // 2. Create Session
-  const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+  // 2. Create JWT Session
+  const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
   const session = await encrypt({ user: matchedUser, expires });
 
-  // 3. Set Cookie
+  // 3. Set Cookie (unified name: "session")
   (await cookies()).set("session", session, { expires, httpOnly: true });
 
   return matchedUser;

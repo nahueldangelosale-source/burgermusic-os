@@ -1,7 +1,4 @@
-﻿AñoCaja;2026;;;;;;;;;;;;;;;;;;;;;;;;;;
-MesCaja;(Todas);;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;CuentaDescripcion;Valores;;;;;;;;;;;;;;;;;;;
+﻿;;;;;;;CuentaDescripcion;Valores;;;;;;;;;;;;;;;;;;;
 ;;;;;;;Cobro a Clientes;;;Cobro a Clientes x Efectivo;;;Cobro a Clientes x Efectivo PYA;;;Cobro a Clientes x Mercado Pago;;;Cobro a Clientes x Pago OnLine PYA;;;Pago delivery;;;Cobro a Clientes x Posnet;;
 FechaCaja;NroCaja;Turno;ImporteApertura;ImporteCierre;Diferencias;ImporteEnCajaCierre;Cant. Pedidos Delivery;Cant.Pedidos Mostrador;ImporteCobrado;Cant. Pedidos Delivery;Cant.Pedidos Mostrador;ImporteCobrado;Cant. Pedidos Delivery;Cant.Pedidos Mostrador;ImporteCobrado;Cant. Pedidos Delivery;Cant.Pedidos Mostrador;ImporteCobrado;Cant. Pedidos Delivery;Cant.Pedidos Mostrador;ImporteCobrado;Cant. Pedidos Delivery;Cant.Pedidos Mostrador;ImporteCobrado;Cant. Pedidos Delivery;Cant.Pedidos Mostrador;ImporteCobrado
 2/1/2026;362618;Mediodía;0;241650;-150;140100;;;;4;1;$ 139.950,00;;;;5;1;$ 101.700,00;;;;;;;;;

@@ -31,11 +31,12 @@ async function main() {
 
     try {
       // REGLA 1: PUSH COMPUTE TO DB (Categorical Margins)
+      // V3.1: Usar historical_cost_cents del snapshot transaccional
       const margins = await db
         .select({
           category: products.category,
           revenue: sql<number>`SUM(${fact_sales.net_price_cents})`,
-          cogs: sql<number>`SUM(${fact_sales.quantity} * ${products.costCents})`,
+          cogs: sql<number>`COALESCE(SUM(${fact_sales.historical_cost_cents} * ${fact_sales.quantity}), 0)`,
         })
         .from(fact_sales)
         .innerJoin(products, eq(fact_sales.productSku, products.id))
@@ -72,22 +73,25 @@ async function main() {
         categories: margins.map(m => ({
           name: m.category,
           margin: m.revenue > 0 ? ((m.revenue - m.cogs) / m.revenue) * 100 : 0,
-          revenue: m.revenue / 100, // a pesos
+          revenue: m.revenue / 100,
         })),
         shrinkage: shrinkagePct,
       };
 
       console.log(`[INFO] Telemetría Generada para LLM:`, JSON.stringify(auditPayload));
 
-      const { object: analysis } = await generateObject({
-        model: google("gemini-1.5-pro"),
-        schema: z.object({
+      const AnalysisSchema = z.object({
           isAnomaly: z.boolean(),
           severity: z.enum(["CRITICAL", "WARNING", "INFO"]),
           reason: z.string(),
           impactedCategory: z.string().optional(),
           suggestion: z.string(),
-        }),
+        });
+      type Analysis = z.infer<typeof AnalysisSchema>;
+
+      const analysisResult = await generateObject({
+        model: google("gemini-1.5-pro"),
+        schema: AnalysisSchema,
         prompt: `Actúa como un Auditor Financiero Implacable para BurgerMusic OS. 
         Analiza los siguientes datos de rentabilidad de las últimas 24 horas para la sucursal ${VALID_STORE_ID}:
         ${JSON.stringify(auditPayload, null, 2)}
@@ -99,6 +103,7 @@ async function main() {
 
         Tu respuesta debe ser un objeto JSON estructurado indicando si hay anomalía, la severidad, la razón técnica y una sugerencia táctica.`,
       });
+      const analysis: Analysis = analysisResult.object as Analysis;
 
       // REGLA 3: FRICCIÓN POSITIVA Y CLOSED-LOOP
       if (analysis.isAnomaly && analysis.severity === "CRITICAL") {
@@ -113,12 +118,12 @@ async function main() {
           severity: "CRITICAL",
           details: {
             category: analysis.impactedCategory,
-            actualValue: analysis.impactedCategory === "Shrinkage" ? shrinkagePct : 0, // Simplified for brevity
+            actualValue: analysis.impactedCategory === "Shrinkage" ? shrinkagePct : 0,
             threshold: analysis.impactedCategory === "Shrinkage" ? 3 : 60,
             reasoning: analysis.reason,
             suggestion: analysis.suggestion,
           },
-          isLocked: true, // ESTE BLOQUEO ES LA FRICCIÓN POSITIVA
+          isLocked: true,
         }).onConflictDoUpdate({
            target: system_alerts.id,
            set: { details: sql`excluded.details`, createdAt: sql`CURRENT_TIMESTAMP` }

@@ -1,12 +1,14 @@
-// @ts-nocheck
 "use client";
 
 import { KitchenButton, SmartInput } from "@/components/ui/AntigravityAtoms";
-import { Calculator, Info, Loader2 } from "lucide-react";
+import { Calculator, Info, Loader2, Banknote } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 // import { submitCashClosure } from "../ops-actions";
-const submitCashClosure = async () => { console.log("Mocked submitCashClosure"); };
+const submitCashClosure = async (_data: Record<string, unknown>): Promise<{ variance: number }> => {
+  console.log("Mocked submitCashClosure");
+  return { variance: 0 };
+};
 
 export default function CashierForm() {
   const [loading, setLoading] = useState(false);
@@ -69,13 +71,12 @@ export default function CashierForm() {
           <select
             name="shift"
             required
+            defaultValue="NOCHE"
             className="w-full px-4 py-3 bg-[var(--bg-elevated)] rounded-lg shadow-sm border-0 ring-1 ring-slate-200 focus:ring-2 focus:ring-indigo-600 appearance-none"
           >
             <option value="MAÑANA">Mañana</option>
             <option value="TARDE">Tarde</option>
-            <option value="NOCHE" selected>
-              Noche
-            </option>
+            <option value="NOCHE">Noche</option>
             <option value="FULL">Día Completo</option>
           </select>
         </div>
@@ -209,5 +210,4 @@ export default function CashierForm() {
   );
 }
 
-import { Banknote } from "lucide-react";
 

@@ -2,6 +2,7 @@
 
 import { logout } from "@/lib/auth";
 import {
+  Activity,
   ActivitySquare,
   Banknote,
   Building2,
@@ -17,6 +18,7 @@ import {
   Receipt,
   ShieldAlert,
   TrendingDown,
+  TrendingUp,
   User,
   Users,
   X,
@@ -34,7 +36,7 @@ const MENU_GROUPS = [
       { label: "Tesorería Global", icon: Banknote, href: "/dashboard/treasury" },
       { label: "Compras Hub", icon: Package, href: "/dashboard/purchases" },
       { label: "Capital Humano", icon: Users, href: "/dashboard/hr" },
-      { label: "Ventas Vortex", icon: TrendingDown, href: "/dashboard/sales" },
+      { label: "Ventas Vortex", icon: TrendingDown, href: "/dashboard/sales", prefetch: true },
     ],
   },
   {
@@ -134,6 +136,7 @@ export default function Sidebar({ user }: { user?: any }) {
                         <Link
                           key={item.href}
                           href={item.href}
+                          prefetch={true}
                           onClick={() => setIsOpen(false)}
                           className={`
                                                       flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-300 text-sm font-medium

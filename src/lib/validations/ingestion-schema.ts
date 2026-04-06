@@ -9,7 +9,7 @@ import { z } from "zod";
 export const IngestionRowSchema = z.object({
   date: z.string(),
   referenceId: z.string().min(1, "Referencia vacía"),
-  productSku: z.string().min(1, "SKU vacío"),
+  productSku: z.string().optional().transform(val => val ? val.trim().toLowerCase() : "sku_desconocido"),
 
   // Transformación exacta requerida para limpieza financiera (strings a floats puros)
   quantity: z.string().transform((val) => Number.parseFloat(val.replace(/[^0-9.-]+/g, ""))),

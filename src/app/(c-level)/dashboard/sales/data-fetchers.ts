@@ -2,14 +2,22 @@ import { db } from "@/db";
 import { sql, and } from "drizzle-orm";
 import { trace } from "@opentelemetry/api";
 import { withTenant } from "@/lib/tenant-db";
-import { getSession } from "@/lib/auth";
+import { requireManagerSession } from "@/lib/auth-utils";
 import { fact_sales, cash_register_transactions, products } from "@/db/schema";
+import { cash_register_closures } from "@/db/schema/treasury";
 
 const tracer = trace.getTracer("burgermusic-data-fetchers", "1.0.0");
 
-async function getTenantContext() {
-  const session = await getSession();
-  return withTenant({ user: session?.user });
+export async function getTenantContext() {
+  // 1. Fricción Positiva: Garantiza existencia atómica en el servidor
+  const session = await requireManagerSession(); 
+  
+  if (!session || !session.storeId) {
+    throw new Error("UNAUTHORIZED_ACCESS: Sesión inválida o expirada.");
+  }
+
+  // 2. Inyección segura al motor Multi-Tenant
+  return withTenant({ user: { storeId: session.storeId, role: session.role } });
 }
 
 export async function getTopLineMetrics(date?: string) {
@@ -85,11 +93,11 @@ export async function getTemporalEvolution(date?: string) {
 export async function getChannelDistribution() {
   const tenant = await getTenantContext();
   const query = tenant.select({
-    name: cash_register_transactions.paymentMethod,
-    value: sql`SUM(${cash_register_transactions.amount})`
+    name: cash_register_closures.payment_method,
+    value: sql`SUM(${cash_register_closures.total_cents})`
   })
-  .from(cash_register_transactions)
-  .groupBy(cash_register_transactions.paymentMethod);
+  .from(cash_register_closures)
+  .groupBy(cash_register_closures.payment_method);
   
   const sqlObj = query.toSQL();
   console.log("DEBUG: ChannelDistribution SQL:", sqlObj.sql, "Params:", sqlObj.params);
@@ -100,10 +108,16 @@ export async function getChannelDistribution() {
      return [];
   }
 
-  return raw.map((r: any) => ({
-    name: r.name || "MIXTO",
-    value: Math.round(Number(r.value) / 100)
-  }));
+  return raw
+    .map((r: any) => {
+      let rawName = typeof r.name === "string" ? r.name.trim() : "";
+      if (!rawName) rawName = "Método Desconocido";
+      return {
+        name: rawName,
+        value: Math.round(Number(r.value) / 100)
+      };
+    })
+    .filter((item: { name: string, value: number }) => item.value > 0);
 }
 
 

@@ -7,7 +7,7 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { ExcelRowSchema } from "@/schemas/transactions";
 import { eq } from "drizzle-orm";
-import { authenticatedAction } from "@/lib/auth-action";
+import { requireManagerSession } from "@/lib/auth-action";
 import { withTenant } from "@/lib/tenant-db";
 import { z } from "zod";
 
@@ -59,7 +59,14 @@ export async function extractExcelHeaders(formData: FormData): Promise<{ success
   }
 }
 
-export const ingestDynamicExcel = authenticatedAction(async (formData: FormData, { user }) => {
+export async function ingestDynamicExcel(formData: FormData) {
+  const session = await requireManagerSession();
+  if (!session.success || !session.data) {
+    throw new Error(session.error || "ZERO_TRUST_VIOLATION: Acceso denegado.");
+  }
+  const { storeId, role } = session.data;
+  const tenant = withTenant({ user: { storeId, role } });
+
   /**
    * ═══════════════════════════════════════════════════
    * 1. ZERO-TRUST INPUT VALIDATION & SHADOWING
@@ -76,8 +83,7 @@ export const ingestDynamicExcel = authenticatedAction(async (formData: FormData,
   }
 
   const { file, syncKey, mapping: map } = inputValidation.data;
-  const VALID_STORE_ID: string = user.storeId;
-  const tenant = withTenant({ user });
+  const VALID_STORE_ID: string = storeId;
 
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
@@ -95,15 +101,29 @@ export const ingestDynamicExcel = authenticatedAction(async (formData: FormData,
   }
 
   // 3. O(1) Diccionario de Productos (Caché en Memoria para este Action)
-  const allProducts = (await tenant.select({ id: products.id, name: products.name }).from(products)) as { id: string; name: string }[];
+  const allProducts = await tenant.select({ 
+      id: products.id, 
+      name: products.name,
+      costCents: products.costCents,
+      sellingPrice: products.sellingPrice
+  }).from(products);
+  
   const productDictionary = new Map<string, string>();
+  const costMap = new Map<string, number>();
+  const priceMap = new Map<string, number>();
+  
   const normalize = (s: string) => String(s).normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/gi, "").toLowerCase().trim();
 
   for (const p of allProducts) {
       const name = p.name;
       const id = p.id;
+      const cost = p.costCents || 0;
+      const price = p.sellingPrice || 0;
+      
       productDictionary.set(normalize(name), id);
       productDictionary.set(normalize(id.replace(/^(PRD_|PROD-)/i, '')), id);
+      costMap.set(id, cost);
+      priceMap.set(id, price);
   }
 
   const hydratedRows: any[] = [];
@@ -141,7 +161,7 @@ export const ingestDynamicExcel = authenticatedAction(async (formData: FormData,
 
   const validPayload: (typeof fact_sales.$inferInsert)[] = [];
   const dlqPayload: (typeof sales_mapping_dlq.$inferInsert)[] = [];
-  const cashMap = new Map<string, typeof cash_register_transactions.$inferInsert>();
+  const cashMap2 = new Map<string, typeof cash_register_transactions.$inferInsert>();
   const autoLinkProducts: (typeof products.$inferInsert)[] = [];
   const createdSkus = new Set<string>();
   
@@ -175,7 +195,14 @@ export const ingestDynamicExcel = authenticatedAction(async (formData: FormData,
      const normDesc = normalize(descripcion);
      let realSku = productDictionary.get(normDesc);
      
-     if (!realSku) {
+     // Fase 2 Saneamiento: Recuperar costos y precios históricos O(1)
+     let frozenBomCost = 0;
+     let frozenPrice = netPriceCents;
+     
+     if (realSku) {
+         frozenBomCost = costMap.get(realSku) || 0;
+         frozenPrice = priceMap.get(realSku) || netPriceCents;
+     } else {
          const cleanId = "PRD_AUTO_" + String(normDesc).toUpperCase().replace(/[^A-Z0-9]/g, "_").slice(0, 25);
          if (!createdSkus.has(cleanId)) {
              autoLinkProducts.push({
@@ -192,6 +219,7 @@ export const ingestDynamicExcel = authenticatedAction(async (formData: FormData,
              productDictionary.set(normDesc, cleanId);
          }
          realSku = cleanId;
+         frozenPrice = netPriceCents > 0 ? Math.round(netPriceCents / Math.max(1, Number(cantidad))) : 0;
      }
 
      validPayload.push({
@@ -202,12 +230,14 @@ export const ingestDynamicExcel = authenticatedAction(async (formData: FormData,
          productSku: realSku,
          quantity: cantidad,
          net_price_cents: netPriceCents,
+         historical_cost_cents: frozenBomCost,
+         historical_price_cents: frozenPrice,
          storeId: VALID_STORE_ID,
       });
 
      const hashKey = `${fecha}-${nroCaja}-UNKNOWN-MIXTO`;
-     if (!cashMap.has(hashKey)) {
-         cashMap.set(hashKey, {
+     if (!cashMap2.has(hashKey)) {
+         cashMap2.set(hashKey, {
              id: randomUUID(),
              date: fecha,
              shift: "UNKNOWN",
@@ -221,7 +251,7 @@ export const ingestDynamicExcel = authenticatedAction(async (formData: FormData,
              storeId: VALID_STORE_ID,
           });
      }
-     const entry = cashMap.get(hashKey);
+     const entry = cashMap2.get(hashKey);
      if (entry) {
         entry.amount += netPriceCents;
         entry.cashInRegister += netPriceCents;
@@ -229,39 +259,54 @@ export const ingestDynamicExcel = authenticatedAction(async (formData: FormData,
   }
 
   // 5. ATOMIC DB PUSH (CHUNKING)
+  if (validPayload.length === 0) {
+     return { success: false, error: "Formato inválido o cero filas procesadas." };
+  }
+
   const CHUNK_SIZE = 1500;
-  if (autoLinkProducts.length > 0) {
-      for (let i = 0; i < autoLinkProducts.length; i += CHUNK_SIZE) {
-          await tenant.insert(products).values(autoLinkProducts.slice(i, i + CHUNK_SIZE)).onConflictDoNothing();
-      }
-  }
-
-  for (let i = 0; i < validPayload.length; i += CHUNK_SIZE) {
-      await tenant.insert(fact_sales).values(validPayload.slice(i, i + CHUNK_SIZE)).onConflictDoNothing();
-  }
   
-  if (dlqPayload.length > 0) {
-      for (let i = 0; i < dlqPayload.length; i += CHUNK_SIZE) {
-          await tenant.insert(sales_mapping_dlq).values(dlqPayload.slice(i, i + CHUNK_SIZE)).onConflictDoNothing();
-      }
-  }
-  
-  const cashBatch = Array.from(cashMap.values());
-  for (let i = 0; i < cashBatch.length; i += CHUNK_SIZE) {
-      await tenant.insert(cash_register_transactions).values(cashBatch.slice(i, i + CHUNK_SIZE)).onConflictDoNothing();
-  }
+  await tenant.transaction(async (tx: any) => {
+    if (autoLinkProducts.length > 0) {
+        for (let i = 0; i < autoLinkProducts.length; i += CHUNK_SIZE) {
+            await tx.insert(products).values(autoLinkProducts.slice(i, i + CHUNK_SIZE)).onConflictDoNothing();
+        }
+    }
 
-  // Idempotencia: Registrar estado de sincronización
-  await tenant.insert(syncState).values([{
-    syncKey,
-    lastSyncedRow: rawData.length,
-  }]).onConflictDoNothing();
+    for (let i = 0; i < validPayload.length; i += CHUNK_SIZE) {
+        await tx.insert(fact_sales).values(validPayload.slice(i, i + CHUNK_SIZE)).onConflictDoNothing();
+    }
+
+    // Gatillo de Descarga de Inventario
+    if (validPayload.length > 0) {
+        const insertedSaleIds = validPayload.map(v => v.id);
+        const { depleteInventoryForSales } = await import("@/actions/inventory-depletion");
+        await depleteInventoryForSales(insertedSaleIds, VALID_STORE_ID);
+    }
+    
+    if (dlqPayload.length > 0) {
+        for (let i = 0; i < dlqPayload.length; i += CHUNK_SIZE) {
+            await tx.insert(sales_mapping_dlq).values(dlqPayload.slice(i, i + CHUNK_SIZE)).onConflictDoNothing();
+        }
+    }
+    
+    const cashBatch = Array.from(cashMap2.values());
+    for (let i = 0; i < cashBatch.length; i += CHUNK_SIZE) {
+        await tx.insert(cash_register_transactions).values(cashBatch.slice(i, i + CHUNK_SIZE)).onConflictDoNothing();
+    }
+
+    // Idempotencia: Registrar estado de sincronización
+    await tx.insert(syncState).values([{
+      syncKey,
+      lastSyncedRow: rawData.length,
+    }]).onConflictDoNothing();
+  });
 
   revalidatePath("/dashboard/sales");
+  
   return { 
     success: true,
     inserted: validPayload.length, 
     deadLetters,
     targetDate: latestDateStr 
   };
-});
+}

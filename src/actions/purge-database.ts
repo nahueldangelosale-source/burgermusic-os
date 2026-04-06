@@ -2,16 +2,22 @@
 
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
+import { requireManagerSession } from "@/lib/auth-action";
 
 /**
  * Purga Termonuclear de Datos Operativos
  * ──────────────────────────────────────
- * Reinicia el Ledger financiero y los buffers de auditoría destructivamente,
- * manteniendo las configuraciones core inmutables (usuarios, locales, etc).
+ * RBAC: Solo OWNER_GLOBAL puede ejecutar esta operación destructiva.
  */
-import { authenticatedAction } from "@/lib/auth-action";
+export async function purgeDatabaseAction() {
+  const session = await requireManagerSession();
+  if (!session.success || !session.data) {
+    throw new Error(session.error || "ZERO_TRUST_VIOLATION: Acceso denegado.");
+  }
+  if (session.data.role !== "OWNER_GLOBAL") {
+    throw new Error("UNAUTHORIZED_ACCESS: Solo C-Level puede ejecutar purgas de datos.");
+  }
 
-export const purgeDatabaseAction = authenticatedAction(async () => {
   console.log("Iniciando purga termonuclear P0...");
 
   // 1. Core Ledger & Transactional Storage
@@ -32,4 +38,4 @@ export const purgeDatabaseAction = authenticatedAction(async () => {
 
   console.log("Purga completada.");
   return { success: true, message: "Ledger transaccional Purgado Exitosamente." };
-});
+}

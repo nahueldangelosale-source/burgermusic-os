@@ -44,12 +44,15 @@ export async function resolveAnomaly(formData: z.infer<typeof ResolveAnomalySche
   }
 
   // 3. AI Judicial Evaluation (Agent-as-a-Judge)
-  const { object: judgment } = await generateObject({
-    model: google("gemini-1.5-pro"),
-    schema: z.object({
+  const JudgmentSchema = z.object({
       approved: z.boolean(),
       reasoning: z.string(),
-    }),
+    });
+  type Judgment = z.infer<typeof JudgmentSchema>;
+
+  const result = await generateObject({
+    model: google("gemini-1.5-pro"),
+    schema: JudgmentSchema,
     prompt: `Actúa como un Juez Algorítmico FinOps para BurgerMusic OS. 
     Debes evaluar la siguiente justificación para una anomalía financiera crítica.
     
@@ -67,6 +70,7 @@ export async function resolveAnomaly(formData: z.infer<typeof ResolveAnomalySche
     
     Responde con un booleano 'approved' y un 'reasoning' técnico que se guardará en el log de auditoría.`,
   });
+  const judgment: Judgment = result.object as Judgment;
 
   // 4. Atomic Resolution & Audit Trail
   await db.transaction(async (tx) => {

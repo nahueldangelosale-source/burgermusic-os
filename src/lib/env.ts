@@ -8,18 +8,18 @@ import { z } from "zod";
 const envSchema = z.object({
   // ── Base de Datos (Turso) ──
   TURSO_DATABASE_URL: z
-    .string({ required_error: "❌ TURSO_DATABASE_URL no está definida" })
+    .string()
     .min(1, "❌ TURSO_DATABASE_URL está vacía"),
 
   TURSO_AUTH_TOKEN: z.string().optional(), // Opcional en local (file: protocol), requerido en prod
 
   // ── Seguridad ──
   AUTH_SECRET: z
-    .string({ required_error: "❌ AUTH_SECRET no está definida" })
+    .string()
     .min(8, "❌ AUTH_SECRET debe tener al menos 8 caracteres"),
 
   KITCHEN_PIN: z
-    .string({ required_error: "❌ KITCHEN_PIN no está definida" })
+    .string()
     .min(4, "❌ KITCHEN_PIN debe tener al menos 4 caracteres"),
 
   // ── Google Sheets ETL (opcional hasta que se configure) ──

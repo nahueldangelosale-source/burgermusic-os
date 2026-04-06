@@ -65,7 +65,7 @@ export async function createSupplier(formData: z.infer<typeof CreateSupplierSche
     return { success: true };
   } catch (e: any) {
     if (e instanceof z.ZodError) {
-      return { success: false, error: e.errors[0].message };
+      return { success: false, error: (e as any).errors[0].message };
     }
     return { success: false, error: e.message };
   }

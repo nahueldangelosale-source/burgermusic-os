@@ -23,7 +23,7 @@ export default async function PurchasesPage() {
       </header>
 
       <Suspense fallback={<div className="h-1 bg-blue-500/20 w-full animate-pulse rounded-full" />}>
-        <PurchasesClient initialOrders={orders.data || []} suppliers={suppliers} />
+        <PurchasesClient initialOrders={orders || []} suppliers={suppliers} />
       </Suspense>
 
       {/* Estética de fondo */}

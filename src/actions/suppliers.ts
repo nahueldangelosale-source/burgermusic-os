@@ -5,24 +5,44 @@ import { raw_materials } from "@/db/schema/bom";
 import { eq, sql, isNull, and } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
-import { authenticatedAction } from "@/lib/auth-action";
+import { requireManagerSession } from "@/lib/auth-action";
 import { SupplierSchema } from "@/schemas/suppliers";
 import { withTenant } from "@/lib/tenant-db";
 import { z } from "zod";
 
-export const getSuppliers = authenticatedAction(async (_, { user }) => {
+/**
+ * getSuppliers
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Zero-Trust version: Requires session and branch isolation.
+ */
+export async function getSuppliers() {
+  const session = await requireManagerSession();
+  if (!session.success || !session.data) {
+    throw new Error(session.error || "ZERO_TRUST_VIOLATION: Acceso denegado a Proveedores.");
+  }
+  const { storeId, role } = session.data;
+  const tenant = withTenant({ user: { storeId, role } });
+
   try {
-    const tenant = withTenant({ user });
     const rawData = await tenant.select().from(suppliers).where(isNull(suppliers.deletedAt)).all();
     return { success: true, data: rawData };
   } catch (error: any) {
     return { success: false, error: error.message };
   }
-});
+}
 
-export const upsertSupplier = authenticatedAction(async (payload: z.infer<typeof SupplierSchema>, { user }) => {
+/**
+ * upsertSupplier
+ */
+export async function upsertSupplier(payload: z.infer<typeof SupplierSchema>) {
+  const session = await requireManagerSession();
+  if (!session.success || !session.data) {
+    throw new Error(session.error || "ZERO_TRUST_VIOLATION: Acceso denegado.");
+  }
+  const { storeId, role } = session.data;
+  const tenant = withTenant({ user: { storeId, role } });
+
   const validated = SupplierSchema.parse(payload);
-  const tenant = withTenant({ user });
 
   await tenant.insert(suppliers).values([{
     id: validated.id || `SUP-${randomUUID().substring(0, 8).toUpperCase()}`,
@@ -47,23 +67,41 @@ export const upsertSupplier = authenticatedAction(async (payload: z.infer<typeof
 
   revalidatePath("/dashboard/supply");
   return { success: true };
-});
+}
 
-export const deleteSupplier = authenticatedAction(async (id: string, { user }) => {
-  const tenant = withTenant({ user });
+/**
+ * deleteSupplier
+ */
+export async function deleteSupplier(id: string) {
+  const session = await requireManagerSession();
+  if (!session.success || !session.data) {
+    throw new Error(session.error || "ZERO_TRUST_VIOLATION: Acceso denegado.");
+  }
+  const { storeId, role } = session.data;
+  const tenant = withTenant({ user: { storeId, role } });
+
   await tenant.update(suppliers)
     .set({ deletedAt: new Date() })
     .where(eq(suppliers.id, id));
+
   revalidatePath("/dashboard/supply");
   return { success: true };
-});
+}
 
-export const calculateSupplierScore = authenticatedAction(async (supplierId: string, { user }) => {
+/**
+ * calculateSupplierScore
+ */
+export async function calculateSupplierScore(supplierId: string) {
+  const session = await requireManagerSession();
+  if (!session.success || !session.data) {
+    throw new Error(session.error || "ZERO_TRUST_VIOLATION: Acceso denegado.");
+  }
+  const { storeId, role } = session.data;
+  const tenant = withTenant({ user: { storeId, role } });
+
   try {
-    const tenant = withTenant({ user });
-    
     // 1. Rendimiento Histórico Promedio (Yield)
-    const materials = await tenant.unsafeRaw.select().from(raw_materials).where(eq(raw_materials.supplierId, supplierId)).all();
+    const materials = await tenant.select().from(raw_materials).where(eq(raw_materials.supplierId, supplierId)).all();
     let avgYield = 1.0;
     if (materials.length > 0) {
       const sumYield = (materials as any[]).reduce((acc, current) => acc + current.historicalYieldPct, 0);
@@ -92,12 +130,20 @@ export const calculateSupplierScore = authenticatedAction(async (supplierId: str
   } catch (error: any) {
     return { success: false, error: error.message };
   }
-});
+}
 
-export const calculateSupplierBalance = authenticatedAction(async (supplierId: string, { user }) => {
+/**
+ * calculateSupplierBalance
+ */
+export async function calculateSupplierBalance(supplierId: string) {
+  const session = await requireManagerSession();
+  if (!session.success || !session.data) {
+    throw new Error(session.error || "ZERO_TRUST_VIOLATION: Acceso denegado.");
+  }
+  const { storeId, role } = session.data;
+  const tenant = withTenant({ user: { storeId, role } });
+
   try {
-    const tenant = withTenant({ user });
-    
     // 1. Suma de Invoices 
     const aps = await tenant.select({
        totalInvoices: sql<number>`SUM(${accounts_payable.invoice_amount})`
@@ -122,4 +168,4 @@ export const calculateSupplierBalance = authenticatedAction(async (supplierId: s
   } catch(error: any) {
     return { success: false, error: error.message };
   }
-});
+}

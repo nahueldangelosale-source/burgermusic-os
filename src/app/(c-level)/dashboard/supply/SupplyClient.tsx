@@ -4,14 +4,17 @@ import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { useState, useRef, useMemo, useTransition } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { simulateInflationImpact, applyNewCostsToLedger, upsertRawMaterial, deleteRawMaterial } from "@/actions/bom-simulator";
-import { getRecipeForProduct, addIngredientToRecipe, removeIngredientFromRecipe, updateRecipeIngredient } from "@/actions/recipes";
+import { getRecipeForProduct, addIngredientToRecipe, removeIngredientFromRecipe, updateRecipeIngredient, updateBOMItem } from "@/actions/recipes";
 import { upsertSupplier, deleteSupplier, calculateSupplierScore, calculateSupplierBalance } from "@/actions/suppliers";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { AlertTriangle, DatabaseZap, Search, Filter, X, BarChart2, PackageOpen, TrendingUp, Coins, ChevronRight, Plus, Trash2, Users, Building, Phone, CalendarClock, Briefcase, Activity, Edit2, Save } from "lucide-react";
-import { updateProduct } from "@/actions/products";
+import { AlertTriangle, DatabaseZap, Search, Filter, X, BarChart2, PackageOpen, TrendingUp, Coins, ChevronRight, Plus, Trash2, Users, Building, Phone, CalendarClock, Briefcase, Activity, Edit2, Save, AlertCircle, CheckCircle2 } from "lucide-react";
+import { updateProduct, deleteProduct } from "@/actions/products";
 import { repairProductCatalog } from "@/actions/repair-catalog";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, ComposedChart, Line } from "recharts";
 import { useEffect } from "react";
+import { AuditClient } from "./AuditClient";
+import { KardexTelemetry } from "./KardexTelemetry";
+import * as Dialog from "@radix-ui/react-dialog";
 
 export function SupplyClient({ catalog, productsCatalog, suppliersCatalog, performanceData = [], defaultTab }: { catalog: any[], productsCatalog: any[], suppliersCatalog: any[], performanceData?: any[], defaultTab: string }) {
   const router = useRouter();
@@ -20,6 +23,7 @@ export function SupplyClient({ catalog, productsCatalog, suppliersCatalog, perfo
   const [isPending, startTransition] = useTransition();
   const defaultTabParam = searchParams?.get("tab") || defaultTab;
   const [activeTab, setActiveTab] = useState(defaultTabParam);
+  const [recipeSearch, setRecipeSearch] = useState("");
 
   // Tab 4 (Simulador)
   const [selectedIngredient, setSelectedIngredient] = useState("");
@@ -97,20 +101,28 @@ export function SupplyClient({ catalog, productsCatalog, suppliersCatalog, perfo
   const [productFilterCategory, setProductFilterCategory] = useState("ALL");
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<any>({});
+  const [liveInventory, setLiveInventory] = useState<any[]>([]);
+  useEffect(() => {
+    let mounted = true;
+    import("@/actions/audit").then(m => m.getInventoryCatalog().then(res => {
+      if(mounted && res.success && res.data) setLiveInventory(res.data);
+    }));
+    return () => { mounted = false; };
+  }, []);
 
   const uniqueCategories = useMemo(() => {
-    const cats = new Set(catalog.map(c => c.category || "INGREDIENTES"));
+    const cats = new Set(liveInventory.map((c: any) => c.category || "INGREDIENTES"));
     return Array.from(cats);
-  }, [catalog]);
+  }, [liveInventory]);
 
   const filteredCatalog = useMemo(() => {
-    return catalog.filter((item) => {
+    return liveInventory.filter((item: any) => {
       const matchSearch = item.name?.toLowerCase().includes(insumoSearch.toLowerCase()) || item.id?.toLowerCase().includes(insumoSearch.toLowerCase());
-      const matchUnit = insumoFilterUnit === "ALL" || item.unit === insumoFilterUnit || item.base_unit === insumoFilterUnit;
+      const matchUnit = insumoFilterUnit === "ALL" || item.measurement_unit === insumoFilterUnit || item.unit === insumoFilterUnit;
       const matchCat = insumoFilterCategory === "ALL" || (item.category || "INGREDIENTES") === insumoFilterCategory;
       return matchSearch && matchUnit && matchCat;
     });
-  }, [catalog, insumoSearch, insumoFilterUnit, insumoFilterCategory]);
+  }, [liveInventory, insumoSearch, insumoFilterUnit, insumoFilterCategory]);
 
   const uniqueProductCategories = useMemo(() => {
     const cats = new Set(productsCatalog.map(p => p.category || "GENERAL"));
@@ -126,17 +138,21 @@ export function SupplyClient({ catalog, productsCatalog, suppliersCatalog, perfo
   }, [productsCatalog, productSearch, productFilterCategory]);
 
   const chartData = useMemo(() => {
-    // Agrupar por Categoría para el gráfico Top 5
+    const total = liveInventory.length;
     const counts: Record<string, number> = {};
-    catalog.forEach(c => {
+    liveInventory.forEach(c => {
       const cat = c.category || "INGREDIENTES";
       counts[cat] = (counts[cat] || 0) + 1;
     });
     return Object.entries(counts)
-      .map(([name, value]) => ({ name, value }))
+      .map(([name, value]) => ({ 
+        name, 
+        value, 
+        percentage: total > 0 ? Math.round((value / total) * 100) : 0 
+      }))
       .sort((a,b) => b.value - a.value)
       .slice(0, 6);
-  }, [catalog]);
+  }, [liveInventory]);
 
   const parentRef = useRef<HTMLDivElement>(null);
   const rowVirtualizer = useVirtualizer({
@@ -180,7 +196,7 @@ export function SupplyClient({ catalog, productsCatalog, suppliersCatalog, perfo
 
   return (
     <TabsPrimitive.Root defaultValue={defaultTab} onValueChange={handleTabChange} className="w-full flex flex-col gap-6">
-      <TabsPrimitive.List className="flex gap-4 border-b border-slate-200 overflow-x-auto scrollbar-hide">
+      <TabsPrimitive.List className="flex overflow-x-auto whitespace-nowrap scrollbar-hide border-b border-slate-200 w-full">
         <TabsPrimitive.Trigger value="insumos" className="px-6 py-3 font-bold text-sm text-slate-500 hover:text-slate-900 data-[state=active]:text-indigo-600 data-[state=active]:border-b-2 data-[state=active]:border-indigo-600 transition-colors whitespace-nowrap">
           Catálogo de Insumos
         </TabsPrimitive.Trigger>
@@ -196,7 +212,23 @@ export function SupplyClient({ catalog, productsCatalog, suppliersCatalog, perfo
         <TabsPrimitive.Trigger value="analitica" className="px-6 py-3 font-bold text-sm text-slate-500 hover:text-slate-900 data-[state=active]:text-indigo-600 data-[state=active]:border-b-2 data-[state=active]:border-indigo-600 transition-colors whitespace-nowrap">
           Analítica y Simulación (BOM)
         </TabsPrimitive.Trigger>
+        <TabsPrimitive.Trigger value="telemetry" className="px-6 py-3 font-bold text-sm text-slate-500 hover:text-slate-900 data-[state=active]:text-indigo-600 data-[state=active]:border-b-2 data-[state=active]:border-indigo-600 transition-colors whitespace-nowrap">
+          Kardex Telemetry
+        </TabsPrimitive.Trigger>
+        <TabsPrimitive.Trigger value="audit" className="px-6 py-3 font-bold text-sm text-slate-500 hover:text-slate-900 data-[state=active]:text-indigo-600 data-[state=active]:border-b-2 data-[state=active]:border-indigo-600 transition-colors whitespace-nowrap">
+          Auditoría (Física)
+        </TabsPrimitive.Trigger>
       </TabsPrimitive.List>
+
+      <TabsPrimitive.Content value="telemetry" className="animate-in fade-in duration-500">
+        <div className="bg-white p-6 rounded-[24px] border border-slate-100 shadow-sm">
+          <KardexTelemetry />
+        </div>
+      </TabsPrimitive.Content>
+
+      <TabsPrimitive.Content value="audit" className="animate-in fade-in duration-500">
+        <AuditClient />
+      </TabsPrimitive.Content>
 
       {/* PESTAÑA 1: INSUMOS */}
       <TabsPrimitive.Content value="insumos" className="flex flex-col gap-6 animate-in fade-in duration-500">
@@ -204,17 +236,86 @@ export function SupplyClient({ catalog, productsCatalog, suppliersCatalog, perfo
           <div>
             <h2 className="text-xl font-black text-slate-800 tracking-tight">Catálogo de Insumos (MDM)</h2>
             <div className="flex items-center gap-2 mt-1">
-              <span className="bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-0.5 rounded-full">{catalog.length} INSUMOS TOTALES</span>
+              <span className="bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-0.5 rounded-full">{liveInventory.length} INSUMOS TOTALES</span>
               <p className="text-sm text-slate-500 font-medium">Bases de Datos de Materia Prima y Rendimientos</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
             <button 
-              onClick={() => { setEditingInsumo(null); setIsDrawerOpen(true); }}
-              className="bg-white border-2 border-indigo-100 text-indigo-600 px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-indigo-50 hover:border-indigo-200 transition-colors shadow-sm"
+              disabled={isUploading}
+              onClick={async () => {
+                const { cleanOrphanedBOMs, seedRealWorldCatalog } = await import("@/actions/audit");
+                setIsUploading(true);
+                try {
+                  await cleanOrphanedBOMs();
+                  await seedRealWorldCatalog();
+                  alert("Saneamiento e Ingesta Completada: El Catálogo MDM está sincronizado con la realidad física.");
+                  router.refresh();
+                } catch (error: any) {
+                  alert("Error: " + error.message);
+                } finally {
+                  setIsUploading(false);
+                }
+              }}
+              className="px-4 py-2 bg-slate-800 border border-slate-600 text-white rounded-md text-sm font-medium hover:bg-slate-700 transition-colors disabled:opacity-50"
             >
-              + Nuevo Insumo
+              Ejecutar MDM Seed & Limpieza
             </button>
+            <Dialog.Root>
+              <Dialog.Trigger asChild>
+                <button 
+                  className="bg-white border-2 border-indigo-100 text-indigo-600 px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-indigo-50 hover:border-indigo-200 transition-colors shadow-sm"
+                >
+                  + Nuevo Insumo
+                </button>
+              </Dialog.Trigger>
+              <Dialog.Portal>
+                <Dialog.Overlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 animate-in fade-in" />
+                <Dialog.Content className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-gray-900 border-gray-800 p-6 shadow-2xl duration-200 sm:rounded-[24px]">
+                  <Dialog.Title className="text-xl font-bold text-white tracking-tight flex items-center gap-2">Nuevo Insumo (Inventory Items)</Dialog.Title>
+                  <Dialog.Description className="text-sm text-slate-400">Registra un nuevo material para el escrutinio de mermas.</Dialog.Description>
+                  <form className="flex flex-col gap-4 mt-2" action={async (formData) => {
+                     const name = formData.get("name") as string;
+                     const category = formData.get("category") as string;
+                     const unit = formData.get("unit") as string;
+                     const cost = Number(formData.get("cost"));
+                     const { createInventoryItem } = await import("@/actions/audit");
+                     const res = await createInventoryItem({ name, category, measurement_unit: unit, cost_per_unit_cents: cost });
+                     if (res.success) {
+                        alert("Insumo creado en Turso con O(1) Isolation");
+                        window.location.reload();
+                     } else {
+                        alert("Error: Fallback");
+                     }
+                  }}>
+                    <input name="name" required placeholder="Nombre (ej. Papa Simplot)" className="w-full rounded bg-gray-800 border-gray-700 p-3 text-white text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+                    <select name="category" required className="w-full rounded bg-gray-800 border-gray-700 p-3 text-white text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+                      <option value="VEGETALES">VEGETALES</option>
+                      <option value="CARNES">CARNES</option>
+                      <option value="PANIFICADOS">PANIFICADOS</option>
+                      <option value="QUESOS_FIAMBRES">QUESOS_FIAMBRES</option>
+                      <option value="CONGELADOS">CONGELADOS</option>
+                      <option value="PACKAGING">PACKAGING</option>
+                      <option value="BEBIDAS">BEBIDAS</option>
+                      <option value="OTROS">OTROS</option>
+                    </select>
+                    <select name="unit" required className="w-full rounded bg-gray-800 border-gray-700 p-3 text-white text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+                      <option value="KG">KG</option>
+                      <option value="GRAMO">GRAMO</option>
+                      <option value="UNIDAD">UNIDAD</option>
+                      <option value="LITRO">LITRO</option>
+                    </select>
+                    <input name="cost" type="number" step="1" required placeholder="Costo Unitario en céntimos (ej. 15000 = $150)" className="w-full rounded bg-gray-800 border-gray-700 p-3 text-white text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+                    <div className="flex justify-end gap-3 mt-4">
+                      <Dialog.Close asChild>
+                        <button type="button" className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-white font-bold text-sm transition-colors">Cancelar</button>
+                      </Dialog.Close>
+                      <button type="submit" className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-white font-bold text-sm transition-colors shadow-lg shadow-indigo-500/20">Consolidar Alta</button>
+                    </div>
+                  </form>
+                </Dialog.Content>
+              </Dialog.Portal>
+            </Dialog.Root>
             <label className={`cursor-pointer ${isUploading ? 'bg-slate-400 cursor-not-allowed' : 'bg-slate-900 hover:bg-slate-800'} text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-colors shadow-sm flex items-center gap-2`}>
               <DatabaseZap className={`w-4 h-4 ${isUploading ? 'animate-pulse' : ''}`} /> {isUploading ? "Inyectando MDM..." : "Importar Catálogo CSV"}
               <input 
@@ -249,29 +350,65 @@ export function SupplyClient({ catalog, productsCatalog, suppliersCatalog, perfo
         </div>
 
         {/* Panel Resumen Analítico */}
-        {catalog.length > 0 && (
+        {liveInventory.length > 0 && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-1 bg-white p-6 rounded-[24px] border border-slate-100 shadow-sm flex flex-col justify-center items-center text-center">
               <div className="w-12 h-12 bg-indigo-50 flex items-center justify-center rounded-2xl mb-4 text-indigo-500">
                 <PackageOpen size={24} />
               </div>
-              <div className="text-4xl font-black text-slate-800">{catalog.length}</div>
+              <div className="text-4xl font-black text-slate-800">{liveInventory.length}</div>
               <div className="text-sm font-bold text-slate-400 tracking-widest uppercase mt-1">Total Insumos Mapeados</div>
             </div>
-            <div className="lg:col-span-2 bg-white p-6 rounded-[24px] border border-slate-100 shadow-sm h-40">
+            <div className="lg:col-span-2 bg-white p-6 rounded-[24px] border border-slate-100 shadow-sm h-[400px] flex flex-col">
               <div className="flex justify-between items-center mb-2">
                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
                    <BarChart2 size={14} /> Distribución por Categoría
                  </h3>
+                 {insumoFilterCategory !== "ALL" && (
+                   <button 
+                     onClick={() => setInsumoFilterCategory("ALL")}
+                     className="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-1 rounded-md font-bold hover:bg-indigo-100 transition-colors"
+                   >
+                     Limpiar Filtro: {insumoFilterCategory}
+                   </button>
+                 )}
               </div>
-              <div className="h-24 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                    <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} />
-                    <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                    <Bar dataKey="value" fill="#6366f1" radius={[4, 4, 0, 0]} maxBarSize={40} />
-                  </BarChart>
-                </ResponsiveContainer>
+              <div className="flex-1 w-full relative min-h-0">
+                <div className="absolute inset-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={chartData} margin={{ top: 10, right: 0, left: -20, bottom: 20 }}>
+                      <XAxis 
+                        dataKey="name" 
+                        fontSize={10} 
+                        axisLine={false} 
+                        tickLine={false} 
+                        interval={0}
+                        angle={-15}
+                        textAnchor="end"
+                      />
+                      <Tooltip 
+                        cursor={{ fill: 'transparent' }} 
+                        contentStyle={{ borderRadius: '12px', backgroundColor: '#1e293b', color: '#fff', border: 'none' }}
+                        formatter={(value: any, name: any, props: any) => {
+                          const { percentage } = props.payload;
+                          return [`${value} items (${percentage}%)`, "Distribución"];
+                        }}
+                      />
+                      <Bar 
+                        dataKey="value" 
+                        fill="#4f46e5" 
+                        radius={[6, 6, 0, 0]} 
+                        maxBarSize={50} 
+                        onClick={(data) => {
+                          if (data && data.name) {
+                            setInsumoFilterCategory(data.name);
+                          }
+                        }}
+                        className="cursor-pointer"
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             </div>
           </div>
@@ -335,9 +472,11 @@ export function SupplyClient({ catalog, productsCatalog, suppliersCatalog, perfo
                 <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}>
                   <table className="min-w-full text-sm text-left align-top">
                     <tbody className="divide-y divide-slate-100">
-                      {rowVirtualizer.getVirtualItems().length === 0 ? (
+                      {liveInventory.length === 0 ? (
+                        <tr><td colSpan={5} className="p-8 text-center text-red-500 font-bold">⚠️ CATÁLOGO VACÍO. El Auto-Parser no funcionará hasta que crees insumos usando el botón '+ Nuevo Insumo'.</td></tr>
+                      ) : rowVirtualizer.getVirtualItems().length === 0 ? (
                         <tr>
-                          <td className="px-6 py-12 text-center text-slate-400 font-medium" colSpan={4}>
+                          <td className="px-6 py-12 text-center text-slate-400 font-medium" colSpan={5}>
                             No hay insumos registrados. Importa el catálogo CSV para comenzar.
                           </td>
                         </tr>
@@ -354,23 +493,38 @@ export function SupplyClient({ catalog, productsCatalog, suppliersCatalog, perfo
                                 transform: `translateY(${virtualRow.start}px)`,
                               }}
                             >
-                              <td className="px-6 py-4 font-bold text-slate-900 w-[30%] flex flex-col">
+                              <td className="px-6 py-4 font-bold text-slate-900 w-[30%]">
                                 <span className="truncate">{item.name}</span>
-                                <span className="text-[10px] font-mono text-slate-400 truncate">{item.id}</span>
                               </td>
                               <td className="px-6 py-4 w-[20%]">
                                  <span className="bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-widest border border-slate-200">
                                    {item.category || "INGREDIENTES"}
                                  </span>
                               </td>
-                              <td className="px-6 py-4 w-[15%] text-slate-600 font-medium">{item.unit || item.baseUnit || item.base_unit || "N/A"}</td>
-                              <td className="px-6 py-4 w-[20%] font-mono text-indigo-600">${((item.cost_cents || item.grossCostCents || item.gross_cost_cents || 0)/100).toLocaleString('es-AR')}</td>
-                              <td className="px-6 py-4 w-[15%] text-right">
+                              <td className="px-6 py-4 w-[15%] text-slate-600 font-medium">{item.measurement_unit || item.unit || item.baseUnit || item.base_unit || "N/A"}</td>
+                              <td className="px-6 py-4 w-[20%] font-mono text-indigo-600">${((item.cost_per_unit_cents || item.cost_cents || item.grossCostCents || item.gross_cost_cents || 0)/100).toLocaleString('es-AR')}</td>
+                              <td className="px-6 py-4 w-[15%] text-right flex items-center justify-end gap-2">
                                 <button 
                                   onClick={() => { setEditingInsumo(item); setIsDrawerOpen(true); }}
                                   className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-lg transition-colors"
                                 >
                                   Editar
+                                </button>
+                                <button 
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    if (!confirm("¿Eliminar insumo?")) return;
+                                    const { deleteInventoryItem } = await import("@/actions/audit");
+                                    const res = await deleteInventoryItem(item.id);
+                                    if(res.success) {
+                                      router.refresh();
+                                    } else {
+                                      alert("Error al eliminar: " + res.error);
+                                    }
+                                  }}
+                                  className="text-red-500 hover:text-red-400 transition-colors p-1"
+                                >
+                                  <Trash2 size={16} />
                                 </button>
                               </td>
                             </tr>
@@ -403,11 +557,16 @@ export function SupplyClient({ catalog, productsCatalog, suppliersCatalog, perfo
                   grossCostCents: Math.round(parseFloat(formData.get("cost") as string) * 100),
                 };
                 
-                const res = await upsertRawMaterial({ ...payload, id: editingInsumo?.id || undefined });
-                if (res.success) {
-                  window.location.reload();
-                } else {
-                  alert("Error al guardar: " + res.error);
+                try {
+                  const res = await upsertRawMaterial({ ...payload, id: editingInsumo?.id || undefined });
+                  if (res.success) {
+                    window.location.reload();
+                  } else {
+                    alert("Error al guardar el insumo.");
+                    setIsUploading(false);
+                  }
+                } catch (err: unknown) {
+                  alert("Error al guardar: " + (err instanceof Error ? err.message : "Desconocido"));
                   setIsUploading(false);
                 }
               }}
@@ -548,12 +707,12 @@ export function SupplyClient({ catalog, productsCatalog, suppliersCatalog, perfo
               <button 
                 onClick={async () => {
                   if(!confirm("¿Deseas restaurar el Catálogo Maestro PDR_?")) return;
-                  const res = await repairProductCatalog();
-                  if(res.success) {
-                    alert((res as any).data?.message || "Sincronización exitosa");
+                  try {
+                    const res = await repairProductCatalog();
+                    alert(res.message || "Sincronización exitosa");
                     window.location.reload();
-                  } else {
-                    alert("Error: " + res.error);
+                  } catch (err: unknown) {
+                    alert("Error: " + (err instanceof Error ? err.message : "Desconocido"));
                   }
                 }}
                 className="bg-amber-50 border-2 border-amber-100 text-amber-700 px-4 py-2 rounded-xl font-bold text-xs hover:bg-amber-100 transition-colors flex items-center gap-2"
@@ -589,10 +748,12 @@ export function SupplyClient({ catalog, productsCatalog, suppliersCatalog, perfo
             <table className="min-w-full text-left">
               <thead className="bg-slate-50 border-b border-slate-100 sticky top-0 z-10">
                 <tr>
-                  <th className="px-6 py-4 text-[10px] font-black tracking-widest text-slate-400 uppercase w-[35%]">Producto / SKU</th>
-                  <th className="px-6 py-4 text-[10px] font-black tracking-widest text-slate-400 uppercase w-[25%]">Categoría</th>
-                  <th className="px-6 py-4 text-[10px] font-black tracking-widest text-slate-400 uppercase text-right w-[25%]">Precio de Venta (ARS)</th>
-                  <th className="px-6 py-4 text-[10px] font-black tracking-widest text-slate-400 uppercase text-center w-[15%]">Acciones</th>
+                  <th className="px-6 py-4 text-[10px] font-black tracking-widest text-slate-400 uppercase w-[30%]">Producto / SKU</th>
+                  <th className="px-6 py-4 text-[10px] font-black tracking-widest text-slate-400 uppercase w-[15%]">Categoría</th>
+                  <th className="px-6 py-4 text-[10px] font-black tracking-widest text-slate-400 uppercase text-right w-[15%]">PVP (ARS)</th>
+                  <th className="px-6 py-4 text-[10px] font-black tracking-widest text-slate-400 uppercase text-right w-[20%]">Costo BOM</th>
+                  <th className="px-6 py-4 text-[10px] font-black tracking-widest text-slate-400 uppercase text-center w-[10%]">Margen</th>
+                  <th className="px-6 py-4 text-[10px] font-black tracking-widest text-slate-400 uppercase text-center w-[10%]">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -651,6 +812,35 @@ export function SupplyClient({ catalog, productsCatalog, suppliersCatalog, perfo
                           </div>
                         )}
                       </td>
+                      <td className="px-6 py-4 text-right">
+                        {(() => {
+                          const bomCost = (p as any).bomCostCents || 0;
+                          const costDisplay = (bomCost / 100).toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+                          const priceCents = p.price || 0;
+                          const marginPct = priceCents > 0 ? Math.round(((priceCents - bomCost) / priceCents) * 100) : 0;
+                          const colorClass = bomCost === 0 ? 'text-slate-400' : marginPct >= 60 ? 'text-emerald-600' : marginPct >= 30 ? 'text-amber-600' : 'text-red-600';
+                          return (
+                            <div className="flex flex-col items-end gap-0.5">
+                              <span className={`font-mono text-sm font-black ${colorClass}`}>${costDisplay}</span>
+                              {bomCost === 0 && <span className="text-[9px] text-slate-400 italic">Sin BOM</span>}
+                            </div>
+                          );
+                        })()}
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        {(() => {
+                          const bomCost = (p as any).bomCostCents || 0;
+                          const priceCents = p.price || 0;
+                          if (bomCost === 0) return <span className="text-[10px] text-slate-300 font-bold">—</span>;
+                          const marginPct = priceCents > 0 ? Math.round(((priceCents - bomCost) / priceCents) * 100) : -100;
+                          const bgClass = marginPct >= 60 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : marginPct >= 30 ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-red-50 text-red-700 border-red-200';
+                          return (
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black border ${bgClass}`}>
+                              {marginPct}%
+                            </span>
+                          );
+                        })()}
+                      </td>
                       <td className="px-6 py-4 text-center">
                         {isEditing ? (
                           <div className="flex items-center justify-center gap-2">
@@ -664,7 +854,7 @@ export function SupplyClient({ catalog, productsCatalog, suppliersCatalog, perfo
                                    setEditForm({});
                                    window.location.reload();
                                  } else {
-                                   alert("Error al actualizar: " + res.error);
+                                   alert("Error al actualizar producto.");
                                    setIsUploading(false);
                                  }
                                }}
@@ -680,12 +870,26 @@ export function SupplyClient({ catalog, productsCatalog, suppliersCatalog, perfo
                              </button>
                           </div>
                         ) : (
-                          <button 
-                            onClick={() => { setEditingProductId(p.id); setEditForm({}); }}
-                            className="p-2 bg-white border border-slate-100 text-slate-400 rounded-xl hover:bg-slate-50 hover:text-indigo-600 transition-all shadow-sm opacity-0 group-hover:opacity-100"
-                          >
-                            <Edit2 size={16} />
-                          </button>
+                          <div className="flex items-center justify-center gap-2">
+                            <button 
+                              onClick={() => { setEditingProductId(p.id); setEditForm({}); }}
+                              className="p-2 bg-white border border-slate-100 text-slate-400 rounded-xl hover:bg-slate-50 hover:text-indigo-600 transition-all shadow-sm opacity-0 group-hover:opacity-100"
+                            >
+                              <Edit2 size={16} />
+                            </button>
+                            <button 
+                              onClick={async () => {
+                                if (!confirm("¿Eliminar producto?")) return;
+                                const res = await deleteProduct(p.id);
+                                if (res.success) {
+                                  router.refresh();
+                                }
+                              }}
+                              className="p-2 bg-white border border-slate-100 text-slate-400 rounded-xl hover:bg-red-50 hover:text-red-500 transition-all shadow-sm opacity-0 group-hover:opacity-100"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
                         )}
                       </td>
                     </tr>
@@ -709,24 +913,74 @@ export function SupplyClient({ catalog, productsCatalog, suppliersCatalog, perfo
           
           {/* Panel Izquierdo: Lista de Productos */}
           <div className="xl:col-span-1 bg-white border border-slate-100 rounded-[24px] shadow-sm flex flex-col overflow-hidden">
-            <div className="p-6 border-b border-slate-100 bg-slate-50/50">
-              <h3 className="text-sm font-black uppercase tracking-widest text-slate-800">Menú Comercial</h3>
-              <p className="text-[11px] font-bold text-slate-400 tracking-wide mt-1">Selecciona para ensamblar BOM</p>
+            <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex flex-col gap-3">
+              <div>
+                <h3 className="text-sm font-black uppercase tracking-widest text-slate-800 flex justify-between items-center">
+                  Menú Comercial
+                  <label className="cursor-pointer bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-2 py-1 rounded text-[9px] font-bold transition-colors">
+                     Auto-Parsear CSV BOM
+                     <input type="file" accept=".csv" className="hidden" onClick={(e) => { (e.target as any).value = null; }} onChange={async (e) => {
+                       const file = e.target.files?.[0];
+                       if (!file) return;
+                       try {
+                         const text = await file.text();
+                         const rows = text.split('\n').filter(r => r.trim());
+                         if (rows.length < 2) return alert("CSV Vacío");
+                         const headers = rows[0].split(',').map(h => h.trim().replace(/"/g,''));
+                         const parsedData = rows.slice(1).map(row => {
+                           const cols = row.split(',').map(c => c.trim().replace(/"/g,''));
+                           const obj: any = {};
+                           headers.forEach((h, i) => { obj[h] = cols[i]; });
+                           return obj;
+                         });
+                         const { ingestUnstructuredBOM } = await import("@/actions/recipes");
+                         const res = await ingestUnstructuredBOM(parsedData);
+                         if (res.success) {
+                           if (res.count === 0) {
+                             alert("0 enlaces creados. Asegúrate de tener insumos creados en el Catálogo MDM para que el sistema pueda encontrar coincidencias.");
+                           } else {
+                             alert(`Ingesta Exitosa: ${res.count} enlaces creados.`);
+                             router.refresh();
+                           }
+                         } else {
+                           alert("Error en ingestión BOM.");
+                         }
+                       } catch (err: any) { alert("Error crítico: " + err.message); }
+                     }} />
+                  </label>
+                </h3>
+                <p className="text-[11px] font-bold text-slate-400 tracking-wide mt-1">Selecciona para ensamblar BOM</p>
+              </div>
+              <input 
+                type="search" 
+                placeholder="🔍 Filtrar recetas..." 
+                className="w-full bg-slate-900 border border-slate-700 text-white placeholder:text-slate-500 text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow"
+                value={recipeSearch}
+                onChange={(e) => setRecipeSearch(e.target.value)}
+              />
             </div>
             <div className="flex-1 overflow-auto divide-y divide-slate-100 p-2">
-              {productsCatalog.map(p => (
+              {(!productsCatalog || productsCatalog.length === 0) ? (
+                <div className="p-6 text-center text-slate-500 font-bold">
+                  No hay Productos de Venta cargados. Ve a la pestaña "Productos de Venta" e ingresa el menú primero.
+                </div>
+              ) : (() => {
+                  const preparableProducts = productsCatalog.filter(p => p.category?.toUpperCase() !== 'BEBIDAS');
+                  return preparableProducts.filter(p => !recipeSearch || p?.name?.toLowerCase().includes(recipeSearch.toLowerCase()) || p?.id?.toLowerCase().includes(recipeSearch.toLowerCase())).map(p => (
                 <button
                   key={p.id}
                   onClick={() => loadRecipe(p)}
                   className={`w-full text-left p-4 rounded-xl flex items-center justify-between transition-all group ${selectedRecipeProduct?.id === p.id ? 'bg-indigo-50 border border-indigo-100 shadow-sm' : 'hover:bg-slate-50 border border-transparent'}`}
                 >
                   <div>
-                    <div className={`font-bold text-sm ${selectedRecipeProduct?.id === p.id ? 'text-indigo-900' : 'text-slate-700'}`}>{p.id.replace('PROD-', '')}</div>
+                    <div className={`font-bold text-sm ${selectedRecipeProduct?.id === p.id ? 'text-indigo-900' : 'text-slate-700'}`}>
+                      {p.name || p.id.replace('PROD-', '')} <span className="text-[10px] text-slate-500 ml-2">({p.category})</span>
+                    </div>
                     <div className="text-[10px] font-mono text-slate-400">PVP: ${(p.price / 100).toLocaleString('es-AR')}</div>
                   </div>
                   <ChevronRight size={16} className={`${selectedRecipeProduct?.id === p.id ? 'text-indigo-500' : 'text-slate-300 group-hover:text-slate-400'}`} />
                 </button>
-              ))}
+              ))})()}
             </div>
           </div>
 
@@ -782,13 +1036,47 @@ export function SupplyClient({ catalog, productsCatalog, suppliersCatalog, perfo
                             <tr><td colSpan={5} className="p-8 text-center text-slate-400 font-medium text-sm">El producto no tiene insumos acoplados. Su costo base actual es $0.</td></tr>
                           ) : (
                             currentRecipe.map(ingLine => {
-                               const matchItem = catalog.find(c => (c as any).id === ingLine.childId) as any || { name: ingLine.childId, cost_cents: 0, unit: 'UNIT', base_unit: 'UNIT', baseUnit: 'UNIT' };
-                               const itemCost = (matchItem.cost_cents || matchItem.grossCostCents || matchItem.gross_cost_cents || 0);
+                               const isUnresolved = !ingLine.childId || ingLine.childId === null;
+                               const matchItem = isUnresolved 
+                                 ? { name: ingLine.raw_child_name || 'INSUMO_DESCONOCIDO', cost_cents: 0, unit: 'UNIT', base_unit: 'UNIT', baseUnit: 'UNIT' }
+                                 : (catalog.find(c => (c as any).id === ingLine.childId) as any || liveInventory.find((inv: any) => inv.id === ingLine.childId) as any || { name: ingLine.childId, cost_cents: 0, unit: 'UNIT', base_unit: 'UNIT', baseUnit: 'UNIT' });
+                               const itemCost = isUnresolved ? 0 : (matchItem.cost_cents || matchItem.grossCostCents || matchItem.gross_cost_cents || matchItem.cost_per_unit_cents || 0);
                                const multiplier = (ingLine as any).unitMultiplier || 1.0;
                                const subtotal = Math.round(itemCost * ingLine.quantity * multiplier);
                               return (
-                                <tr key={ingLine.id} className="hover:bg-slate-50">
-                                  <td className="px-6 py-3 font-bold text-slate-800 text-sm">{matchItem.name}</td>
+                                <tr key={ingLine.id} className={`hover:bg-slate-50 ${isUnresolved ? 'bg-amber-50/40 border-l-4 border-amber-400' : ''}`}>
+                                  <td className="px-6 py-3">
+                                    {isUnresolved ? (
+                                      <div className="flex flex-col gap-1.5">
+                                        <div className="flex items-center gap-2">
+                                          <AlertTriangle size={14} className="text-amber-500 flex-shrink-0" />
+                                          <span className="text-[10px] font-black uppercase tracking-widest text-amber-600">Enlace Roto — Resolver</span>
+                                        </div>
+                                        <div className="text-[11px] font-mono text-amber-700 mb-1">CSV: "{ingLine.raw_child_name || 'Sin nombre'}"</div>
+                                        <select
+                                          className="w-full bg-slate-900 text-white text-sm font-bold rounded-lg px-3 py-2 outline-none border border-slate-700 focus:ring-2 focus:ring-amber-500 cursor-pointer"
+                                          defaultValue=""
+                                          onChange={async (e) => {
+                                            const val = e.target.value;
+                                            if (!val) return;
+                                            try {
+                                              await updateBOMItem(ingLine.id, val);
+                                              loadRecipe(selectedRecipeProduct);
+                                            } catch (err: any) {
+                                              alert("Error al vincular: " + err.message);
+                                            }
+                                          }}
+                                        >
+                                          <option value="" disabled>Seleccionar Insumo MDM...</option>
+                                          {liveInventory.filter((inv: any) => inv.is_active !== false).map((inv: any) => (
+                                            <option key={inv.id} value={inv.id}>{inv.name} ({inv.category})</option>
+                                          ))}
+                                        </select>
+                                      </div>
+                                    ) : (
+                                      <span className="font-bold text-slate-800 text-sm">{matchItem.name}</span>
+                                    )}
+                                  </td>
                                   <td className="px-4 py-2">
                                      <div className="flex items-center bg-white border border-slate-200 rounded-md overflow-hidden text-sm focus-within:ring-2 focus-within:ring-indigo-500 shadow-sm w-32">
                                         <input 
@@ -960,7 +1248,7 @@ export function SupplyClient({ catalog, productsCatalog, suppliersCatalog, perfo
                         if(res.success) {
                           setNewIngId(""); setNewIngQty(""); setIsAddIngredientOpen(false);
                           loadRecipe(selectedRecipeProduct);
-                        } else alert("Fallo en mutación: " + res.error);
+                        } else alert("Fallo en mutación de receta.");
                       }}
                       className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold uppercase tracking-widest text-[10px] py-3 rounded-lg shadow-sm mt-2 transition-colors"
                     >
@@ -976,177 +1264,77 @@ export function SupplyClient({ catalog, productsCatalog, suppliersCatalog, perfo
       
       {/* PESTAÑA 3: PROVEEDORES */}
       <TabsPrimitive.Content value="proveedores" className="animate-in fade-in duration-500">
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 h-[800px]">
-          
-          {/* Panel Izquierdo: Lista de Proveedores */}
-          <div className="xl:col-span-1 bg-white border border-slate-100 rounded-[24px] shadow-sm flex flex-col overflow-hidden">
-            <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex flex-col gap-4">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="text-sm font-black uppercase tracking-widest text-slate-800">Directorio B2B</h3>
-                  <p className="text-[11px] font-bold text-slate-400 tracking-wide mt-1">{suppliersCatalog.length} Entidades Activas</p>
-                </div>
-                <button 
-                  onClick={() => { setEditingSupplier(null); setIsSupplierDrawerOpen(true); }}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-xl transition-colors shadow-sm"
-                >
-                  <Plus size={18} />
-                </button>
-              </div>
-              <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm w-full">
-                 <Search size={16} className="text-slate-400" />
-                 <input 
-                   className="outline-none text-sm font-medium w-full text-slate-700 bg-transparent placeholder-slate-400" 
-                   placeholder="Buscar CUIT, Nombre..."
-                   value={supplierSearchSearch}
-                   onChange={(e) => setSupplierSearchSearch(e.target.value)}
-                 />
-              </div>
+        <div className="bg-white rounded-[24px] border border-slate-100 shadow-sm p-6 min-h-[800px] flex flex-col">
+          <div className="flex justify-between items-start mb-8">
+            <div>
+              <h2 className="text-xl font-black tracking-tight text-slate-800">Directorio B2B & Supply Chain</h2>
+              <p className="text-xs text-slate-500 font-medium mt-1">Gestión de proveedores, homologaciones y fricción positiva.</p>
             </div>
-            <div className="flex-1 overflow-auto divide-y divide-slate-100 p-2">
-              {filteredSuppliers.map(s => (
-                <button
-                  key={s.id}
-                  onClick={() => setSelectedSupplier(s)}
-                  className={`w-full text-left p-4 rounded-xl flex items-center justify-between transition-all group ${selectedSupplier?.id === s.id ? 'bg-indigo-50 border border-indigo-100 shadow-sm' : 'hover:bg-slate-50 border border-transparent'}`}
-                >
-                  <div>
-                    <div className={`font-bold text-sm flex items-center gap-2 ${selectedSupplier?.id === s.id ? 'text-indigo-900' : 'text-slate-700'}`}>
-                      {s.name}
-                      {!s.active && <span className="bg-rose-100 text-rose-600 px-2 py-0.5 rounded-full text-[9px] uppercase tracking-widest">Inactivo</span>}
-                    </div>
-                    <div className="text-[10px] font-mono text-slate-400 mt-1">CUIT: {s.cuit}</div>
-                  </div>
-                  <ChevronRight size={16} className={`${selectedSupplier?.id === s.id ? 'text-indigo-500' : 'text-slate-300 group-hover:text-slate-400'}`} />
-                </button>
-              ))}
-              {filteredSuppliers.length === 0 && (
-                <div className="p-8 text-center text-slate-400 font-medium text-xs">No se encontraron entidades.</div>
-              )}
-            </div>
+            <button 
+              onClick={() => { setEditingSupplier(null); setIsSupplierDrawerOpen(true); }}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 text-xs font-bold rounded-xl transition-colors shadow-sm flex items-center gap-2"
+            >
+              <Plus size={16} /> Nueva Entidad
+            </button>
           </div>
 
-          {/* Panel Derecho: Ficha Maestra del Proveedor */}
-          <div className="xl:col-span-2 bg-white border border-slate-100 rounded-[24px] shadow-sm flex flex-col relative overflow-hidden">
-            {selectedSupplier ? (
-              <>
-                <div className="p-8 border-b border-slate-100 bg-slate-900 text-white flex justify-between items-start relative overflow-hidden">
-                  <div className="absolute -right-8 -top-8 text-slate-800 opacity-20 rotate-12">
-                    <Building size={160} />
-                  </div>
-                  <div className="z-10">
-                    <span className="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest inline-block mb-4">
-                      {selectedSupplier.category}
-                    </span>
-                    <h2 className="text-3xl font-black">{selectedSupplier.name}</h2>
-                    <div className="flex items-center gap-4 mt-3 text-slate-400 text-sm font-medium">
-                      <span className="flex items-center gap-1"><Briefcase size={14}/> CUIT: <span className="font-mono text-slate-200">{selectedSupplier.cuit}</span></span>
-                      <span className="flex items-center gap-1"><Phone size={14}/> Tel: <span className="font-mono text-slate-200">{selectedSupplier.phone || 'S/D'}</span></span>
-                    </div>
-                  </div>
-                  <div className="z-10">
-                    <button 
-                      onClick={() => { setEditingSupplier(selectedSupplier); setIsSupplierDrawerOpen(true); }}
-                      className="bg-white text-slate-900 hover:bg-slate-100 px-4 py-2 font-bold text-xs uppercase tracking-widest rounded-lg flex items-center gap-2 shadow-sm transition-colors"
-                    >
-                      Editar Ficha
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex-1 overflow-auto p-8 bg-slate-50/50">
-                  <div className="grid grid-cols-2 gap-6">
-                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between relative overflow-hidden">
-                       <div className="absolute top-0 right-0 p-4 opacity-5"><Coins size={80}/></div>
-                       <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2"><Coins size={14}/> Cuentas por Pagar (Al Vuelo)</h4>
-                       
-                       {supplierBalanceData ? (
-                         <div className="space-y-4 relative z-10">
-                           <div>
-                             <div className="text-xs text-slate-500 mb-1">Saldo Deudor Dinámico</div>
-                             <div className={`text-2xl font-black ${supplierBalanceData.balanceCents > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
-                               ${(supplierBalanceData.balanceCents/100).toLocaleString('es-AR')}
-                             </div>
-                           </div>
-                           <div className="grid grid-cols-2 gap-4 mt-2 border-t border-slate-100 pt-3">
-                             <div>
-                               <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Aprobado</div>
-                               <div className="text-sm font-mono text-slate-700">${(supplierBalanceData.totalBilledCents/100).toLocaleString('es-AR')}</div>
-                             </div>
-                             <div>
-                               <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Pagado</div>
-                               <div className="text-sm font-mono text-slate-700">${(supplierBalanceData.totalPaidCents/100).toLocaleString('es-AR')}</div>
-                             </div>
-                           </div>
-                         </div>
-                       ) : (
-                          <div className="h-24 animate-pulse bg-slate-50 rounded-xl w-full"></div>
-                       )}
-                    </div>
-                    
-                    <div className="bg-gradient-to-br from-indigo-900 to-indigo-950 p-6 rounded-2xl border border-indigo-800 shadow-sm flex flex-col text-white relative overflow-hidden">
-                       <div className="absolute top-0 right-0 p-4 opacity-10"><Activity size={80}/></div>
-                       <h4 className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest mb-4 flex items-center gap-2 z-10"><Activity size={14}/> Puntuación de Rendimiento (Yield)</h4>
-                       
-                       {supplierScoreData ? (
-                         <div className="space-y-4 z-10">
-                           <div className="flex items-end gap-3">
-                             <div className="text-4xl font-black text-indigo-100">{supplierScoreData.score.toFixed(1)}</div>
-                             <div className="text-xs font-bold text-indigo-300 mb-2 uppercase tracking-widest">Score General</div>
-                           </div>
-                           <div className="w-full bg-indigo-950 rounded-full h-1.5 mb-4">
-                              <div className="bg-indigo-400 h-1.5 rounded-full" style={{ width: `${supplierScoreData.score}%` }}></div>
-                           </div>
-                           <div className="flex gap-4 text-xs font-medium text-indigo-200">
-                             <div><span className="text-white font-bold">{supplierScoreData.yieldPct.toFixed(1)}%</span> Avg Yield</div>
-                             <div><span className="text-white font-bold">{supplierScoreData.matchRatePct.toFixed(1)}%</span> Match Rate (3V)</div>
-                           </div>
-                         </div>
-                       ) : (
-                          <div className="h-24 animate-pulse bg-indigo-900/50 rounded-xl w-full"></div>
-                       )}
-                    </div>
-                  </div>
-                  
-                  {/* Gráfico Cruzado: Precio vs Costo Verdadero */}
-                  <div className="mt-6 bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col h-72">
-                    <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-                       <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Desviación: Precio Pagado vs Costo Post-Merma (ARS)</h4>
-                       <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-md">O(N) Live Rendering</span>
-                    </div>
-                    <div className="flex-1 p-4 w-full h-full">
-                       {supplierChartData.length > 0 ? (
-                         <ResponsiveContainer width="100%" height="100%">
-                           <ComposedChart data={supplierChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                             <XAxis dataKey="name" fontSize={10} tickLine={false} axisLine={false} />
-                             <YAxis fontSize={10} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value}`} />
-                             <Tooltip 
-                               contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                               formatter={(value: any) => [`$${Number(value || 0).toLocaleString('es-AR')} ARS`, '']}
-                             />
-                             <Bar dataKey="precioPagado" name="Precio Lista" fill="#94a3b8" radius={[4,4,0,0]} maxBarSize={40} />
-                             <Line type="monotone" dataKey="costoPostMerma" name="Costo Real (Post-Merma)" stroke="#ef4444" strokeWidth={3} dot={{ r: 4 }} />
-                           </ComposedChart>
-                         </ResponsiveContainer>
-                       ) : (
-                         <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 font-medium text-sm">
-                           No hay insumos acoplados a esta entidad en la tabla raw_materials.
-                         </div>
-                       )}
-                    </div>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div className="flex-1 flex flex-col items-center justify-center bg-slate-50/30 p-12 text-center">
-                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-300 mb-4">
-                  <Building size={32} />
-                </div>
-                <h3 className="text-xl font-black text-slate-400 uppercase tracking-widest">Cero Fricción B2B</h3>
-                <p className="text-slate-400 text-sm mt-2 max-w-sm">Selecciona una entidad comercial del panel izquierdo para auditar SLA, CBUs y riesgo financiero.</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 flex-1 content-start">
+            {suppliersCatalog.length === 0 ? (
+              <div className="col-span-full p-12 text-center border border-dashed border-slate-300 rounded-2xl flex flex-col items-center gap-3">
+                <Building size={48} className="text-slate-300" />
+                <p className="text-slate-500 font-medium text-sm">No hay proveedores en el Master Data.</p>
               </div>
+            ) : (
+              suppliersCatalog.map((supplier) => {
+                const mappedCount = supplier.mappedItemsCount || 0;
+                const isZeroMapped = mappedCount === 0;
+
+                return (
+                  <div 
+                    key={supplier.id} 
+                    className="bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden flex flex-col transition-all hover:shadow-md hover:border-slate-300"
+                  >
+                    <div className="p-6 flex-1 bg-white">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <h3 className="font-black text-slate-800 text-lg">{supplier.name}</h3>
+                          <p className="text-xs font-mono text-slate-400 mt-1">CUIT: {supplier.cuit}</p>
+                        </div>
+                        <span className="px-2.5 py-1 bg-slate-100/80 text-slate-500 text-[10px] font-bold rounded-full uppercase tracking-widest border border-slate-200/50">
+                          {supplier.category || 'INSUMOS'}
+                        </span>
+                      </div>
+
+                      <div className="mt-6 pt-4 border-t border-slate-100/80 space-y-4">
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-slate-500 font-bold tracking-widest uppercase">Condición de Pago</span>
+                          <span className="font-bold text-slate-700 pr-2">{supplier.paymentTerms || 'Contado'}</span>
+                        </div>
+
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-slate-500 font-bold tracking-widest uppercase">Insumos Homologados</span>
+                          <div className="flex items-center gap-2 bg-slate-50/80 px-2 py-1 rounded-md border border-slate-100">
+                            <span className={`font-black text-sm ${isZeroMapped ? 'text-amber-500' : 'text-emerald-500'}`}>
+                              {mappedCount}
+                            </span>
+                            {isZeroMapped ? (
+                              <AlertCircle className="w-4 h-4 text-amber-500" />
+                            ) : (
+                              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Semáforo de Salud Visual (Silent Luxury) */}
+                    <div className={`h-1.5 w-full ${isZeroMapped ? 'bg-amber-400' : 'bg-emerald-500'}`} />
+                  </div>
+                );
+              })
             )}
+          </div>
+        </div>
             
             {/* Modal: Editar/Añadir Proveedor */}
             {isSupplierDrawerOpen && (
@@ -1170,11 +1358,16 @@ export function SupplyClient({ catalog, productsCatalog, suppliersCatalog, perfo
                       active: formData.get("active") === "on",
                       storeId: "global", // Suppliers are usually global in this system
                     };
-                    const res = await upsertSupplier({ ...payload, id: editingSupplier?.id || undefined });
-                    if(res.success) {
-                      window.location.reload();
-                    } else {
-                      alert("Error: " + res.error);
+                    try {
+                      const res = await upsertSupplier({ ...payload, id: editingSupplier?.id || undefined });
+                      if(res.success) {
+                        window.location.reload();
+                      } else {
+                        alert("Error al guardar proveedor.");
+                        setIsUploading(false);
+                      }
+                    } catch (err: unknown) {
+                      alert("Error: " + (err instanceof Error ? err.message : "Desconocido"));
                       setIsUploading(false);
                     }
                   }}
@@ -1271,8 +1464,6 @@ export function SupplyClient({ catalog, productsCatalog, suppliersCatalog, perfo
                 </form>
               </div>
             )}
-          </div>
-        </div>
       </TabsPrimitive.Content>
 
       {/* PESTAÑA 4: ANALÍTICA (Simulador) */}

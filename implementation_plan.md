@@ -1,41 +1,46 @@
-# Fix TypeScript Errors in Financial Scripts
+# Implementation Plan - Zero-State Auth & Tenant Reconciliation
 
-This plan addresses the TypeScript compiler errors reported in `src/scripts/recalibrate-q1-ledger.ts`, `src/scripts/resolve-dlq-items.ts`, and `src/scripts/seed-q1-sales-history.ts`. The errors primarily stem from `string | undefined` values being passed to Drizzle ORM methods that expect non-nullable strings.
+This plan implements the **P0 Security Directive** to fortify the authentication layer and rehydrate the system with a master tenant user following the database reconstruction.
 
 ## User Review Required
 
 > [!IMPORTANT]
-> The fixes involve using non-null assertions (`!`) and type casting for variables that are already validated at runtime (like `storeId`). This is a safe approach given the existing CLI validation checks at the beginning of each script.
+> **Schema Evolution:** The current `users` table lacks an `email` field and uses `pin_hash` instead of `passwordHash`. I propose evolving the schema to align with the Security Architect's vision while maintaining backward compatibility where possible.
+> 
+> **Session Architecture Change:** The requested `requireManagerSession` currently assumes the `session_token` cookie value matches the `user.id`. This differs from the existing JWT-based session in `auth.ts`. I will implement the requested logic, which focuses on database-backed session validation.
 
 ## Proposed Changes
 
-### Financial Scripts
+### 1. Database Schema Evolution
 
-#### [MODIFY] [recalibrate-q1-ledger.ts](file:///d:/Musica%20Descargada/BurgerMusic/src/scripts/recalibrate-q1-ledger.ts)
-- Assert `storeId` as `string` after the initial check so subsequent usages don't error.
-- Use non-null assertion for `txRecord.id` when calling `TransactionExplosionEngine.explode`.
-- Ensure `.values()` objects match the schema expectations to satisfy overload selection.
+#### [MODIFY] [schema.ts](file:///d:/Musica%20Descargada/BurgerMusic/src/db/schema.ts)
+- Update `users` table:
+  - Add `email` field (text, unique).
+  - Add `passwordHash` field (text) to replace or coexist with `pin_hash`.
+  - Update `role` enum to include `MANAGER_LOCAL`, `OWNER_GLOBAL`, etc.
 
-#### [MODIFY] [resolve-dlq-items.ts](file:///d:/Musica%20Descargada/BurgerMusic/src/scripts/resolve-dlq-items.ts)
-- Similar to above, ensure `storeId` is treated as a non-nullable string in Drizzle queries.
-- Assert `parentTx.id` as non-nullable.
+### 2. Authentication Logic
 
-#### [MODIFY] [seed-q1-sales-history.ts](file:///d:/Musica%20Descargada/BurgerMusic/src/scripts/seed-q1-sales-history.ts)
-- Apply the same pattern for `storeId` narrowing and transaction ID assertions.
+#### [NEW] [auth-action.ts](file:///d:/Musica%20Descargada/BurgerMusic/src/lib/auth-action.ts)
+- Implement `requireManagerSession` with:
+  - **Fail-Closed Shield:** Validates `session_token` existence.
+  - **O(1) Extraction:** Queries Turso DB and resolves the array result.
+  - **Orphan Guard:** Validates that the returned user has a valid `storeId`.
 
-## Open Questions
+### 3. System Rehydration
 
-None at this time. The errors are standard type mismatch issues in a Drizzle/TypeScript environment.
+#### [NEW] [seed-users.ts](file:///d:/Musica%20Descargada/BurgerMusic/src/db/seed-users.ts)
+- Implement the master user seed script:
+  - Injects `admin@burgermusic.com` with `STR_DEFAULT` and `MANAGER_LOCAL` role.
+  - Uses `onConflictDoNothing` for idempotencia.
 
 ## Verification Plan
 
-### Automated Tests
-- Run the TypeScript compiler to verify that the reported errors are resolved:
-  ```powershell
-  npx tsc --noEmit
-  ```
-- Run a dry-run of one of the scripts (if possible without database impact) to ensure no regressions:
-  ```powershell
-  npx tsx src/scripts/recalibrate-q1-ledger.ts --store-id=TEST
-  ```
-  *(Note: Since these are destructive scripts, I will mainly rely on `tsc` for verification of the specific reported problems.)*
+### Automated Verification
+- Run `npx drizzle-kit generate` and `npx drizzle-kit migrate` to apply schema changes.
+- Execute the seed script: `npx tsx src/db/seed-users.ts`.
+- Verify the user exists in `local.db` using a test query.
+
+### Manual Verification
+- Verify that the application correctly catches the `AUTH_MISSING` error when no cookie is present.
+- Verify that a valid session (cookie matching user ID) allows access to protected data fetchers.

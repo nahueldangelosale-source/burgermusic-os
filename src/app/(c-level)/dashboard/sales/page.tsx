@@ -14,18 +14,21 @@ import {
   getChannelDistribution, 
   getTopProducts 
 } from "./data-fetchers";
-import ExcelIngestionVault from "@/components/ops/ExcelIngestionVault";
+import { AirlockOperativo } from "./IngestionAirlocks";
 import { db } from "@/db";
-import { sql } from "drizzle-orm";
+import { isNull, sql, asc } from "drizzle-orm";
+import OrphanageTray from "@/components/sales/OrphanageTray";
+import { sales_mapping_dlq, products } from "@/db/schema";
 
 /**
- * [UX/UI] SALES CORTEX - PREMIUM LIGHT THEME (SUMINISTROS ALIGNED)
+ * [UX/UI] SALES CORTEX - PREMIUM LIGHT THEME
  * ──────────────────────────────────────────────────────────────
  * Estándar: BurgerMusic OS v4
  * Regla: Fondo Blanco (oklch), Aire, Contraste Suave.
  */
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 function TelemetryLoader() {
   return (
@@ -55,7 +58,23 @@ export default async function SalesCortexPage({ searchParams }: { searchParams: 
   const metrics = await getTopLineMetrics(resolvedDate);
   const evolution = await getTemporalEvolution(resolvedDate);
   const channels = await getChannelDistribution();
-  const products = await getTopProducts();
+  const topProductsList = await getTopProducts();
+
+  // 1. Fuerza Bruta DLQ Extracción (Sin filtro StoreId)
+  const dlqRows = await db
+    .select({ raw_name: sales_mapping_dlq.raw_name })
+    .from(sales_mapping_dlq)
+    .where(sql`resolved = 0 OR resolved IS FALSE`);
+
+  // 2. Coerción Termodinámica de Tipos
+  const uniqueOrphans = [...new Set(dlqRows.map(r => r.raw_name))].filter(Boolean) as string[];
+
+  // 3. Catálogo para Mapeo
+  const catalog = await db
+    .select({ id: products.id, name: products.name })
+    .from(products)
+    .where(isNull(products.deletedAt))
+    .orderBy(asc(products.name));
 
   const isDataEmpty = metrics.gross === 0 && metrics.avgTicket === 0;
 
@@ -73,11 +92,15 @@ export default async function SalesCortexPage({ searchParams }: { searchParams: 
           </p>
           <DateSelector currentDate={resolvedDate} availableDates={[]} />
         </div>
-        <div className="flex flex-col gap-2 items-end">
-          <ExcelIngestionVault />
-          <span className="text-[10px] text-slate-400 font-bold tracking-widest mt-1 uppercase">Cloud Ingestion Active</span>
+        <div className="flex flex-row gap-4 items-stretch">
+          <AirlockOperativo />
         </div>
       </header>
+
+      {/* ZERO-TRUST DETACHED AST FIX: ORPHANAGE TRAY C-LEVEL PORTAL */}
+      <div className="mb-8 max-w-[1700px] mx-auto w-full">
+        <OrphanageTray items={uniqueOrphans} catalog={catalog} />
+      </div>
 
       {isDataEmpty ? (
         <div className="flex flex-col items-center justify-center min-h-[60vh] border border-red-100 rounded-[32px] bg-white shadow-sm p-16 animate-in fade-in zoom-in duration-700">
@@ -109,21 +132,16 @@ export default async function SalesCortexPage({ searchParams }: { searchParams: 
         </div>
 
         {/* ÉPICA 2: EVO TEMPORAL Y CANALES */}
-        <div className="col-span-12 lg:col-span-8 min-h-[400px] h-[400px]">
+        <div className="col-span-12 lg:col-span-12 min-h-[400px] h-[400px]">
           <Suspense fallback={<TelemetryLoader />}>
             <TemporalEvolutionChart data={evolution} />
-          </Suspense>
-        </div>
-        <div className="col-span-12 lg:col-span-4 min-h-[400px] h-[400px]">
-          <Suspense fallback={<TelemetryLoader />}>
-            <ChannelDonutChart data={channels} />
           </Suspense>
         </div>
 
         {/* ÉPICA 3: MDM RANKING */}
         <div className="col-span-12 h-[600px] mb-20">
           <Suspense fallback={<TelemetryLoader />}>
-            <TopProductsVirtualTable data={products} />
+            <TopProductsVirtualTable data={topProductsList} />
           </Suspense>
         </div>
       </div>

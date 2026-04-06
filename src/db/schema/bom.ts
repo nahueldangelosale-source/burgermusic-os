@@ -26,8 +26,9 @@ export const sellable_products = sqliteTable("sellable_products", {
 export const bill_of_materials = sqliteTable("bill_of_materials", {
   id: text("id").primaryKey(),
   parentId: text("parent_id").notNull(), // sellable_product.id o raw_material.id (sub-receta)
-  childId: text("child_id").notNull(), // raw_material.id
+  childId: text("child_id"),             // Nullable: NULL = enlace roto pendiente de resolución manual
+  raw_child_name: text("raw_child_name"), // Nombre crudo del CSV cuando childId es NULL (Human-in-the-loop)
   quantity: real("quantity").notNull(),
-  unitMultiplier: real("unit_multiplier").notNull().default(1.0), // Conversión estricta (Ej: kg a gr = 1000)
+  unitMultiplier: real("unit_multiplier").notNull().default(1.0),
   deletedAt: integer("deleted_at", { mode: "timestamp" }),
 });

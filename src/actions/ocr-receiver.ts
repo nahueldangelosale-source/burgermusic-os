@@ -7,7 +7,7 @@ import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 import { sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { z } from "zod";
-import { authenticatedAction } from "@/lib/auth-action";
+import { requireManagerSession } from "@/lib/auth-action";
 import { withTenant } from "@/lib/tenant-db";
 import { InvoiceSchema, ManualInvoiceSchema } from "@/schemas/treasury";
 import type { InvoiceInput } from "@/schemas/treasury";
@@ -195,103 +195,110 @@ export async function processInvoiceOCR(prevState: any, formData: FormData) {
 }
 
 // --- Server Action: Confirm and Commit Ledger (Audit Approval) ---
-export const confirmAndCommitLedger = authenticatedAction(
-  async (payload: InvoiceInput, { user, storeId }) => {
-    const validated = InvoiceSchema.parse(payload);
-    
-    // 1. IDs determinísticos/aleatorios para el COMMIT físico
-    const ledgerId = `INV-${randomUUID()}`;
-    const taxId = `TAX-${randomUUID()}`;
-    const today = validated.issue_date;
-
-    await db.batch([
-      // Impacto en Cuentas Corrientes → DEUDA
-      db.insert(fact_supplier_ledger).values({
-        id: ledgerId,
-        storeId,
-        supplier_id: validated.supplier_id,
-        type: "INVOICE",
-        invoice_number: validated.invoice_number,
-        description: `Factura Certificada ${validated.invoice_number} (${validated.items.length} ítems)`,
-        amount_cents: Math.round(validated.total * 100),
-        balance_cents: Math.round(validated.total * 100),
-        date: today,
-      }),
-      // Impacto fiscal → IVA
-      db.insert(fact_taxes).values({
-        id: taxId,
-        storeId,
-        source_type: "INVOICE",
-        source_id: ledgerId,
-        tax_type: "IVA_21",
-        base_amount_cents: Math.round(validated.subtotal * 100),
-        tax_amount_cents: Math.round(validated.tax_amount * 100),
-        date: today,
-      }),
-      // Audit trail de aprobación humana
-      db.insert(ai_audit_logs).values({
-        id: randomUUID(),
-        agentName: "HUMAN_AUDITOR_B2B",
-        action: "COMMIT_LEDGER_APPROVED",
-        zodSchemaUsed: "InvoiceSchema",
-        status: "APPROVED",
-        storeId,
-        payloadRef: JSON.stringify({ 
-          invoice: validated.invoice_number, 
-          total: validated.total,
-          approver: user.name || user.email 
-        }),
-      } as any),
-    ]);
-
-    return {
-      success: true,
-      ledgerId,
-      invoiceNumber: validated.invoice_number
-    };
+export async function confirmAndCommitLedger(payload: InvoiceInput) {
+  const session = await requireManagerSession();
+  if (!session.success || !session.data) {
+    throw new Error(session.error || "ZERO_TRUST_VIOLATION: Acceso denegado.");
   }
-);
+  const storeId = session.data.storeId;
+
+  const validated = InvoiceSchema.parse(payload);
+  
+  // 1. IDs determinísticos/aleatorios para el COMMIT físico
+  const ledgerId = `INV-${randomUUID()}`;
+  const taxId = `TAX-${randomUUID()}`;
+  const today = validated.issue_date;
+
+  await db.batch([
+    // Impacto en Cuentas Corrientes → DEUDA
+    db.insert(fact_supplier_ledger).values({
+      id: ledgerId,
+      storeId,
+      supplier_id: validated.supplier_id,
+      type: "INVOICE",
+      invoice_number: validated.invoice_number,
+      description: `Factura Certificada ${validated.invoice_number} (${validated.items.length} ítems)`,
+      amount_cents: Math.round(validated.total * 100),
+      balance_cents: Math.round(validated.total * 100),
+      date: today,
+    }),
+    // Impacto fiscal → IVA
+    db.insert(fact_taxes).values({
+      id: taxId,
+      storeId,
+      source_type: "INVOICE",
+      source_id: ledgerId,
+      tax_type: "IVA_21",
+      base_amount_cents: Math.round(validated.subtotal * 100),
+      tax_amount_cents: Math.round(validated.tax_amount * 100),
+      date: today,
+    }),
+    // Audit trail de aprobación humana
+    db.insert(ai_audit_logs).values({
+      id: randomUUID(),
+      agentName: "HUMAN_AUDITOR_B2B",
+      action: "COMMIT_LEDGER_APPROVED",
+      zodSchemaUsed: "InvoiceSchema",
+      status: "APPROVED",
+      storeId,
+      payloadRef: JSON.stringify({ 
+        invoice: validated.invoice_number, 
+        total: validated.total,
+        approver: session.data.name || session.data.email 
+      }),
+    } as any),
+  ]);
+
+  return {
+    success: true,
+    ledgerId,
+    invoiceNumber: validated.invoice_number
+  };
+}
 
 // --- Server Action: Manual Invoice Upsert ---
-export const upsertManualInvoice = authenticatedAction(
-  async (payload: z.infer<typeof ManualInvoiceSchema>, { user, storeId }) => {
-    const validated = ManualInvoiceSchema.parse(payload);
-    const tenant = withTenant({ user });
-
-    const ledgerId = `MINV-${randomUUID()}`;
-    const taxId = `MTAX-${randomUUID()}`;
-
-    await db.batch([
-      // Impacto en Cuentas Corrientes → DEUDA
-      db.insert(fact_supplier_ledger).values({
-        id: ledgerId,
-        storeId,
-        supplier_id: validated.supplier_id,
-        type: "INVOICE",
-        invoice_number: validated.invoice_number,
-        description: validated.notes || `Factura Manual ${validated.invoice_number}`,
-        amount_cents: Math.round(validated.total * 100),
-        balance_cents: Math.round(validated.total * 100),
-        date: validated.issue_date,
-      }),
-      // Impacto fiscal → IVA
-      db.insert(fact_taxes).values({
-        id: taxId,
-        storeId,
-        source_type: "INVOICE",
-        source_id: ledgerId,
-        tax_type: "IVA_21",
-        base_amount_cents: Math.round(validated.subtotal * 100),
-        tax_amount_cents: Math.round(validated.tax_amount * 100),
-        date: validated.issue_date,
-      }),
-    ]);
-
-    return {
-      success: true,
-      ledgerId,
-      invoiceNumber: validated.invoice_number,
-      totalCents: Math.round(validated.total * 100),
-    };
+export async function upsertManualInvoice(payload: z.infer<typeof ManualInvoiceSchema>) {
+  const session = await requireManagerSession();
+  if (!session.success || !session.data) {
+    throw new Error(session.error || "ZERO_TRUST_VIOLATION: Acceso denegado.");
   }
-);
+  const storeId = session.data.storeId;
+
+  const validated = ManualInvoiceSchema.parse(payload);
+
+  const ledgerId = `MINV-${randomUUID()}`;
+  const taxId = `MTAX-${randomUUID()}`;
+
+  await db.batch([
+    // Impacto en Cuentas Corrientes → DEUDA
+    db.insert(fact_supplier_ledger).values({
+      id: ledgerId,
+      storeId,
+      supplier_id: validated.supplier_id,
+      type: "INVOICE",
+      invoice_number: validated.invoice_number,
+      description: validated.notes || `Factura Manual ${validated.invoice_number}`,
+      amount_cents: Math.round(validated.total * 100),
+      balance_cents: Math.round(validated.total * 100),
+      date: validated.issue_date,
+    }),
+    // Impacto fiscal → IVA
+    db.insert(fact_taxes).values({
+      id: taxId,
+      storeId,
+      source_type: "INVOICE",
+      source_id: ledgerId,
+      tax_type: "IVA_21",
+      base_amount_cents: Math.round(validated.subtotal * 100),
+      tax_amount_cents: Math.round(validated.tax_amount * 100),
+      date: validated.issue_date,
+    }),
+  ]);
+
+  return {
+    success: true,
+    ledgerId,
+    invoiceNumber: validated.invoice_number,
+    totalCents: Math.round(validated.total * 100),
+  };
+}

@@ -25,7 +25,7 @@ export default function PurchasesClient({
   const [orders, setOrders] = useState(initialOrders);
   const [isPending, startTransition] = useTransition();
 
-  const handleStatusUpdate = (poId: string, newStatus: "DRAFT" | "SENT" | "RECEIVED" | "CANCELLED") => {
+  const handleStatusUpdate = (poId: string, newStatus: "DRAFT_AI" | "APPROVED" | "SENT" | "FULFILLED") => {
     // 1. Optimistic UI update
     const previousOrders = [...orders];
     setOrders(current => 
@@ -51,10 +51,10 @@ export default function PurchasesClient({
 
   const getStatusStyle = (status: string) => {
     switch(status) {
-      case 'DRAFT': return 'bg-slate-500/10 text-slate-400 border-slate-500/20';
+      case 'DRAFT_AI': return 'bg-slate-500/10 text-slate-400 border-slate-500/20';
+      case 'APPROVED': return 'bg-sky-500/10 text-sky-400 border-sky-500/20';
       case 'SENT': return 'bg-accent-primary/10 text-accent-primary border-accent-primary/20';
-      case 'RECEIVED': return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
-      case 'CANCELLED': return 'bg-rose-500/10 text-rose-400 border-rose-500/20';
+      case 'FULFILLED': return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
       default: return 'bg-white/5 text-white/40 border-white/10';
     }
   };
@@ -98,7 +98,7 @@ export default function PurchasesClient({
         <div>
           <h3 className="text-xs font-bold text-white/40 uppercase tracking-[0.2em] mb-1">Recibidas (Month)</h3>
           <p className="text-6xl font-black tracking-tighter text-white">
-            {orders.filter(o => o.status === 'RECEIVED').length}
+            {orders.filter(o => o.status === 'FULFILLED').length}
           </p>
         </div>
       </div>
@@ -139,7 +139,7 @@ export default function PurchasesClient({
                          {order.status}
                        </span>
                        <span className="text-[11px] text-white/40 font-bold flex items-center gap-1 uppercase tracking-wider">
-                         <RiTimeLine size={12} /> {order.order_date}
+                         <RiTimeLine size={12} /> {order.created_at}
                        </span>
                     </div>
                   </div>
@@ -147,7 +147,7 @@ export default function PurchasesClient({
 
                 <div className="flex flex-col md:items-end gap-1">
                   <p className="text-2xl font-black tracking-tighter text-white">
-                    ${(Number(order.total_estimated || 0) / 100).toLocaleString('es-AR')}
+                    ${(Number(order.total_estimated_cents || 0) / 100).toLocaleString('es-AR')}
                   </p>
                   <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest">Costo Proyectado</p>
                 </div>
@@ -156,7 +156,7 @@ export default function PurchasesClient({
                   <AnimatePresence>
                     {order.status === 'SENT' && (
                       <button 
-                        onClick={() => handleStatusUpdate(order.id, 'RECEIVED')}
+                        onClick={() => handleStatusUpdate(order.id, 'FULFILLED')}
                         disabled={isPending}
                         className="px-6 py-3 rounded-xl bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 font-bold text-xs uppercase tracking-widest border border-emerald-500/20 transition-all active:scale-95 disabled:opacity-30 flex items-center gap-2"
                       >
@@ -164,7 +164,7 @@ export default function PurchasesClient({
                         Recibir
                       </button>
                     )}
-                    {order.status === 'DRAFT' && (
+                    {(order.status === 'DRAFT_AI' || order.status === 'APPROVED') && (
                       <button 
                         onClick={() => handleStatusUpdate(order.id, 'SENT')}
                         disabled={isPending}
@@ -174,9 +174,9 @@ export default function PurchasesClient({
                         Enviar
                       </button>
                     )}
-                    {['SENT', 'DRAFT'].includes(order.status) && (
+                    {['SENT', 'DRAFT_AI', 'APPROVED'].includes(order.status) && (
                       <button 
-                        onClick={() => handleStatusUpdate(order.id, 'CANCELLED')}
+                        onClick={() => handleStatusUpdate(order.id, 'DRAFT_AI')}
                         disabled={isPending}
                         className="p-3 rounded-xl bg-white/5 text-white/20 hover:text-rose-400 hover:bg-rose-500/10 border border-white/5 hover:border-rose-500/20 transition-all group/cancel"
                       >

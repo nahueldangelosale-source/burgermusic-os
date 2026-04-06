@@ -91,26 +91,64 @@ export async function getSupplierLedger() {
   const storeId = session?.user?.storeId;
   if (!storeId) throw new Error("Unauthorized: Missing Store ID in session");
 
-  // Consulta atómica con filtrado por storeId
-  const result = await db
-    .select({
-      id: fact_supplier_ledger.id,
-      supplier_id: fact_supplier_ledger.supplier_id,
-      supplier_name: suppliers.name,
-      type: fact_supplier_ledger.type,
-      invoice_number: fact_supplier_ledger.invoice_number,
-      description: fact_supplier_ledger.description,
-      amount_cents: fact_supplier_ledger.amount_cents,
-      balance_cents: fact_supplier_ledger.balance_cents,
-      date: fact_supplier_ledger.date,
-    })
-    .from(fact_supplier_ledger)
-    .innerJoin(suppliers, sql`${fact_supplier_ledger.supplier_id} = ${suppliers.id}`)
-    .where(sql`${fact_supplier_ledger.storeId} = ${storeId}`)
-    .orderBy(sql`${fact_supplier_ledger.date} DESC`)
-    .limit(500);
+  const { supplier_current_accounts, expenses, expense_line_items } = await import("@/db/schema/treasury");
 
-  return result.map(r => ({ ...r }));
+  // Consulta atómica con LEFT JOIN — Regla 1: Inclusión relacional obligatoria
+  const rawRows = await db
+    .select({
+      id: supplier_current_accounts.id,
+      supplier_id: supplier_current_accounts.supplier_id,
+      supplier_name: sql<string>`COALESCE(${suppliers.name}, 'Proveedor Desconocido')`.as('supplier_name'),
+      type: sql<string>`COALESCE(${expenses.expense_type}, 'VARIABLE')`.as('type'),
+      invoice_number: sql<string | null>`${expenses.reference_id}`.as('invoice_number'),
+      amount_cents: supplier_current_accounts.debt_cents,
+      balance_cents: sql<number>`(${supplier_current_accounts.debt_cents} - ${supplier_current_accounts.credit_cents})`.as('balance_cents'),
+      due_date: sql<string>`${supplier_current_accounts.due_date}`.as('due_date'),
+      li_name: expense_line_items.name,
+      li_quantity: expense_line_items.quantity,
+      li_unit_price: expense_line_items.unit_price_cents,
+      li_total: expense_line_items.total_cents
+    })
+    .from(supplier_current_accounts)
+    .leftJoin(suppliers, sql`${supplier_current_accounts.supplier_id} = ${suppliers.id}`)
+    .leftJoin(expenses, sql`${supplier_current_accounts.store_id} = ${expenses.store_id} AND ${supplier_current_accounts.due_date} = ${expenses.created_at}`) // Best effort link
+    .leftJoin(expense_line_items, sql`${expenses.id} = ${expense_line_items.expense_id}`)
+    .where(sql`${supplier_current_accounts.store_id} = ${storeId} AND ${supplier_current_accounts.deleted_at} IS NULL`)
+    .orderBy(sql`${supplier_current_accounts.due_date} ASC`)
+    .limit(1000);
+
+  // Hidratación mediante reduce (Regla 1)
+  const mapAcc = rawRows.reduce((acc, row) => {
+    if (!acc[row.id]) {
+      acc[row.id] = {
+        id: row.id,
+        supplier_id: row.supplier_id,
+        supplier_name: row.supplier_name,
+        type: row.type,
+        invoice_number: row.invoice_number,
+        amount_cents: row.amount_cents,
+        balance_cents: row.balance_cents,
+        due_date: row.due_date ? new Date(Number(row.due_date)).toISOString() : new Date().toISOString(),
+        line_items: []
+      };
+    }
+    
+    if (row.li_name) {
+      acc[row.id].line_items.push({
+        name: row.li_name,
+        quantity: row.li_quantity,
+        unit_price_cents: row.li_unit_price,
+        total_cents: row.li_total
+      });
+    }
+    
+    return acc;
+  }, {} as Record<string, any>);
+
+  const result = Object.values(mapAcc);
+  console.log("🔥 [SRE LEDGER CHECK] Total filas (y partidas agrupadas) recuperadas de DB:", result.length);
+
+  return result;
 }
 
 export async function getSuppliersList() {

@@ -9,7 +9,7 @@
 
 import "dotenv/config";
 import { db } from "../src/db";
-import { inventory_kardex, products, purchase_orders, po_items, ai_audit_logs } from "../src/db/schema";
+import { inventory_kardex, products, purchase_orders, ai_audit_logs } from "../src/db/schema";
 import { sql, eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
@@ -91,7 +91,7 @@ async function main() {
       const draftPOs = await db
         .select()
         .from(purchase_orders)
-        .where(sql`${purchase_orders.status} = 'DRAFT' AND ${purchase_orders.order_date} = ${new Date().toISOString().split("T")[0]}`)
+        .where(sql`${purchase_orders.status} = 'DRAFT_AI' AND ${purchase_orders.created_at} >= ${new Date().toISOString().split("T")[0]}`)
         .limit(5);
 
       console.log(`[SRE-WATCHDOG] 📊 POs DRAFT encontradas hoy: ${draftPOs.length}`);

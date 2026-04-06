@@ -1,10 +1,10 @@
 "use client";
 
-import { Card, Metric, Text, DonutChart } from "@tremor/react";
+import { Card, Metric, Text } from "@tremor/react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { flexRender, getCoreRowModel, useReactTable, getSortedRowModel, SortingState } from "@tanstack/react-table";
 import { useRef, useMemo, useState, useEffect } from "react";
-import { ComposedChart, Area, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { ComposedChart, Area, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell, Legend } from "recharts";
 import { TrendingUp, Coins, Receipt, ArrowUpRight } from "lucide-react";
 
 /**
@@ -150,7 +150,7 @@ export function TemporalEvolutionChart({ data }: { data: any[] }) {
            <div className="flex items-center gap-2"><div className="w-3 h-3 bg-slate-300 rounded-lg" /> <span className="text-[10px] text-slate-500 font-black tracking-widest uppercase">ÓRDENES</span></div>
         </div>
       </div>
-      <div className="flex-1 w-full min-h-[300px] h-96">
+      <div className="w-full h-80 min-h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={data} margin={{ top: 10, right: 0, left: 10, bottom: 20 }}>
             <defs>
@@ -215,6 +215,8 @@ export function TemporalEvolutionChart({ data }: { data: any[] }) {
 }
 
 export function ChannelDonutChart({ data }: { data: any[] }) {
+  const CHANNEL_COLORS = ["#6366f1", "#10b981", "#f59e0b", "#f43f5e", "#3b82f6"];
+
   if (!data || data.length === 0) {
     return (
       <Card className="bg-white rounded-[24px] border border-slate-100 shadow-sm h-full flex flex-col p-8 animate-in slide-in-from-right duration-700">
@@ -229,18 +231,27 @@ export function ChannelDonutChart({ data }: { data: any[] }) {
   return (
     <Card className="bg-white rounded-[24px] border border-slate-100 shadow-sm h-full flex flex-col p-8 animate-in slide-in-from-right duration-700">
       <Text className="uppercase tracking-[0.2em] font-black text-slate-400 text-[10px] mb-8 text-center">Distribución por Canal</Text>
-      <div className="flex-1 flex justify-center items-center min-h-[300px] h-96 w-full">
-        <ResponsiveContainer width="100%" height="100%" aspect={1}>
-          <DonutChart
-            className="h-full w-full"
-            data={data}
-            category="value"
-            index="name"
-            valueFormatter={(val) => `$${(val).toLocaleString()}`}
-            colors={["indigo", "emerald", "amber", "rose", "blue"]}
-            variant="donut"
-            showAnimation={true}
-          />
+      <div className="w-full h-80 min-h-[300px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={data}
+              cx="50%"
+              cy="50%"
+              innerRadius={70}
+              outerRadius={100}
+              paddingAngle={5}
+              dataKey="value"
+              nameKey="name"
+              stroke="none"
+            >
+              {data.map((_entry: any, index: number) => (
+                <Cell key={`cell-${index}`} fill={CHANNEL_COLORS[index % CHANNEL_COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip formatter={(val) => `$${Number(val).toLocaleString()}`} />
+            <Legend verticalAlign="bottom" height={36} iconType="circle" />
+          </PieChart>
         </ResponsiveContainer>
       </div>
     </Card>

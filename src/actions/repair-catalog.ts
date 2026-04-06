@@ -5,6 +5,7 @@ import { sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { requireManagerSession } from "@/lib/auth-action";
 
 function normalizeToSku(name: string): string {
   return "PDR_" + name
@@ -15,10 +16,24 @@ function normalizeToSku(name: string): string {
     .slice(0, 60);
 }
 
-import { authenticatedAction } from "@/lib/auth-action";
+/**
+ * repairProductCatalog
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Operación Crítica: Reconstrucción total de la maestra de productos.
+ * RBAC: Solo accesible para OWNER_GLOBAL (C-Level).
+ */
+export async function repairProductCatalog() {
+  const session = await requireManagerSession();
+  if (!session.success || !session.data) {
+    throw new Error(session.error || "ZERO_TRUST_VIOLATION: Acceso denegado.");
+  }
 
-export const repairProductCatalog = authenticatedAction(async () => {
-  console.log("[REPAIR] Starting catalog repair...");
+  // Escudo RBAC: Solo el Propietario Global puede purgar el catálogo
+  if (session.data.role !== "OWNER_GLOBAL") {
+    throw new Error("UNAUTHORIZED_ACCESS: Solo C-Level puede ejecutar reparaciones de catálogo.");
+  }
+
+  console.log("[REPAIR] Starting catalog repair by user:", session.data.id);
 
   // 1. Read the canonical CSV
   const csvPath = path.join(process.cwd(), "precios_menu_2026.csv");
@@ -103,4 +118,4 @@ export const repairProductCatalog = authenticatedAction(async () => {
     verified: finalCount,
     message: `Catálogo reconstruido: ${inserted} productos inyectados y ${finalCount} verificados.` 
   };
-});
+}

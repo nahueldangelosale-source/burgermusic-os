@@ -1,10 +1,15 @@
 "use server";
 
 import { syncCashClosures } from "@/integrations/google-sheets/sales-sync";
-import { authenticatedAction } from "@/lib/auth-action";
+import { requireManagerSession } from "@/lib/auth-action";
 
-export const syncSalesAction = authenticatedAction(async (_, { user }) => {
-  console.log(`[SYNC] Iniciando sincronización por usuario: ${user.name} (${user.role})`);
+export async function syncSalesAction() {
+  const session = await requireManagerSession();
+  if (!session.success || !session.data) {
+    throw new Error(session.error || "ZERO_TRUST_VIOLATION: Acceso denegado.");
+  }
+
+  console.log(`[SYNC] Iniciando sincronización por usuario: ${session.data.name} (${session.data.role})`);
   
   const result = await syncCashClosures();
   
@@ -17,4 +22,4 @@ export const syncSalesAction = authenticatedAction(async (_, { user }) => {
       errors: t.errors
     }))
   };
-});
+}

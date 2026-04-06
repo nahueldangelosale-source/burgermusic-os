@@ -113,8 +113,8 @@ async function parseCsv<T>(filePath: string, schema: z.ZodType<T, any, any>): Pr
 }
 
 async function run() {
-  const priceRows = await parseCsv(path.join(process.cwd(), "precios_menu_2026.csv"), PriceRowSchema);
-  const bomRows = await parseCsv(path.join(process.cwd(), "bom_template.csv"), BomRowSchema);
+  const priceRows = await parseCsv<z.infer<typeof PriceRowSchema>>(path.join(process.cwd(), "precios_menu_2026.csv"), PriceRowSchema);
+  const bomRows = await parseCsv<z.infer<typeof BomRowSchema>>(path.join(process.cwd(), "bom_template.csv"), BomRowSchema);
 
   console.log(`📊 Validated ${priceRows.length} prices and ${bomRows.length} BOM templates.`);
 

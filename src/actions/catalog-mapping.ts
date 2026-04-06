@@ -3,7 +3,7 @@
 import { db } from "@/db";
 import { products } from "@/db/schema";
 import { sellable_products } from "@/db/schema/bom";
-import { authenticatedAction } from "@/lib/auth-action";
+import { requireManagerSession } from "@/lib/auth-action";
 import { withTenant } from "@/lib/tenant-db";
 import { sql, isNull } from "drizzle-orm";
 
@@ -31,8 +31,13 @@ export type CatalogEntry = {
 };
 
 // --- CONSTRUCTOR O(1) HASHMAP ---
-export const buildCatalogHashMap = authenticatedAction(async (_: void, { user }) => {
-  const tenant = withTenant({ user });
+export async function buildCatalogHashMap() {
+  const session = await requireManagerSession();
+  if (!session.success || !session.data) {
+    throw new Error(session.error || "ZERO_TRUST_VIOLATION: Acceso denegado.");
+  }
+  const { storeId, role } = session.data;
+  const tenant = withTenant({ user: { storeId, role } });
 
   // Extraer productos vendibles + insumos
   const allProducts = await tenant
@@ -96,66 +101,61 @@ export const buildCatalogHashMap = authenticatedAction(async (_: void, { user })
   }
 
   return { totalEntries, hashMap };
-});
+}
 
 // --- RESOLUCIÓN O(1) ---
-export const resolveSkuFromRawName = authenticatedAction(
-  async (
-    payload: { rawName: string; category?: string },
-    { user }
-  ) => {
-    const result = await buildCatalogHashMap();
-    if (!result.success || !result.data) {
-      throw new Error("Error al construir el catálogo.");
-    }
+export async function resolveSkuFromRawName(
+  payload: { rawName: string; category?: string }
+) {
+  const result = await buildCatalogHashMap();
+  const { hashMap } = result;
+  const key = normalize(payload.rawName);
 
-    const { hashMap } = result.data;
-    const key = normalize(payload.rawName);
+  // Búsqueda directa O(1)
+  const match = hashMap[key];
+  if (match) {
+    return {
+      resolved: true,
+      sku: match.sku,
+      name: match.name,
+      category: payload.category || match.category,
+    };
+  }
 
-    // Búsqueda directa O(1)
-    const match = hashMap[key];
-    if (match) {
-      return {
-        resolved: true,
-        sku: match.sku,
-        name: match.name,
-        category: payload.category || match.category,
-      };
-    }
-
-    // Búsqueda parcial por token más largo (fallback O(n) pero solo si O(1) falla)
-    const tokens = key.split(/\s+/).filter(t => t.length > 2);
-    for (const token of tokens) {
-      for (const [mapKey, mapEntry] of Object.entries(hashMap)) {
-        if (mapKey.includes(token)) {
-          return {
-            resolved: true,
-            sku: mapEntry.sku,
-            name: mapEntry.name,
-            category: payload.category || mapEntry.category,
-            fuzzy: true,
-          };
-        }
+  // Búsqueda parcial por token más largo (fallback O(n) pero solo si O(1) falla)
+  const tokens = key.split(/\s+/).filter(t => t.length > 2);
+  for (const token of tokens) {
+    for (const [mapKey, mapEntry] of Object.entries(hashMap)) {
+      if (mapKey.includes(token)) {
+        return {
+          resolved: true,
+          sku: mapEntry.sku,
+          name: mapEntry.name,
+          category: payload.category || mapEntry.category,
+          fuzzy: true,
+        };
       }
     }
-
-    return { resolved: false, rawName: payload.rawName };
   }
-);
+
+  return { resolved: false, rawName: payload.rawName };
+}
 
 // --- ASIGNACIÓN DE CATEGORÍA AL SKU ---
-export const assignCategoryToSku = authenticatedAction(
-  async (
-    payload: { sku: string; category: string },
-    { user }
-  ) => {
-    const tenant = withTenant({ user });
-
-    await tenant
-      .update(products)
-      .set({ category: payload.category })
-      .where(sql`${products.id} = ${payload.sku}`);
-
-    return { success: true, sku: payload.sku, category: payload.category };
+export async function assignCategoryToSku(
+  payload: { sku: string; category: string }
+) {
+  const session = await requireManagerSession();
+  if (!session.success || !session.data) {
+    throw new Error(session.error || "ZERO_TRUST_VIOLATION: Acceso denegado.");
   }
-);
+  const { storeId, role } = session.data;
+  const tenant = withTenant({ user: { storeId, role } });
+
+  await tenant
+    .update(products)
+    .set({ category: payload.category })
+    .where(sql`${products.id} = ${payload.sku}`);
+
+  return { success: true, sku: payload.sku, category: payload.category };
+}

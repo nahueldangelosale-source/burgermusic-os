@@ -5,11 +5,17 @@ import { db } from "@/db";
  * HOF Multi-Tenant A2 (Edge Version 2026)
  * Encapsula la base de datos en un Proxy que fuerza el aislamiento por storeId.
  */
-export function withTenant({ user }: { user: { storeId: string; role?: string } }) {
+export function withTenant({ user }: { user?: { storeId?: string; role?: string } }) {
+  // 1. Zero-Trust Firewall (Fail-Closed)
+  if (!user || !user.storeId) {
+    throw new Error("ZERO_TRUST_VIOLATION: Intento de acceso a DB sin firma criptográfica de Tenant.");
+  }
+  
   const { storeId, role } = user;
 
-  // Bypass para usuarios globales o sin sucursal asignada
-  if (role === "OWNER_GLOBAL" || role === "C_LEVEL" || storeId === "global" || !storeId) {
+  // 2. Bypass para usuarios globales
+  if (role === "OWNER_GLOBAL" || role === "C_LEVEL" || storeId === "global") {
+    // Retorna proxy de DB sin filtros restrictivos de sucursal
     return db;
   }
 

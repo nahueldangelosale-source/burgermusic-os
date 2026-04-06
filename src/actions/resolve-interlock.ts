@@ -49,7 +49,7 @@ export async function resolveInterlockAction(formData: FormData) {
     return { success: true };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { success: false, message: error.errors[0].message };
+      return { success: false, message: error.issues[0].message };
     }
     console.error("Resolve Interlock Error:", error);
     return { success: false, message: "Error interno escribiendo en Ledger de Auditoría." };

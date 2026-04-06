@@ -2,14 +2,16 @@ import { sql } from "drizzle-orm";
 // Drizzle ORM Schema Definitions
 import { blob, integer, real, sqliteTable, text, unique } from "drizzle-orm/sqlite-core";
 import { raw_materials } from "./schema/bom";
+import { inventory_items, purchase_orders } from "./schema/supply";
 
 // --- USUARIOS (Base) ---
 export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
-  role: text("role", { enum: ["OWNER_GLOBAL", "MANAGER", "KITCHEN", "RECEIVER"] }).notNull(),
-  pin_hash: text("pin_hash").notNull(),
-  storeId: text("store_id").notNull(), // Local assignment
+  email: text("email").notNull().unique(),
+  role: text("role", { enum: ["OWNER_GLOBAL", "MANAGER", "MANAGER_LOCAL", "KITCHEN", "RECEIVER"] }).notNull(),
+  passwordHash: text("password_hash").notNull(),
+  storeId: text("store_id").notNull(), 
   createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
 });
 
@@ -29,7 +31,9 @@ export const suppliers = sqliteTable("suppliers", {
   }).default("TRANSFERENCIA"),
   leadTime: integer("lead_time").default(24), // En horas por defecto
   frequency: text("frequency"), // Ej: 'Weekly', 'Daily'
+  email: text("email"),
   phone: text("phone"),
+  postalCode: text("postal_code"),
   address: text("address"),
   paymentMethods: text("payment_methods", { mode: "json" })
     .$type<string[]>()
@@ -42,6 +46,14 @@ export const suppliers = sqliteTable("suppliers", {
 // --- PRODUCTOS (Depende de Proveedores) ---
 export const product_unit_enum = ["UNIDAD", "GRAMOS", "LITROS"] as const;
 export const itemTypeEnum = ["MANUFACTURED", "COMBO", "SERVICE"] as const;
+
+export const sku_aliases = sqliteTable("sku_aliases", {
+  id: text("id").primaryKey(),
+  store_id: text("store_id").notNull(),
+  raw_sku: text("raw_sku").notNull().unique(),
+  product_id: text("product_id").notNull(), // FK logica a products.id
+  created_at: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
+});
 
 export const products = sqliteTable("products", {
   id: text("id").primaryKey(),
@@ -82,10 +94,18 @@ export const recipe_items = sqliteTable("recipe_items", {
 }));
 
 // Fase 30.2 - BOM Master Data y Tipaje Fuerte Canónico
+export const INGREDIENT_TYPE_ENUM = ["RAW_MATERIAL", "INTERMEDIATE", "PURCHASED_READY"] as const;
+export type IngredientType = (typeof INGREDIENT_TYPE_ENUM)[number];
+
+export const MDM_CATEGORY_ENUM = ["CARNES", "PANES", "LACTEOS_Y_FIAMBRES", "CONGELADOS", "VEGETALES", "SALSAS_Y_ADEREZOS", "BEBIDAS"] as const;
+export type MDMCategory = (typeof MDM_CATEGORY_ENUM)[number];
+
 export const mdm_ingredients = sqliteTable("mdm_ingredients", {
   id: text("id").primaryKey(),
   canonical_name: text("canonical_name").notNull().unique(),
   yield_percentage: real("yield_percentage").notNull().default(1.0),
+  ingredientType: text("ingredient_type", { enum: INGREDIENT_TYPE_ENUM }).notNull().default("PURCHASED_READY"),
+  category: text("category", { enum: MDM_CATEGORY_ENUM }).notNull().default("CARNES"),
 });
 
 export const bom_recipes = sqliteTable("bom_recipes", {
@@ -184,22 +204,25 @@ export const receptions = sqliteTable("receptions", {
 
 export const purchases = sqliteTable("purchases", {
   id: text("id").primaryKey(),
+  store_id: text("store_id").notNull(),
   supplier_id: text("supplier_id").references(() => suppliers.id),
-  receiver_user_id: text("receiver_user_id").references(() => users.id),
-  total_amount: real("total_amount").notNull(),
-  invoice_image_url: text("invoice_image_url"),
+  supplier_name: text("supplier_name").notNull(),
+  invoice_number: text("invoice_number"),
+  total_cents: integer("total_cents").notNull(),
   status: text("status", { enum: ["PENDING", "COMPLETED", "FLAGGED"] }).default("COMPLETED"),
-  storeId: text("store_id").notNull(), // Isolation
+  audited_at: text("audited_at"),
+  audited_by: text("audited_by"),
   created_at: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
 });
 
 export const purchase_items = sqliteTable("purchase_items", {
   id: text("id").primaryKey(),
+  store_id: text("store_id").notNull(),
   purchase_id: text("purchase_id").references(() => purchases.id),
-  product_id: text("product_id").references(() => products.id),
+  inventory_item_id: text("inventory_item_id").references(() => inventory_items.id),
   quantity: real("quantity").notNull(),
-  unit_cost: real("unit_cost").notNull(),
-  variance_flag: integer("variance_flag", { mode: "boolean" }).default(false),
+  total_line_cents: integer("total_line_cents").notNull(),
+  created_at: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
 });
 
 // --- RECEIVER AGENT (OCR & COMPROBANTES INTERNOS) ---
@@ -238,27 +261,6 @@ export const petty_cash_transactions = sqliteTable("petty_cash_transactions", {
   createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
 });
 
-// --- ORÁCULO ---
-export const po_status_enum = ["DRAFT", "SENT", "RECEIVED", "CANCELLED"] as const;
-
-export const purchase_orders = sqliteTable("purchase_orders", {
-  id: text("id").primaryKey(),
-  supplier_id: text("supplier_id"),
-  status: text("status", { enum: po_status_enum }).default("DRAFT"),
-  total_estimated: integer("total_estimated"),
-  created_at: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-  order_date: text("order_date"),
-  delivery_date: text("delivery_date"),
-});
-
-export const po_items = sqliteTable("po_items", {
-  id: text("id").primaryKey(),
-  po_id: text("po_id").references(() => purchase_orders.id),
-  product_id: text("product_id").references(() => products.id),
-  quantity_suggested: real("quantity_suggested"),
-  quantity_ordered: real("quantity_ordered"),
-  unit_cost_snapshot: integer("unit_cost_snapshot"),
-});
 
 // --- ESTADO DE SINCRONIZACIÓN (ETL — por pestaña) ---
 export const syncState = sqliteTable("sync_state", {
@@ -520,6 +522,7 @@ export const inventory_kardex = sqliteTable("inventory_kardex", {
   id: text("id").primaryKey(),
   storeId: text("store_id").notNull(),
   productSku: text("product_sku").notNull(),
+  movementType: text("movement_type").notNull().default("ADJUSTMENT"), // Added for explicit transaction boundaries ('MANUFACTURING_CONSUMPTION', 'MANUFACTURING_PRODUCTION', 'INITIAL_COUNT')
   quantity: real("quantity").notNull().default(0),
   referenceId: text("reference_id"), // Added for SRE auditability
   updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`),
@@ -593,12 +596,50 @@ export const fact_sales = sqliteTable("fact_sales", {
   id: text("id").primaryKey(),
   storeId: text("store_id").notNull(),
   date: text("date").notNull(),
-  shift: text("shift").notNull(),
-  raw_name: text("raw_name").notNull(),
+  shift: text("shift").notNull().default("UNICO"),
+  raw_name: text("raw_name").notNull().default(""),
   productSku: text("product_sku").notNull(),
   quantity: real("quantity").notNull(),
   net_price_cents: integer("net_price_cents").notNull(),
+
+  // V3.1: Snapshot Transaccional Inmutable (Closed-Loop Traceability)
+  historical_cost_cents: integer("historical_cost_cents").default(0),
+  historical_price_cents: integer("historical_price_cents").default(0),
+
+  ticket_number: text("ticket_number"),
+  payment_method: text("payment_method").default("UNKNOWN"),
+  status: text("status", { enum: ["COMPLETED", "VOIDED", "PENDING", "PREPARING"] }).default("COMPLETED"),
+  depleted: integer("depleted", { mode: "boolean" }).default(false),
+  completed_at: text("completed_at"), // Temporal Airlock Timestamp
+  ticket_hash: text("ticket_hash").unique(), // Idempotency Lock
+
+  // V4.0: NLP Variant Metadata (JSON-serialized modifier data)
+  variant_metadata: text("variant_metadata"),
+
   createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
+});
+
+// --- ARQUITECTURA DE MODIFICADORES (Opción B — Singularidad de SKUs) ---
+export const modifiers = sqliteTable("modifiers", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),                         // Ej: "DOBLE", "TRIPLE", "SIN CHEDDAR"
+  price_cents_adjustment: integer("price_cents_adjustment").notNull().default(0),
+  is_active: integer("is_active", { mode: "boolean" }).default(true).notNull(),
+  deleted_at: text("deleted_at"),
+  createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
+});
+
+export const modifier_ingredients = sqliteTable("modifier_ingredients", {
+  id: text("id").primaryKey(),
+  modifier_id: text("modifier_id").references(() => modifiers.id).notNull(),
+  inventory_item_id: text("inventory_item_id").references(() => inventory_items.id).notNull(),
+  quantity: real("quantity").notNull(),                  // Ej: 1 medallón extra para DOBLE
+});
+
+export const product_modifiers = sqliteTable("product_modifiers", {
+  id: text("id").primaryKey(),
+  product_id: text("product_id").references(() => products.id).notNull(),
+  modifier_id: text("modifier_id").references(() => modifiers.id).notNull(),
 });
 
 // --- SUGERENCIAS DE COMPRA (ADC CRON FORECAST) ---
@@ -651,4 +692,39 @@ export const fact_taxes = sqliteTable("fact_taxes", {
   createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
 });
 
+// --- COMMAND CENTER TACTICAL AGENDA ---
+export const agenda_items = sqliteTable("agenda_items", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  type: text("type", { enum: ["TASK", "NOTE", "EVENT"] }).notNull().default("TASK"),
+  dueDate: text("due_date"),
+  isCompleted: integer("is_completed", { mode: "boolean" }).notNull().default(false),
+  createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
+});
+
+// --- PRODUCTION ENGINE (Yield Management / Batch Manufacturing) ---
+export const production_batches = sqliteTable("production_batches", {
+  id: text("id").primaryKey(),
+  storeId: text("store_id").notNull(),
+  producedIngredientId: text("produced_ingredient_id").notNull(), // FK lógica a mdm_ingredients (medallón)
+  quantityProduced: integer("quantity_produced").notNull(),
+  totalCostCents: integer("total_cost_cents").notNull(),
+  costPerUnitCents: integer("cost_per_unit_cents").notNull(),
+  yieldFactor: real("yield_factor").notNull().default(8.1), // Medallones per Kg de rendimiento
+  notes: text("notes"),
+  createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
+});
+
+export const production_batch_inputs = sqliteTable("production_batch_inputs", {
+  id: text("id").primaryKey(),
+  batchId: text("batch_id").notNull(), // FK lógica a production_batches
+  ingredientId: text("ingredient_id").notNull(), // FK lógica a mdm_ingredients (carne cruda)
+  quantityUsedGrams: integer("quantity_used_grams").notNull(),
+  unitCostCents: integer("unit_cost_cents").notNull(), // Costo congelado del insumo al momento del lote
+  createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
+});
+
 export * from "./schema/bom";
+export * from "./schema/treasury";
+export * from "./schema/supply";
+export * from "./schema/finance";

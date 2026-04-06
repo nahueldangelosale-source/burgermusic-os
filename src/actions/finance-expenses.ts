@@ -67,7 +67,7 @@ export async function createExpense(formData: z.infer<typeof CreateExpenseSchema
     return { success: true };
   } catch (e: any) {
     if (e instanceof z.ZodError) {
-      return { success: false, error: e.errors[0].message };
+      return { success: false, error: e.issues[0].message };
     }
     return { success: false, error: e.message };
   }

@@ -1,24 +1,21 @@
 "use server";
 
 import { db } from "@/db";
-import { purchase_orders, po_items, supplier_metrics, suppliers, ai_audit_logs } from "@/db/schema";
+import { purchase_orders, purchase_order_items, purchase_order_status_enum } from "@/db/schema/supply";
+import { supplier_metrics, suppliers, ai_audit_logs } from "@/db/schema";
 import { randomUUID } from "crypto";
 import { eq, sql, isNull, and } from "drizzle-orm";
-import { authenticatedAction } from "@/lib/auth-action";
+import { requireManagerSession } from "@/lib/auth-action";
 import { withTenant } from "@/lib/tenant-db";
 import { PurchaseOrderSchema } from "@/schemas/treasury";
 import type { PurchaseOrderInput } from "@/schemas/treasury";
 
 /**
- * Purchase Orders Module — Server Actions Nativas
+ * Purchase Orders Module — Server Actions Nativas (V3.2 Canonical)
  * 
- * Gestión de Órdenes de Compra anclada al storeId de la sesión.
- * Calcula costo proyectado, persiste en purchase_orders + po_items,
- * y registra métricas del proveedor.
- * 
- * Split Architecture:
- * - `internalCreatePurchaseOrder`: Headless, bypass sesión. Para Cron/Worker.
- * - `createPurchaseOrder`: Wrapper autenticado para UI.
+ * Consolidado contra el esquema canónico en `supply.ts`.
+ * Todas las operaciones usan `purchase_orders` + `purchase_order_items`
+ * con `store_id` obligatorio para aislamiento Zero-Trust.
  */
 
 // --- HEADLESS: Crear PO sin sesión (para Cron / Watchdog) ---
@@ -30,37 +27,34 @@ export async function internalCreatePurchaseOrder(
   const validated = PurchaseOrderSchema.parse(payload);
 
   // 1. Cálculo del costo proyectado total (centavos)
-  const totalEstimated = validated.items.reduce(
+  const totalEstimatedCents = validated.items.reduce(
     (acc, item) => acc + Math.round(item.quantity * item.unit_cost * 100),
     0
   );
 
   // 2. Generar IDs
   const poId = `PO-${randomUUID()}`;
-  const today = new Date().toISOString().split("T")[0];
 
-  // 3. Persistir la orden — SIEMPRE DRAFT en modo autónomo
+  // 3. Persistir la orden
   await db.insert(purchase_orders).values({
     id: poId,
-    supplier_id: validated.supplier_id,
+    store_id: storeId,
+    supplierId: validated.supplier_id,
     status: "DRAFT",
-    total_estimated: totalEstimated,
-    order_date: today,
-    delivery_date: validated.delivery_date || null,
+    totalAmountCents: totalEstimatedCents,
   });
 
-  // 4. Persistir ítems del detalle
+  // 4. Persistir ítems del detalle (contra purchase_order_items canónico)
   const itemRows = validated.items.map(item => ({
     id: `POI-${randomUUID()}`,
-    po_id: poId,
-    product_id: item.product_id,
-    quantity_suggested: item.quantity,
-    quantity_ordered: item.quantity,
-    unit_cost_snapshot: Math.round(item.unit_cost * 100),
+    poId: poId,
+    ingredientId: item.product_id,
+    quantityGrams: item.quantity,
+    unitPriceCents: Math.round(item.unit_cost * 100),
   }));
 
   if (itemRows.length > 0) {
-    await db.insert(po_items).values(itemRows);
+    await db.insert(purchase_order_items).values(itemRows);
   }
 
   // 5. AI Audit Log (Trazabilidad Zero-Trust)
@@ -71,7 +65,7 @@ export async function internalCreatePurchaseOrder(
       action: "CREATE_DRAFT_PO",
       zodSchemaUsed: "PurchaseOrderSchema",
       status: "APPROVED",
-      payloadRef: JSON.stringify({ poId, supplier: validated.supplier_id, items: validated.items.length, totalEstimated }),
+      payloadRef: JSON.stringify({ poId, supplier: validated.supplier_id, items: validated.items.length, totalEstimatedCents }),
       storeId,
     });
   }
@@ -79,79 +73,94 @@ export async function internalCreatePurchaseOrder(
   return {
     success: true,
     poId,
-    totalEstimatedCents: totalEstimated,
+    totalEstimatedCents,
     itemCount: validated.items.length,
     is_autonomous: options?.is_autonomous ?? false,
   };
 }
 
 // --- Server Action: Crear Orden de Compra (Autenticada) ---
-export const createPurchaseOrder = authenticatedAction(
-  async (payload: PurchaseOrderInput, { user, storeId }) => {
-    return internalCreatePurchaseOrder(storeId, payload, { is_autonomous: false });
+export async function createPurchaseOrder(payload: PurchaseOrderInput) {
+  const session = await requireManagerSession();
+  if (!session.success || !session.data) {
+    throw new Error(session.error || "ZERO_TRUST_VIOLATION: Acceso denegado.");
   }
-);
+  return internalCreatePurchaseOrder(session.data.storeId, payload, { is_autonomous: false });
+}
 
 // --- Server Action: Listar Órdenes de Compra ---
-export const listPurchaseOrders = authenticatedAction(async (_: void, { user }) => {
-  const tenant = withTenant({ user });
+export async function listPurchaseOrders() {
+  const session = await requireManagerSession();
+  if (!session.success || !session.data) {
+    throw new Error(session.error || "ZERO_TRUST_VIOLATION: Acceso denegado.");
+  }
+  const { storeId, role } = session.data;
+  const tenant = withTenant({ user: { storeId, role } });
 
   const orders = await tenant
     .select({
       id: purchase_orders.id,
-      supplier_id: purchase_orders.supplier_id,
+      store_id: purchase_orders.store_id,
+      supplier_id: purchase_orders.supplierId,
       status: purchase_orders.status,
-      total_estimated: purchase_orders.total_estimated,
-      order_date: purchase_orders.order_date,
-      delivery_date: purchase_orders.delivery_date,
+      total_estimated_cents: purchase_orders.totalAmountCents,
+      created_at: purchase_orders.createdAt,
     })
     .from(purchase_orders)
-    .innerJoin(suppliers, eq(purchase_orders.supplier_id, suppliers.id))
+    .innerJoin(suppliers, eq(purchase_orders.supplierId, suppliers.id))
     .where(isNull(suppliers.deletedAt))
-    .orderBy(sql`${purchase_orders.created_at} DESC`)
+    .orderBy(sql`${purchase_orders.createdAt} DESC`)
     .limit(50);
 
-  return orders;
-});
+  // Fix: map statuses explicitly if client expects DRAFT_AI
+  return orders.map((o: any) => ({ 
+    ...o,
+    status: o.status === 'DRAFT' ? 'DRAFT_AI' : o.status
+  }));
+}
 
 // --- Server Action: Actualizar Estado de PO ---
-export const updatePurchaseOrderStatus = authenticatedAction(
-  async (
-    payload: { poId: string; status: "DRAFT" | "SENT" | "RECEIVED" | "CANCELLED" },
-    { user }
-  ) => {
-    const tenant = withTenant({ user });
-
-    await tenant
-      .update(purchase_orders)
-      .set({ status: payload.status })
-      .where(sql`${purchase_orders.id} = ${payload.poId}`);
-
-    // Si se marca como RECEIVED, actualizar métricas de lead time
-    if (payload.status === "RECEIVED") {
-      const [order] = await tenant
-        .select({
-          supplier_id: purchase_orders.supplier_id,
-          order_date: purchase_orders.order_date,
-        })
-        .from(purchase_orders)
-        .where(sql`${purchase_orders.id} = ${payload.poId}`)
-        .limit(1);
-
-      if (order?.order_date) {
-        const orderDate = new Date(order.order_date);
-        const now = new Date();
-        const leadTimeHours = Math.round(
-          (now.getTime() - orderDate.getTime()) / (1000 * 60 * 60)
-        );
-
-        await tenant
-          .update(supplier_metrics)
-          .set({ leadTimeHours, isOnTime: leadTimeHours <= 48 })
-          .where(sql`${supplier_metrics.poId} = ${payload.poId}`);
-      }
-    }
-
-    return { success: true, poId: payload.poId, newStatus: payload.status };
+export async function updatePurchaseOrderStatus(
+  payload: { poId: string; status: typeof purchase_order_status_enum[number] | "DRAFT_AI" }
+) {
+  const session = await requireManagerSession();
+  if (!session.success || !session.data) {
+    throw new Error(session.error || "ZERO_TRUST_VIOLATION: Acceso denegado.");
   }
-);
+  const { storeId, role } = session.data;
+  const tenant = withTenant({ user: { storeId, role } });
+
+  const actualStatus = payload.status === "DRAFT_AI" ? "DRAFT" : payload.status as typeof purchase_order_status_enum[number];
+
+  await tenant
+    .update(purchase_orders)
+    .set({ status: actualStatus })
+    .where(eq(purchase_orders.id, payload.poId));
+
+  // Si se marca como FULFILLED, actualizar métricas de lead time
+  if (actualStatus === "FULFILLED") {
+    const [order] = await tenant
+      .select({
+        supplierId: purchase_orders.supplierId,
+        createdAt: purchase_orders.createdAt,
+      })
+      .from(purchase_orders)
+      .where(eq(purchase_orders.id, payload.poId))
+      .limit(1);
+
+    if (order?.createdAt) {
+      const createdDate = new Date(order.createdAt);
+      const now = new Date();
+      const leadTimeHours = Math.round(
+        (now.getTime() - createdDate.getTime()) / (1000 * 60 * 60)
+      );
+
+      await tenant
+        .update(supplier_metrics)
+        .set({ leadTimeHours, isOnTime: leadTimeHours <= 48 })
+        .where(sql`${supplier_metrics.poId} = ${payload.poId}`);
+    }
+  }
+
+  return { success: true, poId: payload.poId, newStatus: payload.status };
+}

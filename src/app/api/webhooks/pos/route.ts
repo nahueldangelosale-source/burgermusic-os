@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { transactions } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { fact_sales, transactions } from "@/db/schema";
 import { POSPayloadSchema } from "@/lib/inventory";
 import { TransactionExplosionEngine } from "@/services/explosion-engine";
+import crypto from "crypto";
 
 export const runtime = "nodejs";
 
@@ -39,29 +39,51 @@ export async function POST(req: NextRequest) {
 
     const { store_id, ticket_id, timestamp, items } = result.data;
 
-    // 3. MOTOR DE IDEMPOTENCIA (Check for double-spend)
-    const existing = await db
-      .select({ id: transactions.id })
-      .from(transactions)
-      .where(and(
-        eq(transactions.referenceId, ticket_id),
-        eq(transactions.storeId, store_id)
-      ))
-      .limit(1);
+    // Generamos un hash único determinista para el ticket (Idempotency Key Extrema)
+    const ticketHash = crypto.createHash('sha256').update(`${store_id}_${ticket_id}`).digest('hex');
 
-    if (existing.length > 0) {
-      return NextResponse.json({ 
-        success: true, 
-        message: "IdempotencyHit: Ticket already processed.",
-        transactionId: existing[0].id 
-      });
-    }
-
-    // 4. TRANSACCIÓN ATÓMICA (BOM Engine & Kardex)
-    // El modelo actual exige que 'transactions' sea a nivel de ítem o use un 'Header' con SKU.
+    // 3. TRANSACCIÓN ATÓMICA CON IDEMPOTENCIA EN O(1)
+    // El motor usa ON CONFLICT DO NOTHING en fact_sales para anular duplicados sin race-conds.
     return await db.transaction(async (tx) => {
-      console.log(`[SRE-POS-WEBHOOK] 📝 Creando Header Transaction para: ${ticket_id}`);
-      // 4a. Registrar Ticket Principal (Header-Stub en la tabla de Ledger)
+      
+      const salesPayload = items.map(item => ({
+        id: crypto.randomUUID(),
+        storeId: store_id,
+        date: timestamp,
+        shift: "UNICO",
+        raw_name: item.name,
+        productSku: item.name, 
+        quantity: item.qty,
+        net_price_cents: item.price_cents,
+        ticket_number: ticket_id,
+        ticket_hash: `${ticketHash}_${item.name}`, // Hash único por ítem en el ticket
+        status: "COMPLETED" as const
+      }));
+
+      // Inserción en el Data Warehouse de Ventas (Zero-Trust Idempotency)
+      const res = await tx.insert(fact_sales)
+        .values(salesPayload)
+        .onConflictDoNothing({ target: fact_sales.ticket_hash }) // <<< NEUTRALIZA DUPLICADOS A NIVEL DB
+        .returning({ id: fact_sales.id });
+
+      // Si no retornó registros insertados, ya existían en la DB.
+      if (res.length === 0) {
+         return NextResponse.json({ 
+           success: true, 
+           message: "IdempotencyHit: Ticket already processed.",
+           status: "ignored_duplicate"
+         }, { status: 200 }); // Status explícito
+      }
+
+      // 4. MOTOR DE EXPLOSIÓN (Consecuencias Metabólicas)
+      // Delegamos al BOM Engine para degradar Kardex según Theorical Yield
+      const explosionPayload = items.map((item: any) => ({
+        sku: item.name, 
+        quantity: item.qty,
+        unitPriceCents: item.price_cents
+      }));
+
+      // Log: Omitimos por latencia, pero creamos un Master Header en legacy transactions si lo exige la API
       const [headerTx] = await tx.insert(transactions).values({
         storeId: store_id,
         referenceId: ticket_id,
@@ -72,41 +94,31 @@ export async function POST(req: NextRequest) {
         notes: `POS Ticket Header: ${ticket_id}`,
       }).returning({ id: transactions.id });
 
-      if (!headerTx) throw new Error("Fallo al crear header de transacción (Ledger)");
-      console.log(`[SRE-POS-WEBHOOK] ✅ Header Creado ID: ${headerTx.id}. Iniciando Explosión...`);
-
-      // 4b. Disparar Motor de Explosión BOM (Ingesta de transaction_items y deducción Kardex)
-      const explosionPayload = items.map(item => ({
-        sku: item.name, 
-        quantity: item.qty,
-        unitPriceCents: item.price_cents
-      }));
-
       await TransactionExplosionEngine.explode(
         headerTx.id,
         store_id,
         explosionPayload,
-        tx // Pasamos el contexto de transacción para evitar SQLITE_BUSY
+        tx 
       );
 
       return NextResponse.json({ 
         success: true, 
         transactionId: headerTx.id,
         itemsProcessed: items.length
-      });
+      }, { status: 200 });
     });
 
-  } catch (error: any) {
-    console.error("[SRE-POS-WEBHOOK] ❌ Error Crítico:", {
-      message: error.message,
-      stack: error.stack,
-      cause: error.cause
-    });
+  } catch (error: unknown) {
+    const errorMsg = error instanceof Error ? error.message : "Unknown error";
+    
+    if (errorMsg.includes("SQLITE_BUSY")) {
+      console.warn("⚠️ [THERMODYNAMIC-LIMIT] Contención SQLITE detectada. Sugerir batching.");
+    }
+    
     return NextResponse.json(
       { 
         error: "Internal Server Error", 
-        message: error.message,
-        stack: process.env.NODE_ENV === "development" ? error.stack : undefined 
+        message: errorMsg
       }, 
       { status: 500 }
     );

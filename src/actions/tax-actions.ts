@@ -2,7 +2,7 @@
 
 import { db } from "@/db";
 import { opex_ledger } from "@/db/schema";
-import { authenticatedAction } from "@/lib/auth-action";
+import { requireManagerSession } from "@/lib/auth-action";
 import { withTenant } from "@/lib/tenant-db";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
@@ -15,7 +15,14 @@ const TaxConfigSchema = z.object({
   percentageRate: z.number().min(0).max(100).optional(),
 });
 
-export const upsertTaxConfig = authenticatedAction(async (formData: FormData, { user }) => {
+export async function upsertTaxConfig(formData: FormData) {
+  const session = await requireManagerSession();
+  if (!session.success || !session.data) {
+    throw new Error(session.error || "ZERO_TRUST_VIOLATION: Acceso denegado.");
+  }
+  const { storeId, role } = session.data;
+  const tenant = withTenant({ user: { storeId, role } });
+
   // Parsing nativo de FormData
   const data = {
     description: formData.get("description") as string,
@@ -25,13 +32,11 @@ export const upsertTaxConfig = authenticatedAction(async (formData: FormData, { 
   };
 
   const validated = TaxConfigSchema.parse(data);
-  const tenant = withTenant({ user });
 
-  // Inyección Zero-Trust via withTenant
   const safeDesc = validated.description.replace(/\s+/g, '-').toUpperCase().slice(0, 15);
   await tenant.insert(opex_ledger).values([{
     id: `TAX-${safeDesc}-${randomUUID().substring(0, 6).toUpperCase()}`,
-    store_id: user.storeId,
+    store_id: storeId,
     type: "TAX",
     description: validated.description,
     total_amount: validated.calculationType === "FIXED" ? validated.fixedAmount! * 100 : 0,
@@ -43,4 +48,4 @@ export const upsertTaxConfig = authenticatedAction(async (formData: FormData, { 
 
   revalidatePath("/dashboard/treasury");
   return { success: true, message: "Parámetro fiscal devengado exitosamente." };
-});
+}

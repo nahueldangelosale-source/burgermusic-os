@@ -3,6 +3,7 @@
 import { useTransition, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ingestDynamicExcel, extractExcelHeaders } from "@/actions/excel-ingestion";
+import { toast } from "sonner";
 
 export default function ExcelIngestionVault() {
   const router = useRouter();
@@ -22,8 +23,8 @@ export default function ExcelIngestionVault() {
 
   const handleFile = (file: File) => {
     setErrorAlert(null);
-    if (!file || !file.name.endsWith(".xlsx")) {
-      alert("Por favor sube un archivo .xlsx válido");
+    if (!file) {
+      toast.error("No se detectó un archivo válido.");
       return;
     }
 
@@ -71,15 +72,19 @@ export default function ExcelIngestionVault() {
           
           const res = await ingestDynamicExcel(formData);
          if (res.success && res.data?.targetDate) {
+            toast.success(`Ingesta Exitosa: ${(res.data as any)?.inserted || 0} filas procesadas.`);
             setShowModal(false);
             setPendingFile(null);
             router.push(`/dashboard/sales?date=${res.data.targetDate}`);
          } else if (res.success) {
+            toast.success(`Ingesta Exitosa: ${(res.data as any)?.inserted || 0} filas procesadas.`);
             setShowModal(false);
             setPendingFile(null);
             router.refresh();
          } else {
-            setErrorAlert(res.error || (res.data as any)?.error || "Fallo transaccional silenciado");
+            const errMessage = res.error || (res.data as any)?.error || "Formato inválido";
+            toast.error(`Fallo: ${errMessage}`);
+            setErrorAlert(errMessage);
          }
        } catch (err: any) {
          setErrorAlert(err.message || "Falla Extrema de Integridad");
@@ -111,7 +116,7 @@ export default function ExcelIngestionVault() {
       >
       <input 
         type="file" 
-        accept=".xlsx" 
+        accept=".csv, .xlsx" 
         className="hidden" 
         ref={inputRef} 
         onChange={(e) => {
@@ -139,7 +144,7 @@ export default function ExcelIngestionVault() {
               <path d="M12 12v9"></path>
               <path d="m16 16-4-4-4 4"></path>
             </svg>
-            <span>Soltar .XLSX Cierres</span>
+            <span>Soltar Archivo (CSV/XLSX)</span>
           </>
         )}
       </div>

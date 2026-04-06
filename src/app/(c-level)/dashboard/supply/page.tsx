@@ -13,10 +13,28 @@ export default async function SupplyPage({ searchParams }: { searchParams: Promi
   const catalog = await getMasterCatalog();
   const productsCatalog = await getSellableProducts();
   
-  // Phase 78: Proveedores
-  const suppliersRes = await getSuppliers();
-  const suppliersData = (suppliersRes.success && Array.isArray(suppliersRes.data)) ? suppliersRes.data : [];
-  
+  // Phase 78: Proveedores - B2B Hydration with Zero-Trust Mappings
+  const { db } = await import("@/db");
+  const { suppliers } = await import("@/db/schema");
+  const { supplier_item_mappings } = await import("@/db/schema/supply");
+  const { sql, eq, isNull } = await import("drizzle-orm");
+
+  const suppliersData = await db
+    .select({
+      id: suppliers.id,
+      name: suppliers.name,
+      cuit: suppliers.cuit,
+      category: suppliers.category,
+      paymentTerms: suppliers.paymentTerms,
+      active: suppliers.active,
+      phone: suppliers.phone,
+      mappedItemsCount: sql<number>`CAST(COUNT(${supplier_item_mappings.id}) AS INTEGER)`,
+    })
+    .from(suppliers)
+    .leftJoin(supplier_item_mappings, eq(suppliers.id, supplier_item_mappings.supplierId))
+    .where(isNull(suppliers.deletedAt))
+    .groupBy(suppliers.id);
+
   const perfRes = await getProductsPerformance();
   const perfData = (perfRes.success && Array.isArray(perfRes.data)) ? perfRes.data : [];
   

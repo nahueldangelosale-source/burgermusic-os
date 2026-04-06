@@ -5,34 +5,74 @@ import { sql, eq, or, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { trace } from "@opentelemetry/api";
 
-import { products, fact_sales } from "@/db/schema";
-import { raw_materials, sellable_products } from "@/db/schema/bom";
+import { products, fact_sales, mdm_ingredients } from "@/db/schema";
+import { raw_materials } from "@/db/schema/bom";
+import { requireManagerSession } from "@/lib/auth-action";
+import { withTenant } from "@/lib/tenant-db";
 
 const tracer = trace.getTracer("burgermusic-bom-engine", "1.0.0");
 
+// ─────────────────────────────────────────────────────────────────────────────
+// § SCHEMAS DE VALIDACIÓN (Zod)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const SimulateSchema = z.object({
+  ingredient_id: z.string().min(1),
+  inflation_percentage: z.number().min(-100).max(1000),
+});
+
+const ApplySchema = z.object({
+  ingredient_id: z.string().min(1),
+  new_cost_cents: z.number().min(0),
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// § ACCIONES DEL SIMULADOR BOM (Zero-Trust)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * getMasterCatalog — Extrae el catálogo de insumos base filtrado por Tenant.
+ */
 export async function getMasterCatalog() {
+  const session = await requireManagerSession();
+  if (!session.success || !session.data) {
+    throw new Error(session.error || "ZERO_TRUST_VIOLATION: Acceso denegado al Catálogo Maestro.");
+  }
+
+  // Phase 1 SRE: Restoration of Zero-Trust Visibility
+  // `mdm_ingredients` es un catálogo global sin storeId, por lo que obviamos el
+  // filtro Tenant para permitir a todos los Managers visualizar el padrón canónico.
   try {
     const result = await db.select({
-      id: raw_materials.id,
-      name: raw_materials.name,
-      category: raw_materials.category,
-      base_unit: raw_materials.baseUnit,
-      gross_cost_cents: raw_materials.grossCostCents,
+      id: mdm_ingredients.id,
+      name: mdm_ingredients.canonical_name,
+      category: mdm_ingredients.category,
+      base_unit: sql<string>`CASE WHEN ${mdm_ingredients.ingredientType} = 'INTERMEDIATE' THEN 'UNIDADES' ELSE 'GRAMOS' END`,
+      gross_cost_cents: sql<number>`0`, // Placeholder para el motor de Costeo
     })
-    .from(raw_materials)
-    .where(isNull(raw_materials.deletedAt))
-    .orderBy(raw_materials.name);
+    .from(mdm_ingredients)
+    .orderBy(mdm_ingredients.category, mdm_ingredients.canonical_name);
     
     return result;
   } catch(err) {
-    console.error("Error fetching master catalog from raw_materials HQ:", err);
+    console.error("Error fetching master catalog from mdm_ingredients HQ:", err);
     return [];
   }
 }
 
+/**
+ * getSellableProducts — Lista productos terminados con sus márgenes actuales y volumen.
+ */
 export async function getSellableProducts() {
+  const session = await requireManagerSession();
+  if (!session.success || !session.data) {
+    throw new Error(session.error || "ZERO_TRUST_VIOLATION: Acceso denegado a Productos Vendibles.");
+  }
+  const { storeId, role } = session.data;
+  const tenant = withTenant({ user: { storeId, role } });
+
   try {
-    const result = await db.select({
+    const result = await tenant.select({
       id: products.id,
       sku: products.sku,
       name: products.name,
@@ -47,7 +87,7 @@ export async function getSellableProducts() {
     .groupBy(products.id)
     .orderBy(products.id);
 
-    return result.map(r => ({
+    return result.map((r: any) => ({
       ...r,
       margin: Number(r.margin) || 0,
       price: Number(r.price) || 0,
@@ -59,12 +99,17 @@ export async function getSellableProducts() {
   }
 }
 
-const SimulateSchema = z.object({
-  ingredient_id: z.string().min(1),
-  inflation_percentage: z.number().min(-100).max(1000),
-});
-
+/**
+ * simulateInflationImpact — Calcula el impacto de costos en cascada en O(1).
+ */
 export async function simulateInflationImpact(payload: z.infer<typeof SimulateSchema>) {
+  const session = await requireManagerSession();
+  if (!session.success || !session.data) {
+    throw new Error(session.error || "ZERO_TRUST_VIOLATION: Acceso denegado al Simulador.");
+  }
+  const { storeId, role } = session.data;
+  const tenant = withTenant({ user: { storeId, role } });
+
   const { ingredient_id, inflation_percentage } = SimulateSchema.parse(payload);
   const multiplier = 1 + (inflation_percentage / 100);
 
@@ -101,30 +146,40 @@ export async function simulateInflationImpact(payload: z.infer<typeof SimulateSc
     WHERE sellable.is_saleable = 1
   `;
 
-  const res: any = await db.run(query);
+  const res: any = await tenant.unsafeRaw.run(query);
   return res.rows?.map((r: any) => ({ ...r })) || [];
 }
 
-const ApplySchema = z.object({
-  ingredient_id: z.string().min(1),
-  new_cost_cents: z.number().min(0),
-});
+/**
+ * applyNewCostsToLedger — Persiste el nuevo costo en la maestra de productos.
+ */
+export async function applyNewCostsToLedger(payload: z.infer<typeof ApplySchema>) {
+  const session = await requireManagerSession();
+  if (!session.success || !session.data) {
+    throw new Error(session.error || "ZERO_TRUST_VIOLATION: Acceso denegado al Ledger.");
+  }
+  const { storeId, role } = session.data;
+  const tenant = withTenant({ user: { storeId, role } });
 
-import { authenticatedAction } from "@/lib/auth-action";
-import { withTenant } from "@/lib/tenant-db";
-
-export const applyNewCostsToLedger = authenticatedAction(async (payload: z.infer<typeof ApplySchema>, { user }) => {
   const { ingredient_id, new_cost_cents } = ApplySchema.parse(payload);
-  const tenant = withTenant({ user });
   
   // Mutación atómica con aislamiento de sucursal
   await tenant.unsafeRaw.run(sql`UPDATE products SET cost_cents = ${new_cost_cents} WHERE id = ${ingredient_id}`);
   
   return { success: true };
-});
+}
 
-export const upsertRawMaterial = authenticatedAction(async (payload: any, { user }) => {
-  const tenant = withTenant({ user });
+/**
+ * upsertRawMaterial — Gestiona el MDM de Insumos Base.
+ */
+export async function upsertRawMaterial(payload: any) {
+  const session = await requireManagerSession();
+  if (!session.success || !session.data) {
+    throw new Error(session.error || "ZERO_TRUST_VIOLATION: Acceso denegado al MDM.");
+  }
+  const { storeId, role } = session.data;
+  const tenant = withTenant({ user: { storeId, role } });
+
   const rawId = payload.id || `RAW-${payload.name?.replace(/\s+/g, '-').toUpperCase().slice(0, 15)}-${Math.random().toString(36).substring(7).toUpperCase()}`;
   
   await tenant.insert(raw_materials).values([{
@@ -149,10 +204,19 @@ export const upsertRawMaterial = authenticatedAction(async (payload: any, { user
   });
 
   return { success: true };
-});
+}
 
-export const deleteRawMaterial = authenticatedAction(async (id: string, { user }) => {
-  const tenant = withTenant({ user });
+/**
+ * deleteRawMaterial — Soft-delete de insumos.
+ */
+export async function deleteRawMaterial(id: string) {
+  const session = await requireManagerSession();
+  if (!session.success || !session.data) {
+    throw new Error(session.error || "ZERO_TRUST_VIOLATION: Acceso denegado.");
+  }
+  const { storeId, role } = session.data;
+  const tenant = withTenant({ user: { storeId, role } });
+
   await tenant.update(raw_materials).set({ deletedAt: new Date() }).where(sql`${raw_materials.id} = ${id}`);
   return { success: true };
-});
+}
