@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Burger Music - Delivery Inteligente</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-body: #F8F9FA;
+            --bg-surface: #FFFFFF;
+            --bg-sidebar: #1E293B;
+            --brand-primary: #EA580C;
+            --brand-success: #10B981;
+            --brand-warning: #F59E0B;
+            --brand-info: #3B82F6;
+            --text-main: #0F172A;
+            --text-muted: #64748B;
+            --border-light: #E2E8F0;
+            --peya-color: #E70020; /* PedidosYa */
+            --rappi-color: #FF4116; /* Rappi */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        h1, h2, h3, .montserrat { font-family: 'Montserrat', sans-serif; }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            width: 260px;
+            background-color: var(--bg-sidebar);
+            display: flex;
+            flex-direction: column;
+            transition: 0.3s ease;
+            z-index: 10;
+            box-shadow: var(--shadow-md);
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: white;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .sidebar-header i {
+            font-size: 24px;
+            color: var(--brand-primary);
+        }
+
+        .sidebar-nav {
+            padding: 16px 12px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            transition: 0.2s ease;
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .nav-item i {
+            margin-right: 12px;
+            font-size: 20px;
+            transition: 0.2s ease;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255,255,255,0.05);
+            color: white;
+        }
+
+        .nav-item.active {
+            background-color: var(--brand-primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3);
+        }
+        
+        /* --- MENU DESPLEGABLE SIDEBAR --- */
+        .nav-dropdown {
+            display: flex;
+            flex-direction: column;
+        }
+        .nav-dropdown .nav-item {
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+        .nav-dropdown .chevron {
+            margin-left: auto;
+            margin-right: 0;
+            transition: transform 0.3s ease;
+        }
+        .nav-dropdown.open .chevron {
+            transform: rotate(180deg);
+        }
+        .nav-submenu {
+            display: none;
+            flex-direction: column;
+            background: rgba(0,0,0,0.2);
+            padding: 8px 0;
+            margin: 4px 16px;
+            border-radius: 8px;
+        }
+        .nav-dropdown.open .nav-submenu {
+            display: flex;
+        }
+        .submenu-item {
+            padding: 10px 16px 10px 42px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 13px;
+            transition: 0.2s ease;
+            border-radius: 6px;
+            margin: 2px 8px;
+        }
+        .submenu-item:hover {
+            color: white;
+            background-color: rgba(255,255,255,0.05);
+        }
+        .submenu-item.active {
+            color: var(--brand-primary);
+            font-weight: bold;
+            background-color: rgba(234, 88, 12, 0.1);
+        }
+
+        /* Layout Principal: Dos columnas (Flota y Pedidos) */
+        .main-content {
+            flex: 1;
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Panel Izquierdo: Flota Activa */
+        .fleet-panel {
+            width: 320px;
+            background: var(--bg-surface);
+            border-right: 1px solid var(--border-light);
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+        }
+
+        .fleet-header {
+            margin-bottom: 24px;
+        }
+
+        .fleet-header h2 {
+            font-size: 20px;
+            font-weight: 800;
+        }
+
+        .rider-card {
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--bg-body);
+        }
+
+        .rider-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #E2E8F0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: var(--text-muted);
+        }
+
+        .rider-info {
+            flex: 1;
+        }
+
+        .rider-name {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--text-main);
+            margin-bottom: 4px;
+        }
+
+        .rider-status {
+            font-size: 12px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .status-free { color: var(--brand-success); }
+        .status-busy { color: var(--brand-info); }
+        .status-offline { color: var(--text-muted); }
+
+        /* Panel Derecho: Cola de Pedidos */
+        .orders-panel {
+            flex: 1;
+            padding: 24px;
+            background: var(--bg-body);
+            overflow-y: auto;
+        }
+
+        .orders-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 32px;
+        }
+
+        .orders-header h1 {
+            font-size: 28px;
+            font-weight: 800;
+        }
+
+        /* Tarjeta de Pedido de Delivery */
+        .delivery-card {
+            background: var(--bg-surface);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: 0.2s;
+        }
+
+        .delivery-card:hover {
+            box-shadow: var(--shadow-md);
+            border-color: #CBD5E1;
+        }
+
+        .order-origin {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 140px;
+        }
+
+        .badge-app {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            font-size: 12px;
+            color: white;
+        }
+
+        .badge-peya { background: var(--peya-color); }
+        .badge-rappi { background: var(--rappi-color); }
+        .badge-own { background: var(--text-main); }
+
+        .order-details {
+            flex: 1;
+            padding: 0 24px;
+        }
+
+        .order-number {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            font-size: 18px;
+            color: var(--text-main);
+            margin-bottom: 4px;
+        }
+
+        .order-address {
+            font-size: 14px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .assignment-block {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: #F1F5F9;
+            padding: 12px 16px;
+            border-radius: 12px;
+            width: 250px;
+        }
+
+        .assignment-info {
+            flex: 1;
+        }
+
+        .assignment-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+        }
+
+        .assignment-driver {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--text-main);
+        }
+
+        .btn-dispatch {
+            background: var(--brand-primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+
+        .btn-dispatch:active {
+            transform: scale(0.96);
+        }
+
+        /* Destello para pedido nuevo */
+        @keyframes flashNew {
+            0% { background-color: #FFF7ED; border-color: var(--brand-primary); }
+            100% { background-color: var(--bg-surface); border-color: var(--border-light); }
+        }
+
+        .new-order {
+            animation: flashNew 3s ease-out;
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div style="width: 28px;height: 28px;background:#000;border-radius: 4px;display: flex;align-items: center;justify-content: center;color: white;font-weight: 800;font-size: 11px;">BM</div>
+            <span style="font-family: 'Montserrat'; font-weight: 800; font-size: 14px; color: white;">BurgerMusic</span>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="dashboard_prototipo.html" class="nav-item"><i class="ri-home-4-line"></i> Inicio</a>
+            
+            <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #475569; padding: 16px 14px 6px;">Operación</div>
+            <a href="pos_prototipo.html" class="nav-item"><i class="ri-store-2-line"></i> Punto de Venta</a>
+            <a href="kds_prototipo.html" class="nav-item"><i class="ri-restaurant-line"></i> Cocina</a>
+            <a href="delivery_prototipo.html" class="nav-item active"><i class="ri-e-bike-2-line"></i> Delivery</a>
+            
+            <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #475569; padding: 16px 14px 6px;">Abastecimiento</div>
+            
+            <!-- Compras Dropdown -->
+            <div class="nav-dropdown">
+                <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                    <i class="ri-shopping-bag-line"></i> Compras
+                    <i class="ri-arrow-down-s-line chevron"></i>
+                </a>
+                <div class="nav-submenu">
+                    <a href="compras_inbox_prototipo.html" class="submenu-item">Facturas</a>
+                    <a href="compras_proveedores_prototipo.html" class="submenu-item">Proveedores</a>
+                    <a href="compras_ordenes_prototipo.html" class="submenu-item">Órdenes de compra</a>
+                    <a href="compras_recepciones_prototipo.html" class="submenu-item">Recepciones</a>
+                </div>
+            </div>
+
+            <a href="inventario_prototipo.html" class="nav-item "><i class="ri-box-3-line"></i> Inventario</a>
+            <a href="produccion_gerencial_prototipo.html" class="nav-item"><i class="ri-hammer-line"></i> Producción</a>
+            
+            <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #475569; padding: 16px 14px 6px;">Administración</div>
+            <a href="cajas_prototipo.html" class="nav-item"><i class="ri-money-dollar-box-line"></i> Cajas</a>
+            <a href="finanzas_dashboard_prototipo.html" class="nav-item"><i class="ri-bar-chart-2-line"></i> Finanzas</a>
+        </nav>
+
+        <!-- Context & User Footer (Movido de la cabecera) -->
+        <div style="margin-top: auto; padding: 20px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 16px;">
+            <select class="branch-select" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px; font-size: 13px; border-radius: 8px;">
+                <option value="all" style="color: black;">🌐 Vista Consolidada</option>
+                <option value="lanus" selected style="color: black;">📍 Burger Music Lanus</option>
+                <option value="avellaneda" style="color: black;">📍 Burger Music Avellaneda</option>
+            </select>
+            <div class="user-profile" style="display: flex; align-items: center; gap: 12px; padding: 0; cursor: pointer; transition: 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                <div class="avatar" style="width: 32px; height: 32px; font-size: 14px; background: #EA580C; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">G</div>
+                <div style="display: flex; flex-direction: column; overflow: hidden;">
+                    <span style="font-size: 12px; font-weight: 600; color: white; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">gabriel@burgermusic.com</span>
+                    <span style="font-size: 11px; color: #94A3B8;">Administrador</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <!-- Flota Propia -->
+        <div class="fleet-panel">
+            <div class="fleet-header">
+                <h2 class="montserrat">Flota Activa</h2>
+                <p style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">Asignación IA Automática</p>
+            </div>
+
+            <div class="rider-card" style="border-left: 4px solid var(--brand-success);">
+                <div class="rider-avatar"><i class="ri-user-smile-line"></i></div>
+                <div class="rider-info">
+                    <div class="rider-name">Alejandro G.</div>
+                    <div class="rider-status status-free"><i class="ri-checkbox-circle-fill"></i> Libre (En local)</div>
+                </div>
+            </div>
+
+            <div class="rider-card" style="border-left: 4px solid var(--brand-info);">
+                <div class="rider-avatar"><i class="ri-user-smile-line"></i></div>
+                <div class="rider-info">
+                    <div class="rider-name">Martín F.</div>
+                    <div class="rider-status status-busy"><i class="ri-time-fill"></i> Entregando (a 5 min)</div>
+                </div>
+            </div>
+
+            <div class="rider-card" style="border-left: 4px solid var(--brand-success);">
+                <div class="rider-avatar"><i class="ri-user-smile-line"></i></div>
+                <div class="rider-info">
+                    <div class="rider-name">Lucía M.</div>
+                    <div class="rider-status status-free"><i class="ri-checkbox-circle-fill"></i> Libre (En local)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cola de Pedidos -->
+        <div class="orders-panel">
+            <div class="orders-header">
+                <div>
+                    <h1 class="montserrat">Gestión de Delivery</h1>
+                    <p style="color: var(--text-muted); margin-top: 4px;">Todos los pedidos entraron vía API</p>
+                </div>
+                <button class="btn-dispatch" style="background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border-light);" onclick="simulateNewOrder()">
+                    <i class="ri-refresh-line"></i> Simular Pedido API
+                </button>
+            </div>
+
+            <div id="ordersList">
+                <!-- Pedido PedidosYa -->
+                <div class="delivery-card">
+                    <div class="order-origin">
+                        <span class="badge-app badge-peya">PedidosYa</span>
+                    </div>
+                    <div class="order-details">
+                        <div class="order-number">PY-8942</div>
+                        <div class="order-address"><i class="ri-map-pin-line"></i> Tte. Gral. J. D. Perón 2500 (Cocina: LISTO)</div>
+                    </div>
+                    <div class="assignment-block">
+                        <div class="assignment-info">
+                            <div class="assignment-label">Logística PEYA</div>
+                            <div class="assignment-driver">Moto: Repartidor de App</div>
+                        </div>
+                        <button class="btn-dispatch" onclick="this.closest('.delivery-card').style.display='none'">Despachar</button>
+                    </div>
+                </div>
+
+                <!-- Pedido Propio Asignado Automáticamente -->
+                <div class="delivery-card">
+                    <div class="order-origin">
+                        <span class="badge-app badge-own"><i class="ri-whatsapp-line"></i> Propio</span>
+                    </div>
+                    <div class="order-details">
+                        <div class="order-number">BM-0145</div>
+                        <div class="order-address"><i class="ri-map-pin-line"></i> Av. H. Yrigoyen 4200 (Cocina: LISTO)</div>
+                    </div>
+                    <div class="assignment-block" style="background: #E0F2FE;">
+                        <div class="assignment-info">
+                            <div class="assignment-label" style="color: var(--brand-info);">Auto-Asignado (IA)</div>
+                            <div class="assignment-driver">Alejandro G.</div>
+                        </div>
+                        <button class="btn-dispatch" onclick="this.closest('.delivery-card').style.display='none'">Despachar</button>
+                    </div>
+                </div>
+                
+                <!-- Pedido Rappi En Prep -->
+                <div class="delivery-card" style="opacity: 0.6;">
+                    <div class="order-origin">
+                        <span class="badge-app badge-rappi">Rappi</span>
+                    </div>
+                    <div class="order-details">
+                        <div class="order-number">RP-1004</div>
+                        <div class="order-address"><i class="ri-map-pin-line"></i> 29 de Septiembre 1900 (Cocina: PREPARANDO)</div>
+                    </div>
+                    <div class="assignment-block">
+                        <div class="assignment-info">
+                            <div class="assignment-label">Logística RAPPI</div>
+                            <div class="assignment-driver">Repartidor en camino...</div>
+                        </div>
+                        <button class="btn-dispatch" disabled style="background: var(--text-disabled);">Bloqueado</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        function simulateNewOrder() {
+            const list = document.getElementById('ordersList');
+            const newOrder = document.createElement('div');
+            newOrder.className = 'delivery-card new-order';
+            newOrder.innerHTML = `
+                <div class="order-origin">
+                    <span class="badge-app badge-own"><i class="ri-whatsapp-line"></i> Propio</span>
+                </div>
+                <div class="order-details">
+                    <div class="order-number">BM-0146</div>
+                    <div class="order-address"><i class="ri-map-pin-line"></i> 9 de Julio 1500 (Cocina: LISTO)</div>
+                </div>
+                <div class="assignment-block" style="background: #E0F2FE;">
+                    <div class="assignment-info">
+                        <div class="assignment-label" style="color: var(--brand-info);">Auto-Asignado (IA)</div>
+                        <div class="assignment-driver">Lucía M.</div>
+                    </div>
+                    <button class="btn-dispatch" onclick="this.closest('.delivery-card').style.display='none'">Despachar</button>
+                </div>
+            `;
+            list.insertBefore(newOrder, list.firstChild);
+        }
+    </script>
+</body>
+</html>

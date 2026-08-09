@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Burger Music - Carga Manual (Lienzo)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-body: #F9FAFB;
+            --bg-surface: #FFFFFF;
+            --bg-sidebar: #1E293B;
+            --brand: #F97316;
+            --brand-hover: #EA580C;
+            --brand-light: #FFF7ED;
+
+            --text-main: #111827;
+            --text-muted: #6B7280;
+            --text-sidebar: #CBD5E1;
+
+            --success: #10B981;
+            --success-bg: #ECFDF5;
+            --warning: #F59E0B;
+            --warning-bg: #FFFBEB;
+            --danger: #EF4444;
+            --danger-bg: #FEF2F2;
+            --info: #3B82F6;
+            --info-bg: #EFF6FF;
+
+            --border: #E5E7EB;
+            --border-dark: #D1D5DB;
+            --shadow: 0 1px 3px rgba(0,0,0,0.08);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+            --shadow-xl: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Lato', sans-serif; background: var(--bg-body); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+
+        /* SIDEBAR */
+        
+
+        /* MAIN */
+        .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+        /* TOPBAR */
+        .topbar { background: white; padding: 12px 32px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+        .topbar-title { font-family: 'Montserrat'; font-weight: 700; font-size: 16px; }
+        .topbar-meta { font-size: 13px; color: var(--text-muted); }
+        .back-btn { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--text-muted); cursor: pointer; text-decoration: none; }
+        .back-btn:hover { color: var(--text-main); }
+
+        /* WORKSPACE (Scrollable) */
+        .workspace { flex: 1; overflow-y: auto; padding: 32px 40px 64px; }
+
+        /* ---- STEP SYSTEM ---- */
+        .step-flow { display: flex; flex-direction: column; gap: 24px; }
+
+        .step-block { background: white; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); transition: 0.2s; }
+        .step-block.locked { opacity: 0.45; pointer-events: none; }
+        .step-block.done { border-color: var(--success); }
+
+        .step-header { display: flex; align-items: center; gap: 16px; padding: 18px 24px; border-bottom: 1px solid var(--border); background: #FAFAFA; }
+        .step-num { width: 32px; height: 32px; border-radius: 50%; background: var(--border); color: var(--text-muted); font-family: 'Montserrat'; font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .step-block.done .step-num { background: var(--success); color: white; }
+        .step-block: not(.locked):not(.done) .step-num { background: var(--brand); color: white; }
+
+        .step-title { font-family: 'Montserrat'; font-weight: 700; font-size: 15px; color: var(--text-main); }
+        .step-subtitle { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+        .step-badge-done { background: var(--success-bg); color: var(--success); border: 1px solid #A7F3D0; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; margin-left: auto; }
+
+        .step-body { padding: 24px; }
+
+        /* ---- PASO1: PROVEEDOR & META ---- */
+        .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .field-group { display: flex; flex-direction: column; gap: 6px; }
+        .field-label { font-size: 12px; font-weight: 700; color: var(--text-main); }
+        .field-hint { font-size: 11px; color: var(--text-muted); font-weight: 400; margin-left: 4px; }
+        .field-input { padding: 11px 14px; border: 1px solid var(--border-dark); border-radius: 8px; font-family: 'Lato'; font-size: 15px; color: var(--text-main); outline: none; transition: 0.15s; }
+        .field-input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(249,115,22,0.12); }
+        select.field-input { appearance: none; background: url("data: image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236B7280'><path d='M12 15L7 10h10z'/></svg>") no-repeat right 14px center / 18px; padding-right: 38px; }
+
+        .total-declared-box { background: var(--info-bg); border: 1px solid #BFDBFE; border-radius: 10px; padding: 16px 20px; display: flex; align-items: center; gap: 16px; margin-top: 16px; }
+        .total-declared-box i { font-size: 22px; color: var(--info); flex-shrink: 0; }
+        .total-declared-box p { font-size: 13px; color: #1E40AF; line-height: 1.5; }
+        .total-declared-input { margin-left: auto; padding: 8px 14px; border: 2px solid var(--info); border-radius: 8px; font-family: 'Montserrat'; font-weight: 700; font-size: 16px; color: var(--info); width: 140px; text-align: right; outline: none; }
+        .total-declared-input:focus { box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
+
+        .btn-primary { background: var(--brand); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-family: 'Montserrat'; font-weight: 700; font-size: 14px; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-primary:hover { background: var(--brand-hover); }
+        .btn-secondary { background: white; color: var(--text-main); border: 1px solid var(--border-dark); padding: 10px 20px; border-radius: 8px; font-family: 'Montserrat'; font-weight: 600; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-secondary:hover { background: var(--bg-body); }
+
+        /* ---- PASO2: CARGA DE LÍNEAS ---- */
+        /* State: Empty */
+        .empty-lines { text-align: center; padding: 40px 24px; }
+        .empty-lines i { font-size: 48px; color: var(--border-dark); margin-bottom: 12px; display: block; }
+        .empty-lines h4 { font-family: 'Montserrat'; font-size: 16px; font-weight: 700; margin-bottom: 6px; color: var(--text-muted); }
+        .empty-lines p { font-size: 14px; color: var(--text-muted); margin-bottom: 20px; }
+
+        /* Lines Table */
+        .lines-table { width: 100%; }
+        .lines-table-header { display: grid; grid-template-columns: 70px 1fr 170px 130px 100px 110px 36px; gap: 10px; padding: 0 0 10px; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; border-bottom: 2px solid var(--border); margin-bottom: 4px; }
+        
+        .line-row { display: grid; grid-template-columns: 70px 1fr 170px 130px 100px 110px 36px; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); align-items: start; }
+        .line-row:last-child { border-bottom: none; }
+
+        .line-input { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 7px; font-family: 'Lato'; font-size: 14px; color: var(--text-main); outline: none; transition: 0.15s; }
+        .line-input:focus { border-color: var(--brand); box-shadow: 0 0 0 2px rgba(249,115,22,0.1); }
+        .line-input.calculated { background: #F9FAFB; color: var(--text-muted); font-weight: 700; cursor: default; border-color: transparent; }
+
+        /* UNIDAD CELL — El nodo crítico */
+        .unit-cell { position: relative; }
+        .unit-selector { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 7px; font-family: 'Lato'; font-size: 14px; color: var(--text-main); outline: none; background: white; cursor: pointer; transition: 0.15s; }
+        .unit-selector:focus { border-color: var(--brand); box-shadow: 0 0 0 2px rgba(249,115,22,0.1); }
+
+        /* FAMILY BADGES DE COLOR */
+        .family-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; font-family: 'Montserrat'; margin-top: 4px; }
+        .family-peso { background: #DBEAFE; color: #1E40AF; border: 1px solid #93C5FD; }
+        .family-volumen { background: #D1FAE5; color: #065F46; border: 1px solid #6EE7B7; }
+        .family-conteo { background: #F3F4F6; color: #4B5563; border: 1px solid #D1D5DB; }
+
+        /* TOOLTIP EDUCATIVO */
+        .unit-hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; padding: 4px 8px; background: #F9FAFB; border-radius: 6px; border-left: 3px solid var(--border); display: none; animation: slideUp 0.2s ease; line-height: 1.4; }
+        .unit-hint.visible { display: block; }
+        .unit-hint i { margin-right: 3px; }
+
+        /* ALERTA INCOHERENCIA */
+        .incoherence-alert { display: none; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 7px; background: var(--danger-bg); border: 1px solid #FECACA; font-size: 11px; font-weight: 600; color: #991B1B; margin-top: 4px; animation: slideUp 0.2s ease; grid-column: 1 / -1; line-height: 1.3; }
+        .incoherence-alert.visible { display: flex; }
+        .incoherence-alert i { font-size: 14px; flex-shrink: 0; }
+
+        /* ALERTA CANTIDAD (Dedo Pesado) */
+        .qty-warning { display: none; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 7px; background: var(--warning-bg); border: 1px solid #FCD34D; font-size: 11px; font-weight: 600; color: #92400E; margin-top: 4px; animation: slideUp 0.2s ease; grid-column: 1 / -1; line-height: 1.3; }
+        .qty-warning.visible { display: flex; }
+        .qty-warning i { font-size: 14px; flex-shrink: 0; }
+
+        /* EQUIVALENCIA CELL */
+        .equiv-badge { display: flex; align-items: center; gap: 6px; background: var(--info-bg); color: #1E40AF; padding: 9px 12px; border-radius: 7px; border: 1px dashed #93C5FD; font-size: 13px; font-weight: 700; justify-content: center; transition: 0.2s; }
+        .equiv-badge.empty { background: transparent; color: var(--text-muted); border-color: var(--border-dark); font-weight: 500; font-size: 12px; }
+
+        /* Subtotal Math Feedback */
+        .subtotal-cell { position: relative; }
+        .subtotal-ok { border-color: var(--success) !important; background: var(--success-bg) !important; color: #065F46 !important; font-weight: 700; }
+
+        .icon-del { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 18px; padding: 4px; border-radius: 6px; }
+        .icon-del:hover { background: var(--danger-bg); color: var(--danger); }
+
+        /* ADD ROW BTN */
+        .add-row-btn { display: flex; align-items: center; gap: 8px; padding: 12px 0; font-family: 'Montserrat'; font-weight: 600; font-size: 13px; color: var(--text-muted); cursor: pointer; background: none; border: none; border-top: 1px dashed var(--border-dark); width: 100%; margin-top: 8px; }
+        .add-row-btn:hover { color: var(--brand); }
+
+        /* CHIP DESHABILITADO (Modal) */
+        .chip.disabled { opacity: 0.3; pointer-events: none; border-style: dashed; }
+
+        /* ---- PASO3: TOTALES Y MATH CHECK ---- */
+        .math-panel { display: flex; flex-direction: column; gap: 12px; }
+        .math-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+        .math-row.total { font-family: 'Montserrat'; font-weight: 800; font-size: 20px; padding-top: 12px; border-top: 2px solid var(--border); }
+        .match-ok { background: var(--success-bg); border: 1px solid #A7F3D0; border-radius: 10px; padding: 14px 18px; display: flex; align-items: center; gap: 10px; color: #065F46; font-weight: 700; font-size: 14px; }
+        .match-err { background: var(--danger-bg); border: 1px solid #FECACA; border-radius: 10px; padding: 14px 18px; display: flex; align-items: center; gap: 10px; color: #991B1B; font-weight: 700; font-size: 14px; }
+
+        /* ---- MODAL: MAD-LIBS ---- */
+        .overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.65); backdrop-filter: blur(4px); z-index: 200; display: none; justify-content: center; align-items: center; }
+        .overlay.open { display: flex; }
+        .modal { background: white; border-radius: 16px; width: 560px; max-width: 95vw; box-shadow: var(--shadow-xl); animation: popIn 0.2s ease; }
+        @keyframes popIn { from { transform: scale(0.94); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .modal-head { padding: 22px 26px; border-bottom: 1px solid var(--border); }
+        .modal-head h3 { font-family: 'Montserrat'; font-size: 17px; font-weight: 800; margin-bottom: 6px; }
+        .modal-head p { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+        .modal-head .pname { color: var(--brand); font-weight: 700; }
+        .modal-bd { padding: 32px 36px; }
+        .modal-ft { padding: 16px 36px 24px; display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid var(--border); background: #F9FAFB; border-radius: 0 0 16px 16px; }
+
+        /* SENTENCE BUILDER (Flashcard Style) */
+        .ml-container { display: flex; flex-direction: column; gap: 20px; }
+        .ml-row { display: flex; align-items: center; gap: 12px; background: white; padding: 20px 24px; border-radius: 12px; border: 2px solid var(--border); box-shadow: var(--shadow); transition: 0.3s ease; flex-wrap: wrap; }
+        .ml-row.active { border-color: var(--brand); box-shadow: 0 4px 14px rgba(249,115,22,0.1); }
+        .ml-row.disabled { opacity: 0.4; pointer-events: none; filter: grayscale(100%); border-color: var(--border-dark); }
+        
+        .ml-text { font-family: 'Montserrat'; font-size: 16px; font-weight: 700; color: var(--text-main); }
+        .ml-text-light { font-family: 'Lato'; font-size: 15px; color: var(--text-muted); }
+        
+        .ml-input { width: 90px; text-align: center; font-family: 'Montserrat'; font-size: 20px; font-weight: 800; color: var(--brand); border: 2px dashed var(--brand); border-radius: 8px; padding: 10px; background: var(--brand-light); outline: none; transition: 0.2s; }
+        .ml-input:focus { border-style: solid; box-shadow: 0 0 0 4px rgba(249,115,22,0.15); }
+        
+        .ml-select { font-family: 'Montserrat'; font-size: 16px; font-weight: 700; color: var(--text-main); border: 2px solid var(--border-dark); border-radius: 8px; padding: 10px 16px; background: white; cursor: pointer; outline: none; appearance: none; padding-right: 36px; background-image: url("data: image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236B7280'><path d='M12 15L7 10h10z'/></svg>"); background-repeat: no-repeat; background-position: right 12px center; background-size: 18px; transition: 0.2s; }
+        .ml-select:focus { border-color: var(--brand); }
+        
+        .ml-step-badge { width: 28px; height: 28px; border-radius: 50%; background: var(--brand); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; font-family: 'Montserrat'; flex-shrink: 0; }
+        .ml-row.disabled .ml-step-badge { background: var(--text-muted); }
+
+        .feedback-box { background: var(--success-bg); border: 2px solid #34D399; border-radius: 12px; padding: 20px; display: none; align-items: center; gap: 16px; margin-top: 24px; box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.1); }
+        .feedback-box.show { display: flex; animation: scaleUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes scaleUp { from { opacity: 0; transform: scale(0.95) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        .feedback-box i { font-size: 32px; color: var(--success); flex-shrink: 0; }
+        .feedback-box p { font-size: 15px; color: #064E3B; line-height: 1.5; font-family: 'Lato'; }
+        .feedback-box p strong { font-family: 'Montserrat'; font-weight: 800; color: #065F46; font-size: 16px; }
+
+        .btn-modal-save { background: var(--brand); color: white; border: none; padding: 12px 28px; border-radius: 8px; font-family: 'Montserrat'; font-weight: 700; font-size: 15px; cursor: pointer; opacity: 0.45; pointer-events: none; transition: 0.2s; }
+        .btn-modal-save.on { opacity: 1; pointer-events: auto; }
+        .btn-modal-save.on:hover { background: var(--brand-hover); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(249,115,22,0.2); }
+        .btn-modal-cancel { background: white; border: 2px solid var(--border-dark); color: var(--text-main); padding: 10px 24px; border-radius: 8px; font-family: 'Montserrat'; font-weight: 700; font-size: 15px; cursor: pointer; transition: 0.2s; }
+        .btn-modal-cancel:hover { background: var(--bg-body); }
+
+        /* FOOTER ACTIONS */
+        .footer-actions { position: sticky; bottom: 0; background: white; border-top: 1px solid var(--border); padding: 16px 40px; display: flex; justify-content: space-between; align-items: center; }
+        .footer-total { font-family: 'Montserrat'; font-size: 15px; font-weight: 700; }
+        .footer-total span { color: var(--brand); font-size: 20px; }
+        .footer-btns { display: flex; gap: 12px; }
+        .btn-approve { background: var(--success); color: white; border: none; padding: 12px 28px; border-radius: 8px; font-family: 'Montserrat'; font-weight: 700; font-size: 14px; cursor: pointer; opacity: 0.5; pointer-events: none; display: flex; align-items: center; gap: 8px; }
+        .btn-approve.ready { opacity: 1; pointer-events: auto; }
+        .btn-approve.ready:hover { background: #059669; }
+    
+        /* Smooth Expand (Container Transform style) */
+        .expand-wrapper {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            margin-top: 12px;
+        }
+        .expand-wrapper.open {
+            grid-template-rows: 1fr;
+        }
+        .expand-inner {
+            min-height: 0;
+        }
+
+    
+        /* --- UNIFIED SIDEBAR CSS --- */
+        .sidebar { width: 260px; background-color: var(--bg-sidebar); display: flex; flex-direction: column; transition: var(--transition-smooth); z-index: 10; box-shadow: var(--shadow-lg); }
+        .sidebar-nav { padding: 16px 12px; flex: 1; overflow-y: auto; }
+        .nav-item { display: flex; align-items: center; padding: 12px 16px; color: var(--text-sidebar); text-decoration: none; border-radius: 8px; margin-bottom: 4px; transition: var(--transition-fast); font-size: 15px; font-weight: 500; }
+        .nav-item i { margin-right: 12px; font-size: 20px; transition: var(--transition-fast); }
+        .nav-item:hover { background-color: rgba(255,255,255,0.05); color: var(--text-sidebar-active); }
+        .nav-item.active { background-color: var(--brand-primary, #EA580C); color: white; box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3); }
+        .nav-dropdown { display: flex; flex-direction: column; }
+        .nav-dropdown .nav-item { width: 100%; }
+        .nav-dropdown .chevron { margin-left: auto; margin-right: 0; transition: transform 0.3s ease; }
+        .nav-dropdown.open .chevron { transform: rotate(180deg); }
+        .nav-submenu { display: none; flex-direction: column; background: rgba(0,0,0,0.2); padding: 8px 0; margin: 4px 16px; border-radius: 8px; }
+        .nav-dropdown.open .nav-submenu { display: flex; }
+        .submenu-item { padding: 10px 16px 10px 42px; color: var(--text-sidebar); text-decoration: none; font-size: 13px; transition: var(--transition-fast); border-radius: 6px; margin: 2px 8px; }
+        .submenu-item:hover { color: white; background-color: rgba(255,255,255,0.05); }
+        .sidebar-nav::-webkit-scrollbar { width: 6px; }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .sidebar-nav::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <div class="sidebar-header" style="padding: 24px; display: flex; align-items: center; gap: 12px; color: white; border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <div style="width: 28px;height: 28px;background:#000;border-radius: 4px;display: flex;align-items: center;justify-content: center;color: white;font-weight: 800;font-size: 11px;">BM</div>
+        <span style="font-family: 'Montserrat'; font-weight: 800; font-size: 14px; color: white;">BurgerMusic</span>
+    </div>
+    
+    <nav class="sidebar-nav">
+        <a href="dashboard_prototipo.html" class="nav-item"><i class="ri-home-4-line"></i> Inicio</a>
+        
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-shopping-bag-line"></i> Compras
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="compras_inbox_prototipo.html" class="submenu-item">Facturas</a>
+                <a href="compras_proveedores_prototipo.html" class="submenu-item">Proveedores</a>
+                <a href="compras_ordenes_prototipo.html" class="submenu-item">Órdenes de compra</a>
+                <a href="compras_recepciones_prototipo.html" class="submenu-item">Recepciones</a>
+            </div>
+        </div>
+
+        <a href="produccion_gerencial_prototipo.html" class="nav-item"><i class="ri-hammer-line"></i> Producción</a>
+        <a href="inventario_prototipo.html" class="nav-item"><i class="ri-box-3-line"></i> Inventario</a>
+
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-line-chart-line"></i> Ventas
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="ventas_dashboard_prototipo.html" class="submenu-item">Dashboard</a>
+                <a href="pos_prototipo.html" class="submenu-item">Nueva venta</a>
+                <a href="ventas_historial_prototipo.html" class="submenu-item">Historial de Tickets</a>
+                <a href="ventas_sincronizacion_prototipo.html" class="submenu-item">Sincronización</a>
+                <a href="ventas_cierre_z_prototipo.html" class="submenu-item">Cierre Z</a>
+            </div>
+        </div>
+
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-bank-card-line"></i> Finanzas
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="finanzas_dashboard_prototipo.html" class="submenu-item">Dashboard</a>
+                <a href="finanzas_movimientos_prototipo.html" class="submenu-item">Mov. caja</a>
+                <a href="finanzas_cuentas_pagar_prototipo.html" class="submenu-item">Cuentas por pagar</a>
+                <a href="finanzas_categorias_prototipo.html" class="submenu-item">Categorías financieras</a>
+            </div>
+        </div>
+        
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-safe-line"></i> Caja
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="caja_gastos_eventuales_prototipo.html" class="submenu-item">Gastos eventuales</a>
+                <a href="caja_gastos_fijos_prototipo.html" class="submenu-item">Gastos fijos</a>
+                <a href="caja_ingresos_extra_prototipo.html" class="submenu-item">Ingresos extra</a>
+            </div>
+        </div>
+
+        <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #475569; padding: 16px 14px 6px;">Operación</div>
+        <a href="pos_prototipo.html" class="nav-item"><i class="ri-store-2-line"></i> Punto de Venta</a>
+        <a href="kds_prototipo.html" class="nav-item"><i class="ri-restaurant-line"></i> Cocina</a>
+        <a href="delivery_prototipo.html" class="nav-item"><i class="ri-e-bike-2-line"></i> Delivery</a>
+        <a href="cajas_prototipo.html" class="nav-item"><i class="ri-money-dollar-box-line"></i> Caja POS</a>
+        <a href="produccion_prototipo.html" class="nav-item"><i class="ri-smartphone-line"></i> Producción (Móvil)</a>
+        <a href="auditoria_deposito_prototipo.html" class="nav-item"><i class="ri-clipboard-line"></i> Auditoría (Móvil)</a>
+    </nav>
+
+    <div style="margin-top: auto; padding: 20px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 16px;">
+        <select class="branch-select" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px; font-size: 13px; border-radius: 8px;">
+            <option value="lanus" selected style="color: black;">📍 Burger Music Lanus</option>
+        </select>
+        <div class="user-profile" style="display: flex; align-items: center; gap: 12px; padding: 0; cursor: pointer;">
+            <div class="avatar" style="width: 32px; height: 32px; font-size: 14px; background: #EA580C; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">G</div>
+            <div style="display: flex; flex-direction: column; overflow: hidden;">
+                <span style="font-size: 12px; font-weight: 600; color: white; white-space: nowrap;">gabriel@burgermusic.com</span>
+                <span style="font-size: 11px; color: #94A3B8;">Administrador</span>
+            </div>
+        </div>
+    </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+    <div class="topbar">
+        <a href="compras_inbox_prototipo.html" class="back-btn"><i class="ri-arrow-left-line"></i> Volver a Facturas</a>
+        <div class="topbar-title">Ingresóando factura a mano</div>
+        <div class="topbar-meta">Burger Music Lanús · Mariana (Admin)</div>
+    </div>
+
+    <div class="workspace">
+        <div class="step-flow">
+
+            <!-- ======================== -->
+            <!--  PASO1: META DATOS      -->
+            <!-- ======================== -->
+            <div class="step-block" id="step1">
+                <div class="step-header">
+                    <div class="step-num" id="num1">1</div>
+                    <div>
+                        <div class="step-title">¿De quién viene y de cuándo es esta factura?</div>
+                        <div class="step-subtitle">Completá los datos básicos antes de cargar los productos.</div>
+                    </div>
+                    <span class="step-badge-done" id="done1" style="display: none;">✓ Completo</span>
+                </div>
+                <div class="step-body">
+                    <div class="meta-grid">
+                        <div class="field-group">
+                            <label class="field-label">Proveedor <span class="field-hint">(¿Quién te vendió estoÍ)</span></label>
+                            <select class="field-input" id="sel-proveedor" onchange="checkStep1()">
+                                <option value="" disabled selected>Elegir proveedor...</option>
+                                <option value="1">Panificadora El Sol S.R.L.</option>
+                                <option value="2">Frigorífico La Media Res</option>
+                                <option value="3">Coca-Cola Femsa</option>
+                                <option value="4">De Todito SRL</option>
+                                <option value="new">+ Crear nuevo proveedor</option>
+                            </select>
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label">Fecha del comprobante <span class="field-hint">(La que dice en el papel)</span></label>
+                            <input type="date" class="field-input" id="inp-fecha" onchange="checkStep1()" value="2026-08-03">
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 16px; background: #F8FAFC; border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px;">
+                        <label class="field-label" style="display: block; margin-bottom: 8px;">¿Ya recibiste la mercadería de esta factura?</label>
+                        <div style="display: flex; gap: 12px;">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; background: white; padding: 10px 16px; border: 1px solid var(--border-dark); border-radius: 8px; flex: 1;">
+                                <input type="radio" name="recepcion" value="si" checked onchange="checkStep1()" style="width: 16px;height: 16px;accent-color: var(--brand);">
+                                <span style="font-size: 14px;font-weight: 600;color: var(--text-main);">Sí, ya la recibí</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; background: white; padding: 10px 16px; border: 1px solid var(--border-dark); border-radius: 8px; flex: 1;">
+                                <input type="radio" name="recepcion" value="no" onchange="checkStep1()" style="width: 16px;height: 16px;accent-color: var(--brand);">
+                                <span style="font-size: 14px;font-weight: 600;color: var(--text-main);">No, la factura llegó antes</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="total-declared-box">
+                        <i class="ri-shield-check-fill"></i>
+                        <p><strong>Total exacto del papel</strong><br>Escribí el total que figura en la factura. Al terminar, controlamos que la suma cuadre exacta.</p>
+                        <input type="text" class="total-declared-input" id="inp-total" placeholder="$0.00" oninput="checkStep1(); updateMath()">
+                    </div>
+
+                    <div style="margin-top: 20px; text-align: right;">
+                        <button class="btn-primary" id="btn-step1" onclick="completeStep1()"><i class="ri-arrow-right-line"></i> Listo, cargar productos</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ======================== -->
+            <!--  PASO2: LÍNEAS          -->
+            <!-- ======================== -->
+            <div class="step-block locked" id="step2">
+                <div class="step-header">
+                    <div class="step-num" id="num2">2</div>
+                    <div>
+                        <div class="step-title">Agregá los productos de la factura, uno por uno</div>
+                        <div class="step-subtitle">Cantidad · Cómo viene empacado · Qué producto es · Precio unitario → el sistema calcula el subtotal.</div>
+                    </div>
+                </div>
+                <div class="step-body">
+
+                    <!-- EMPTY STATE -->
+                    <div class="empty-lines" id="empty-lines">
+                        <i class="ri-inbox-2-line"></i>
+                        <h4>Todavía no hay productos cargados</h4>
+                        <p>Hacé clic en "+ Agregar producto" para empezar a cargar la primera línea.</p>
+                        <button class="btn-primary" onclick="addLine()"><i class="ri-add-line"></i> Agregar primer producto</button>
+                    </div>
+
+                    <!-- LINES TABLE (oculta hasta que haya al menos 1 línea) -->
+                    <div id="lines-area" style="display: none;">
+                        <div class="lines-table">
+                            <div class="lines-table-header">
+                                <div>Cantidad</div>
+                                <div>Producto del catálogo</div>
+                                <div>Presentación <span style="font-size: 9px;color: var(--brand);">📦</span></div>
+                                <div>Equivale a (Stock)</div>
+                                <div>Precio unitario</div>
+                                <div>Subtotal</div>
+                                <div></div>
+                            </div>
+                            <div id="lines-container"></div>
+                        </div>
+                        <button class="add-row-btn" onclick="addLine()">
+                            <i class="ri-add-circle-line" style="font-size: 18px; color: var(--brand);"></i> Agregar otro producto
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ======================== -->
+            <!--  PASO3: CONTROL TOTAL   -->
+            <!-- ======================== -->
+            <div class="step-block locked" id="step3">
+                <div class="step-header">
+                    <div class="step-num" id="num3">3</div>
+                    <div>
+                        <div class="step-title">Control final: ¿Los números cierran?</div>
+                        <div class="step-subtitle">El sistema suma todo y lo compara con el total del papel que escribiste antes.</div>
+                    </div>
+                </div>
+                <div class="step-body">
+                    <div class="math-panel">
+                        <div class="math-row"><span>Suma de todas las líneas</span><span id="sum-lineas" style="font-weight: 700;">$0,00</span></div>
+                        <div class="math-row"><span>Total declarado del papel</span><span id="sum-declarado" style="font-weight: 700; color: var(--info);">$0,00</span></div>
+                        <div class="math-row total"><span>Diferencia</span><span id="sum-diff">$0,00</span></div>
+                        <div id="math-ok" class="match-ok" style="display: none;"><i class="ri-checkbox-circle-fill" style="font-size: 22px;"></i> ¡Los totales coinciden! Podés aprobar y guardar.</div>
+                        <div id="math-err" class="match-err" style="display: none;"><i class="ri-error-warning-fill" style="font-size: 22px;"></i> <span id="math-err-text"></span></div>
+                    </div>
+                </div>
+            </div>
+
+
+    
+            <!-- ======================== -->
+            <!--  PASO4: CONDICIÓN PAGO  -->
+            <!-- ======================== -->
+            <div class="step-block locked" id="step4">
+                <div class="step-header">
+                    <div class="step-num" id="num4">4</div>
+                    <div>
+                        <div class="step-title">¿Cómo vas a pagar esta compra?</div>
+                        <div class="step-subtitle">Definí si queda a cuenta corriente, si la pagás ahora mismo o si ya estaba pagada.</div>
+                    </div>
+                </div>
+                <div class="step-body">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+                        
+                        <label style="border: 2px solid var(--border); border-radius: 12px; padding: 16px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.borderColor='var(--brand)'" onmouseout="if(!this.querySelector('input').checked) this.style.borderColor='var(--border)'" id="lbl-pay-cc" onclick="selectPayType('cc')">
+                            <input type="radio" name="pay_type" value="cc" style="display: none;" onchange="selectPayType('cc')">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                <div style="width: 32px; height: 32px; border-radius: 50%; background: #F3F4F6; display: flex; align-items: center; justify-content: center; color: var(--text-muted);"><i class="ri-book-read-line"></i></div>
+                                <h4 style="font-family: 'Montserrat'; font-size: 15px; font-weight: 700;">A Cuenta Corriente</h4>
+                            </div>
+                            <p style="font-size: 13px; color: var(--text-muted); line-height: 1.4;">Aumenta el saldo deudor con el proveedor. Lo pagarás más adelante.</p>
+                        </label>
+
+                        <label style="border: 2px solid var(--border); border-radius: 12px; padding: 16px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.borderColor='var(--brand)'" onmouseout="if(!this.querySelector('input').checked) this.style.borderColor='var(--border)'" id="lbl-pay-now" onclick="selectPayType('now')">
+                            <input type="radio" name="pay_type" value="now" style="display: none;" onchange="selectPayType('now')">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                <div style="width: 32px; height: 32px; border-radius: 50%; background: #ECFDF5; display: flex; align-items: center; justify-content: center; color: #059669;"><i class="ri-money-dollar-circle-line"></i></div>
+                                <h4 style="font-family: 'Montserrat'; font-size: 15px; font-weight: 700;">Pago al Contado</h4>
+                            </div>
+                            <p style="font-size: 13px; color: var(--text-muted); line-height: 1.4;">Se registra el pago junto con la factura en este mismo acto.</p>
+                        </label>
+
+                        <label style="border: 2px solid var(--border); border-radius: 12px; padding: 16px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.borderColor='var(--brand)'" onmouseout="if(!this.querySelector('input').checked) this.style.borderColor='var(--border)'" id="lbl-pay-done" onclick="selectPayType('done')">
+                            <input type="radio" name="pay_type" value="done" style="display: none;" onchange="selectPayType('done')">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                <div style="width: 32px; height: 32px; border-radius: 50%; background: #EFF6FF; display: flex; align-items: center; justify-content: center; color: #2563EB;"><i class="ri-history-line"></i></div>
+                                <h4 style="font-family: 'Montserrat'; font-size: 15px; font-weight: 700;">Ya estaba pagada</h4>
+                            </div>
+                            <p style="font-size: 13px; color: var(--text-muted); line-height: 1.4;">Vinculá esta factura a un pago anticipado que ya registraste.</p>
+                        </label>
+                    </div>
+
+                    <!-- Expansion para Pago al Contado -->
+                    
+                    <!-- Expansion para Pago al Contado -->
+                    <div class="expand-wrapper" id="pay-now-wrapper">
+                        <div class="expand-inner">
+                            <div style="background: #FAFAFA; border: 1px solid var(--border); border-radius: 12px; padding: 24px;">
+
+                        <h4 style="font-size: 13px; font-weight: 700; color: var(--text-main); margin-bottom: 16px; text-transform: uppercase;">Detalle del pago</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                            <div class="field-group">
+                                <label class="field-label">Medio de pago</label>
+                                <select class="field-input">
+                                    <option>Efectivo (Caja Fuerte)</option>
+                                    <option>Efectivo (Caja Chica)</option>
+                                    <option>Transferencia Bancaria</option>
+                                    <option>MercadoPago</option>
+                                </select>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Fecha de pago</label>
+                                <input type="date" class="field-input">
+                            </div>
+                            <div class="field-group" style="grid-column: 1 / -1;">
+                                <label class="field-label">Comprobante / Observaciones <span class="field-hint">(Opcional)</span></label>
+                                <input type="text" class="field-input">
+                            </div>
+                        </div>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <!-- FOOTER ACTIONS -->
+    <div class="footer-actions">
+        <div class="footer-total">Total cargado: <span id="footer-total">$0,00</span></div>
+        <div class="footer-btns">
+            <button class="btn-secondary"><i class="ri-save-line"></i> Guardar borrador</button>
+            <button class="btn-approve" id="btn-approve"><i class="ri-check-double-line"></i> Aprobar e ingresar al stock</button>
+        </div>
+    </div>
+</div>
+
+<!-- =============================== -->
+<!-- MODAL: MAD-LIBS PRESENTACIONES  -->
+<!-- =============================== -->
+<div class="overlay" id="modal-overlay">
+    <div class="modal">
+        <div class="modal-head">
+            <h3><i class="ri-lightbulb-flash-fill" style="color: var(--brand);"></i> Nueva forma de comprar este producto</h3>
+            <p>Enseñale al sistema cómo viene <strong class="pname" id="m-pname">este artículo</strong> cuando lo comprás a este proveedor.<br>Será recordado para las próximas compras.</p>
+        </div>
+        <div class="modal-bd">
+            
+            <div class="ml-container">
+                <!-- ROW 1 -->
+                <div class="ml-row active" id="ml-step-1">
+                    <div class="ml-step-badge">1</div>
+                    <span class="ml-text-light">Voy a comprarlo por</span>
+                    <select class="ml-select" id="m-fmt" onchange="checkModalSteps()">
+                        <option value="" disabled selected>¿Qué envase?</option>
+                        <option value="Bolsa">Bolsa 🛍️</option>
+                        <option value="Caja">Caja 📦</option>
+                        <option value="Bidón">Bidón 🛢️</option>
+                        <option value="Balde">Balde 🪣</option>
+                        <option value="Bulto">Bulto 📦</option>
+                        <option value="Pack">Pack 📦</option>
+                        <option value="Unidad">Unidad suelta 🍎</option>
+                    </select>
+                    <span class="ml-text-light">de <strong class="pname" id="m-pname-inline">Tomate</strong>.</span>
+                </div>
+
+                <!-- ROW 2 -->
+                <div class="ml-row disabled" id="ml-step-2">
+                    <div class="ml-step-badge">2</div>
+                    <span class="ml-text-light">Y cada envase trae</span>
+                    <input type="number" class="ml-input" id="m-content" placeholder="-" min="0.01" step="any" oninput="calcModal()">
+                    <select class="ml-select" id="m-unit" onchange="calcModal()">
+                        <option value="" disabled selected>¿De qué medida?</option>
+                        <optgroup label="Peso ⚖️" id="grp-peso">
+                            <option value="Kilos">Kilos</option>
+                            <option value="Gramos">Gramos</option>
+                        </optgroup>
+                        <optgroup label="Volumen 💧" id="grp-volumen">
+                            <option value="Litros">Litros</option>
+                            <option value="Mililitros">Mililitros</option>
+                        </optgroup>
+                        <optgroup label="Conteo #️⃣" id="grp-conteo">
+                            <option value="Unidades">Unidades</option>
+                        </optgroup>
+                    </select>
+                </div>
+            </div>
+
+            <div class="feedback-box" id="m-feedback">
+                <i class="ri-checkbox-circle-fill"></i>
+                <p id="m-feedback-text">...</p>
+            </div>
+        </div>
+        <div class="modal-ft">
+            <button class="btn-modal-cancel" onclick="closeModal()">Cancelar</button>
+            <button class="btn-modal-save" id="m-save" onclick="savePresentation()">Crear y usar esta presentación</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ============================================
+    // FAMILIAS DE MEDIDA (Arquitectura de Datos)
+    // ============================================
+    const FAMILIES = {
+        peso:    { label: 'Peso', icon: 'ri-scales-3-line', css: 'family-peso', units: ['kg','g'], chipUnits: ['Kilos','Gramos'], hint: 'Las presentaciones deben ser en Kilos o Gramos.' },
+        volumen: { label: 'Volumen', icon: 'ri-drop-line', css: 'family-volumen', units: ['l','ml'], chipUnits: ['Litros','Mililitros'], hint: 'Las presentaciones deben ser en Litros o Mililitros.' },
+        conteo:  { label: 'Conteo', icon: 'ri-hashtag', css: 'family-conteo', units: ['u'], chipUnits: ['Unidades'], hint: 'Las presentaciones deben ser en Unidades.' },
+    };
+    function getFamily(unitVal) {
+        for (const [fam, data] of Object.entries(FAMILIES)) {
+            if (data.units.includes(unitVal)) return fam;
+        }
+        return null;
+    }
+    function getFamilyLabel(unitVal) {
+        const fam = getFamily(unitVal);
+        return fam ? FAMILIES[fam] : null;
+    }
+
+    // ============================================
+    // TOLERANCIAS HISTÓRICAS (Anti Dedo Pesado)
+    // Simulamos promedios históricos por producto
+    // ============================================
+    const HISTORICAL_AVG = {
+        'Pan Hamburguesa Trad.': 20,
+        'Pan Sanguche TBP': 15,
+        'Bondiola base (Kg)': 30,
+        'Cheddar fetas': 10,
+        'Tomate': 50,
+        'Lechuga': 30,
+        'Papas fritas': 40,
+        'Aceite de girasol': 10,
+        'Sal fina': 5,
+        'Ketchup': 8,
+        'Mayonesa': 8,
+    };
+    const DEVIATION_THRESHOLD = 3; // 3x el promedio = alerta
+
+    // ---- STATE ----
+    const urlParams = new URLSearchParams(window.location.search);
+    const flowType = urlParams.get('tipo') || 'factura';
+
+    document.addEventListener('DOMContentLoaded', () => {
+        if (flowType === 'informal') {
+            document.title = "Burger Music - Carga Rápida (Sin Factura)";
+            document.querySelector('.topbar-title').textContent = "Registro rápido (Sin factura / Remito)";
+            document.querySelector('#step1 .step-title').textContent = "¿A quién le compraste y cuándo?";
+            document.querySelector('#step1 .step-subtitle').textContent = "Cargá el proveedor y la fecha.";
+            document.querySelector('.total-declared-box').style.display = 'none';
+            
+            document.querySelector('#step3 .step-title').textContent = "Total a registrar";
+            document.querySelector('#step3 .step-subtitle').textContent = "Verificá la suma de los productos antes de ingresar.";
+        }
+    });
+
+    let lineCount = 0;
+    let mFmt = null, mUnit = null;
+    let targetLineId = null;
+    let modalFamily = null; // familia activa en el modal
+
+    const PRODUCTS = ['Pan Hamburguesa Trad.','Pan Sanguche TBP','Bondiola base (Kg)','Cheddar fetas','Tomate','Lechuga','Papas fritas','Aceite de girasol','Sal fina','Ketchup','Mayonesa'];
+    
+    // Ahora las presentaciones incluyen su equivalencia intrínseca
+    const UNITS_DB = [
+        { label: 'Caja de 5 Kg', factor: 5, unit: 'Kg' },
+        { label: 'Bolsa de 1 Kg', factor: 1, unit: 'Kg' },
+        { label: 'Bidón de 5 Litros', factor: 5, unit: 'Litros' },
+        { label: 'Unidad Suelta', factor: 1, unit: 'Unidades' },
+        { label: 'Pack x 12 Unidades', factor: 12, unit: 'Unidades' }
+    ];
+
+    const convTable = { 'Kilos ? ':1000,'Gramos' : 1,'Litros ? ':1000,'Mililitros' : 1,'Unidades':1 };
+    const baseLabel = { 'Kilos ? ':'gramos','Gramos' : 'gramos','Litros ? ':'mililitros','Mililitros' : 'mililitros','Unidades':'unidades' };
+    const chipFamily = { 'Kilos ? ':'peso','Gramos' : 'peso','Litros ? ':'volumen','Mililitros' : 'volumen','Unidades':'conteo' };
+
+    // ---- STEP 1 ----
+    function checkStep1() {
+        const provSel = document.getElementById('sel-proveedor');
+        if (provSel.value === 'new') {
+            openProviderModal();
+            provSel.value = '';
+            return false;
+        }
+        const prov = provSel.value;
+        const fecha = document.getElementById('inp-fecha').value;
+        
+        if (flowType === 'informal') {
+            return prov && fecha;
+        }
+        
+        const total = document.getElementById('inp-total').value;
+        return prov && fecha && total;
+    }
+
+    function completeStep1() {
+        if (!checkStep1()) { alert('Completá el proveedor, la fecha y el total del papel antes de continuar.'); return; }
+        document.getElementById('step1').classList.add('done');
+        document.getElementById('done1').style.display = 'inline-block';
+        document.getElementById('step2').classList.remove('locked');
+        document.getElementById('step3').classList.remove('locked');
+        updateMath();
+    }
+
+    // ---- LINES ----
+    function addLine() {
+        lineCount++;
+        const id = lineCount;
+        document.getElementById('empty-lines').style.display = 'none';
+        document.getElementById('lines-area').style.display = 'block';
+
+        const container = document.getElementById('lines-container');
+        const row = document.createElement('div');
+        row.className = 'line-row';
+        row.id = `row-${id}`;
+        row.innerHTML = `
+            <input type="number" class="line-input" id="qty-${id}" placeholder="0" min="0" oninput="calcSubtotal(${id}); checkQtyDeviation(${id})">
+            
+            <select class="line-input" id="prod-${id}" onchange="checkQtyDeviation(${id})">
+                <option value="" disabled selected>Buscar producto...</option>
+                ${PRODUCTS.map(p => `<option>${p}</option>`).join('')}
+            </select>
+
+            <div class="unit-cell">
+                <select class="unit-selector" id="unit-sel-${id}" onchange="onUnitChange(${id}, this)">
+                    <option value="" disabled selected>¿Cómo viene?</option>
+                    ${UNITS_DB.map(u => `<option value="${u.label}" data-factor="${u.factor}" data-unit="${u.unit}">${u.label}</option>`).join('')}
+                    <option value="__new__">+ Nueva presentación...</option>
+                </select>
+                <div class="unit-hint" id="hint-${id}"></div>
+            </div>
+
+            <div>
+                <div class="equiv-badge empty" id="equiv-${id}">—</div>
+            </div>
+
+            <input type="number" class="line-input" id="price-${id}" placeholder="$0.00" min="0" step="any" oninput="calcSubtotal(${id})">
+            
+            <input type="text" class="line-input calculated" id="sub-${id}" placeholder="$0.00" readonly>
+            
+            <button class="icon-del" onclick="deleteLine(${id})"><i class="ri-delete-bin-line"></i></button>
+
+            <div class="qty-warning" id="qty-warn-${id}"><i class="ri-alarm-warning-line"></i> <span id="qty-warn-text-${id}"></span></div>
+        `;
+        container.appendChild(row);
+    }
+
+    // ====================================
+    // CAPA2: Presentación + Equivalencia
+    // ====================================
+    function onUnitChange(lineId, selectEl) {
+        const value = selectEl.value;
+        const hintEl = document.getElementById(`hint-${lineId}`);
+
+        if (value === '__new__') {
+            const prodEl = document.getElementById(`prod-${lineId}`);
+            const prodName = prodEl.options[prodEl.selectedIndex]?.text || 'este artículo';
+            
+            // Mostrar modal sin familia pre-forzada (el usuario define la presentación y su unidad juntas)
+            modalFamily = null; 
+
+            openModal(lineId, prodName);
+            selectEl.value = '';
+            hintEl.classList.remove('visible');
+        } else {
+            // Mostrar hint de familia basado en la unidad de la presentación seleccionada
+            const selectedOpt = selectEl.options[selectEl.selectedIndex];
+            const unitType = selectedOpt.getAttribute('data-unit')?.toLowerCase();
+            const famData = getFamilyLabel(unitType === 'litros ? ' ? 'l' : (unitType === 'kilos' ? 'kg' : 'u')); // simple map for prototype
+            
+            if (famData) {
+                hintEl.innerHTML = `<span class="family-badge ${famData.css}"><i class="${famData.icon}"></i> ${famData.label}</span>`;
+                hintEl.classList.add('visible');
+            }
+
+            calcSubtotal(lineId);
+        }
+    }
+
+    // ====================================
+    // CAPA3: Control de Dedo Pesado
+    // ====================================
+    function checkQtyDeviation(lineId) {
+        const qtyEl = document.getElementById(`qty-${lineId}`);
+        const prodEl = document.getElementById(`prod-${lineId}`);
+        const warnEl = document.getElementById(`qty-warn-${lineId}`);
+        const warnText = document.getElementById(`qty-warn-text-${lineId}`);
+
+        const qty = parseFloat(qtyEl?.value) || 0;
+        const prodName = prodEl?.options[prodEl.selectedIndex]?.text;
+
+        if (prodName && HISTORICAL_AVG[prodName] && qty > 0) {
+            const avg = HISTORICAL_AVG[prodName];
+            if (qty > avg * DEVIATION_THRESHOLD) {
+                warnText.innerHTML = `¿Seguro que son <strong>${qty}</strong>? Normalmente comprás alrededor de <strong>${avg}</strong> de ${prodName}. Si es correcto, ignorá este aviso.`;
+                warnEl.classList.add('visible');
+                return;
+            }
+        }
+        warnEl?.classList.remove('visible');
+    }
+
+    function calcSubtotal(id) {
+        const qty = parseFloat(document.getElementById(`qty-${id}`)?.value) || 0;
+        const price = parseFloat(document.getElementById(`price-${id}`)?.value) || 0;
+        const sub = qty * price;
+        const subEl = document.getElementById(`sub-${id}`);
+        
+        // Calcular Equivalencia
+        const selEl = document.getElementById(`unit-sel-${id}`);
+        const equivEl = document.getElementById(`equiv-${id}`);
+        const opt = selEl.options[selEl.selectedIndex];
+        
+        if (opt && opt.value && opt.value !== '__new__') {
+            const factor = parseFloat(opt.getAttribute('data-factor')) || 1;
+            const unit = opt.getAttribute('data-unit') || '';
+            const totalEq = qty * factor;
+            if (qty > 0) {
+                equivEl.textContent = `${totalEq} ${unit}`;
+                equivEl.classList.remove('empty');
+            } else {
+                equivEl.textContent = `0 ${unit}`;
+                equivEl.classList.add('empty');
+            }
+        } else {
+            equivEl.textContent = '—';
+            equivEl.classList.add('empty');
+        }
+
+        if (sub > 0) {
+            subEl.value = `$${sub.toLocaleString('es-AR')}`;
+            subEl.classList.add('subtotal-ok');
+        } else {
+            subEl.value = '';
+            subEl.classList.remove('subtotal-ok');
+        }
+        updateMath();
+    }
+
+    function deleteLine(id) {
+        document.getElementById(`row-${id}`)?.remove();
+        const remaining = document.querySelectorAll('.line-row').length;
+        if (remaining === 0) {
+            document.getElementById('empty-lines').style.display = 'block';
+            document.getElementById('lines-area').style.display = 'none';
+        }
+        updateMath();
+    }
+
+    // ---- MATH CHECK ----
+    function getTotal() {
+        let sum = 0;
+        document.querySelectorAll('[id^="qty-"]').forEach(el => {
+            const id = el.id.replace('qty-','');
+            const qty = parseFloat(el.value) || 0;
+            const price = parseFloat(document.getElementById(`price-${id}`)?.value) || 0;
+            sum += qty * price;
+        });
+        return sum;
+    }
+
+    function parseMoney(str) {
+        return parseFloat(str.replace(/[^0-9.,-]/g,'').replace(',','.')) || 0;
+    }
+
+    function updateMath() {
+        const sum = getTotal();
+        
+        if (flowType === 'informal') {
+            document.getElementById('sum-lineas').textContent = `$${sum.toLocaleString('es-AR')}`;
+            document.getElementById('footer-total').textContent = `$${sum.toLocaleString('es-AR')}`;
+            
+            document.getElementById('sum-declarado').parentElement.style.display = 'none';
+            document.getElementById('sum-diff').parentElement.style.display = 'none';
+            
+            const ok = sum > 0;
+            const mathOk = document.getElementById('math-ok');
+            mathOk.style.display = ok ? 'flex' : 'none';
+            if (ok) mathOk.innerHTML = `<i class="ri-checkbox-circle-fill" style="font-size: 22px;"></i> ¡Listo! Total a ingresar: $${sum.toLocaleString('es-AR')}.`;
+            
+        document.getElementById('math-err').style.display = (!ok && declared > 0) ? 'flex' : 'none';
+            
+            const approveBtn = document.getElementById('btn-approve');
+            if (ok) approveBtn.classList.add('ready'); else approveBtn.classList.remove('ready');
+            return;
+        }
+
+        const declared = parseMoney((document.getElementById('inp-total') ? document.getElementById('inp-total').value : '0') || '0');
+        const diff = sum - declared;
+
+        document.getElementById('sum-lineas').textContent = `$${sum.toLocaleString('es-AR')}`;
+        document.getElementById('sum-declarado').textContent = `$${declared.toLocaleString('es-AR')}`;
+        document.getElementById('footer-total').textContent = `$${sum.toLocaleString('es-AR')}`;
+
+        const diffEl = document.getElementById('sum-diff');
+        diffEl.textContent = `$${Math.abs(diff).toLocaleString('es-AR')}`;
+
+        const ok = Math.abs(diff) < 1 && sum > 0 && declared > 0;
+        document.getElementById('math-ok').style.display = ok ? 'flex' : 'none';
+        document.getElementById('math-err').style.display = (!ok && declared > 0) ? 'flex' : 'none';
+        if (!ok && declared > 0) {
+            document.getElementById('math-err').textContent = diff > 0
+                ? `Estás cargando $${diff.toLocaleString('es-AR')} de más que lo declarado. Revisá los precios o cantidades.`
+                : `Te faltan $${Math.abs(diff).toLocaleString('es-AR')} para llegar al total declarado. ¿Te olvidaste algún ítemÍ`;
+        }
+        diffEl.style.color = ok ? 'var(--success)' : 'var(--danger)';
+
+        if (ok) {
+            document.getElementById('step4').classList.remove('locked');
+        } else {
+            document.getElementById('step4').classList.add('locked');
+            document.getElementById('btn-approve').classList.remove('ready');
+        }
+    }
+
+    // =============================================
+    // MODAL MAD-LIBS (Flashcard Builder)
+    // =============================================
+    function openModal(lineId, productName) {
+        targetLineId = lineId;
+        
+        document.getElementById('m-pname').textContent = productName;
+        document.getElementById('m-pname-inline').textContent = productName;
+        
+        // Reset Inputs
+        document.getElementById('m-fmt').value = '';
+        document.getElementById('m-content').value = '';
+        document.getElementById('m-unit').value = '';
+        
+        // Reset UI States
+        document.getElementById('ml-step-1').classList.add('active');
+        document.getElementById('ml-step-2').classList.add('disabled');
+        document.getElementById('ml-step-2').classList.remove('active');
+        document.getElementById('m-feedback').classList.remove('show');
+        document.getElementById('m-save').classList.remove('on');
+
+        // CAPA3: Ocultar OptGroups según Familia
+        const grpPeso = document.getElementById('grp-peso');
+        const grpVol = document.getElementById('grp-volumen');
+        const grpConteo = document.getElementById('grp-conteo');
+
+        // Reset display
+        grpPeso.style.display = 'block';
+        grpVol.style.display = 'block';
+        grpConteo.style.display = 'block';
+
+        if (modalFamily) {
+            if (modalFamily !== 'peso') grpPeso.style.display = 'none';
+            if (modalFamily !== 'volumen') grpVol.style.display = 'none';
+            if (modalFamily !== 'conteo') grpConteo.style.display = 'none';
+        }
+
+        document.getElementById('modal-overlay').classList.add('open');
+    }
+
+    function closeModal() {
+        document.getElementById('modal-overlay').classList.remove('open');
+        targetLineId = null;
+        modalFamily = null;
+    }
+
+    function checkModalSteps() {
+        const fmt = document.getElementById('m-fmt').value;
+        const step2 = document.getElementById('ml-step-2');
+        const step1 = document.getElementById('ml-step-1');
+        
+        if (fmt) {
+            step2.classList.remove('disabled');
+            step2.classList.add('active');
+            step1.classList.remove('active');
+            calcModal();
+        } else {
+            step2.classList.add('disabled');
+            step2.classList.remove('active');
+            step1.classList.add('active');
+        }
+    }
+
+    function calcModal() {
+        const fmt = document.getElementById('m-fmt').value;
+        const content = parseFloat(document.getElementById('m-content').value) || 0;
+        const unit = document.getElementById('m-unit').value;
+        
+        const fb = document.getElementById('m-feedback');
+        const btn = document.getElementById('m-save');
+        const pname = document.getElementById('m-pname').textContent;
+
+        if (fmt && unit && content > 0) {
+            const factor = convTable[unit] || 1;
+            const base = baseLabel[unit] || 'unidades';
+            const total = (content * factor).toLocaleString('es-AR');
+            
+            document.getElementById('m-feedback-text').innerHTML =
+                `<strong>¡Listo!</strong> Cada vez que elijas <strong>"${fmt}"</strong> de ${pname}, el sistema ingresará automáticamente <strong>${total} ${base}</strong> a tu stock.`;
+            
+            fb.classList.add('show');
+            btn.classList.add('on');
+            document.getElementById('ml-step-2').classList.remove('active'); // dim when finished
+        } else {
+            fb.classList.remove('show');
+            btn.classList.remove('on');
+        }
+    }
+
+    function savePresentation() {
+        const fmt = document.getElementById('m-fmt').value;
+        const unit = document.getElementById('m-unit').value;
+
+        if (targetLineId && fmt && unit) {
+            const content = parseFloat(document.getElementById('m-content').value) || 1;
+            const total = content; 
+            const newLabel = `${fmt} de ${total} ${unit}`;
+
+            const sel = document.getElementById(`unit-sel-${targetLineId}`);
+            const opt = document.createElement('option');
+            opt.value = newLabel;
+            opt.text = newLabel;
+            opt.setAttribute('data-factor', total);
+            opt.setAttribute('data-unit', unit);
+            opt.selected = true;
+
+            const newOpt = sel.querySelector('option[value="__new__"]');
+            sel.insertBefore(opt, newOpt);
+            
+            onUnitChange(targetLineId, sel);
+        }
+        closeModal();
+    }
+</script>
+
+<!-- MODAL: NUEVO PROVEEDOR -->
+<div class="overlay" id="prov-modal-overlay">
+    <div class="modal" style="width: 700px; max-height: 90vh; display: flex; flex-direction: column;">
+        <div class="modal-head" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h3>Agregar nuevo proveedor</h3>
+                <p>Completá los datos mínimos del proveedor (razón social, CUIT, condición fiscal, rubro y contacto).</p>
+            </div>
+            <button onclick="closeProviderModal()" style="background: none;border: none;font-size: 24px;cursor: pointer;color: var(--text-muted);">&times;</button>
+        </div>
+        <div class="modal-bd" style="overflow-y:auto; padding: 24px 36px;">
+            <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.5px;">Datos básicos</div>
+            
+            <div class="field-group" style="margin-bottom: 16px;">
+                <label class="field-label">Nombre comercial *</label>
+                <input type="text" class="field-input" id="np-nombre" placeholder="Nombre con el que lo verás en compras" style="border: 2px solid var(--brand);">
+            </div>
+            
+            <div class="meta-grid" style="margin-bottom: 16px;">
+                <div class="field-group">
+                    <label class="field-label">Razón social *</label>
+                    <input type="text" class="field-input" id="np-razon">
+                </div>
+                <div class="field-group">
+                    <label class="field-label">CUIT *</label>
+                    <input type="text" class="field-input" id="np-cuit" placeholder="20-12345678-6">
+                </div>
+            </div>
+            
+            <div class="meta-grid" style="margin-bottom: 16px;">
+                <div class="field-group">
+                    <label class="field-label">Condición fiscal *</label>
+                    <select class="field-input">
+                        <option>Responsable Inscripto</option>
+                        <option>Monotributo</option>
+                        <option>Exento</option>
+                    </select>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Rubro *</label>
+                    <input type="text" class="field-input" placeholder="Ej. Bebidas, Carnes, Limpieza">
+                </div>
+            </div>
+            
+            <div class="field-group" style="margin-bottom: 32px;">
+                <label class="field-label">Estado *</label>
+                <select class="field-input">
+                    <option>Activo</option>
+                    <option>Inactivo</option>
+                </select>
+            </div>
+
+            <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.5px;">Contacto (Email o teléfono *)</div>
+            
+            <div class="meta-grid" style="margin-bottom: 16px;">
+                <div class="field-group">
+                    <label class="field-label">Nombre</label>
+                    <input type="text" class="field-input">
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Apellido</label>
+                    <input type="text" class="field-input">
+                </div>
+            </div>
+            
+            <div class="meta-grid" style="margin-bottom: 32px;">
+                <div class="field-group">
+                    <label class="field-label">Email</label>
+                    <input type="email" class="field-input">
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Teléfono</label>
+                    <input type="text" class="field-input">
+                </div>
+            </div>
+
+            <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.5px;">Dirección</div>
+            
+            <div class="field-group" style="margin-bottom: 16px;">
+                <label class="field-label">Dirección</label>
+                <input type="text" class="field-input">
+            </div>
+            
+            <div class="meta-grid" style="margin-bottom: 16px;">
+                <div class="field-group">
+                    <label class="field-label">Ciudad / localidad</label>
+                    <input type="text" class="field-input">
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Provincia</label>
+                    <input type="text" class="field-input">
+                </div>
+            </div>
+            
+            <div class="field-group" style="margin-bottom: 32px;">
+                <label class="field-label">Código postal</label>
+                <input type="text" class="field-input" style="width: 50%;">
+            </div>
+
+            <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.5px;">Condiciones comerciales</div>
+            
+            <div class="meta-grid" style="margin-bottom: 16px;">
+                <div class="field-group">
+                    <label class="field-label">Plazo de pago (días)</label>
+                    <input type="text" class="field-input" placeholder="Ej. 30">
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Medio de pago preferido</label>
+                    <select class="field-input">
+                        <option>Sin preferencia</option>
+                        <option>Transferencia</option>
+                        <option>Efectivo</option>
+                        <option>Cheque</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="field-group" style="margin-bottom: 16px;">
+                <label class="field-label">Notas comerciales</label>
+                <input type="text" class="field-input" placeholder="Descuentos, entregas, acuerdos...">
+            </div>
+            
+            <div class="field-group">
+                <label class="field-label">Observaciones</label>
+                <textarea class="field-input" rows="2" style="resize: vertical;"></textarea>
+            </div>
+        </div>
+        <div class="modal-ft" style="flex-shrink: 0;">
+            <button class="btn-modal-cancel" onclick="closeProviderModal()">Cancelar</button>
+            <button class="btn-modal-save on" onclick="saveProvider()">Guardar proveedor</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openProviderModal() {
+        document.getElementById('prov-modal-overlay').classList.add('open');
+    }
+    function closeProviderModal() {
+        document.getElementById('prov-modal-overlay').classList.remove('open');
+    }
+    function saveProvider() {
+        const nombre = document.getElementById('np-nombre').value;
+        if (!nombre) {
+            alert('El Nombre Comercial es obligatorio.');
+            return;
+        }
+        
+        const sel = document.getElementById('sel-proveedor');
+        const opt = document.createElement('option');
+        opt.value = 'new_' + Date.now();
+        opt.text = nombre;
+        opt.selected = true;
+        
+        const newOpt = sel.querySelector('option[value="new"]');
+        sel.insertBefore(opt, newOpt);
+        
+        closeProviderModal();
+        checkStep1();
+    }
+</script>
+
+<script>
+    function selectPayType(type) {
+        // Reset borders
+        document.getElementById('lbl-pay-cc').style.borderColor = 'var(--border)';
+        document.getElementById('lbl-pay-now').style.borderColor = 'var(--border)';
+        document.getElementById('lbl-pay-done').style.borderColor = 'var(--border)';
+        
+        // Hide details
+        
+
+        // Set active
+        document.getElementById('lbl-pay-' + type).style.borderColor = 'var(--brand)';
+        document.getElementById('lbl-pay-' + type).querySelector('input').checked = true;
+
+        if (type === 'now') {
+            document.getElementById('pay-now-wrapper').classList.add('open');
+        } else {
+            document.getElementById('pay-now-wrapper').classList.remove('open');
+        }
+        
+        // Enable approve button
+        document.getElementById('btn-approve').classList.add('ready');
+    }
+</script>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const provId = urlParams.get('proveedor');
+        if(provId) {
+            const sel = document.getElementById('sel-proveedor');
+            if(sel) {
+                sel.value = provId;
+                // Trigger change event to update UI logic if needed
+                sel.dispatchEvent(new Event('change'));
+            }
+        }
+    });
+</script>
+
+</body>
+</html>

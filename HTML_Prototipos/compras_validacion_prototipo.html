@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Burger Music - Carga de Facturas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-body: #F4F7F9;
+            --bg-surface: #FFFFFF;
+            --bg-sidebar: #1E293B;
+            --brand-primary: #EA580C;
+            --brand-primary-hover: #C2410C;
+            --brand-surface: #FFF7ED;
+            
+            --text-main: #0F172A;
+            --text-muted: #64748B;
+            --text-sidebar: #CBD5E1;
+            --text-sidebar-active: #FFFFFF;
+            
+            --color-success: #10B981;
+            --bg-success-light: #ECFDF5;
+            --color-warning: #F59E0B;
+            --bg-warning-light: #FFFBEB;
+            --color-danger: #EF4444;
+            --bg-danger-light: #FEF2F2;
+
+            --border-light: #E2E8F0;
+            --border-dark: #CBD5E1;
+            
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            
+            --transition-fast: 0.15s ease-in-out;
+            --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        h1, h2, h3, h4, h5, h6, .montserrat { font-family: 'Montserrat', sans-serif; }
+
+        /* --- SIDEBAR --- */
+        /* --- MAIN CONTENT --- */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--bg-body);
+        }
+
+        .topbar {
+            background-color: var(--bg-surface);
+            padding: 12px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-sm);
+            z-index: 10;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .branch-select {
+            background-color: var(--bg-body);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--text-main);
+            outline: none;
+            cursor: pointer;
+        }
+        .user-profile { display: flex; align-items: center; gap: 12px; }
+        .avatar { width: 32px; height: 32px; background-color: var(--brand-primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+
+        /* --- WORKSPACE (Facturación) --- */
+        .module-header {
+            padding: 16px 32px;
+            background: var(--bg-surface);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-light);
+        }
+        
+        .page-title h1 { font-size: 20px; font-weight: 700; }
+        
+        /* TOGGLE BUTTON */
+        .mode-toggle {
+            display: flex;
+            background: #E2E8F0;
+            border-radius: 8px;
+            padding: 4px;
+        }
+        .toggle-btn {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+        .toggle-btn.active {
+            background: var(--bg-surface);
+            color: var(--brand-primary);
+            box-shadow: var(--shadow-sm);
+        }
+        .toggle-btn i { margin-right: 6px; }
+
+        /* --- SPLIT VIEW LAYOUT --- */
+        .workspace-body {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            transition: var(--transition-smooth);
+        }
+
+        .panel-left {
+            width: 35%;
+            background: #cbd5e1; 
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-right: 1px solid var(--border-dark);
+            overflow: hidden;
+            box-shadow: inset -5px 0 15px rgba(0,0,0,0.03);
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s;
+        }
+
+        .doc-container {
+            width: 80%;
+            height: 90%;
+            background: white;
+            box-shadow: var(--shadow-lg);
+            border-radius: 4px;
+            position: relative;
+            background-image: url('data: image/svg+xml;utf8,<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="white"/><text x="50%" y="40%" font-family="Montserrat" font-size="24" fill="%2394a3b8" text-anchor="middle">REMITO N° 0001-45892</text><text x="50%" y="45%" font-family="Lato" font-size="16" fill="%23cbd5e1" text-anchor="middle">PANIFICADORA EL SOL S.R.L.</text><line x1="10%" y1="50%" x2="90%" y2="50%" stroke="%23e2e8f0" stroke-width="2"/><text x="15%" y="60%" font-family="Lato" font-size="14" fill="%2364748b">10x Pan Hamburguesa Trad. ..... $15.000</text><rect x="10%" y="63%" width="80%" height="30" fill="%23fef3c7" opacity="0.4"/><text x="15%" y="65%" font-family="Lato" font-size="14" fill="%2364748b">5x  Pan Sanguche ..................... $ 5.500</text><text x="15%" y="70%" font-family="Lato" font-size="14" fill="%2364748b">2x  Bolsas Cheddar .................. $30.000</text><line x1="10%" y1="80%" x2="90%" y2="80%" stroke="%23e2e8f0" stroke-width="2"/><text x="15%" y="85%" font-family="Montserrat" font-weight="bold" font-size="18" fill="%230f172a">TOTAL: $45.200</text></svg>');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .doc-overlay-highlight {
+            position: absolute;
+            top: 61%; left: 10%; width: 80%; height: 6%;
+            border: 2px solid var(--color-warning);
+            background: rgba(245, 158, 11, 0.1);
+            border-radius: 4px;
+            animation: pulse-border 2s infinite;
+        }
+
+        @keyframes pulse-border {
+            0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+        }
+
+        .panel-right {
+            width: 65%;
+            background: var(--bg-surface);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* --- MODE: MANUAL --- */
+        body.mode-manual .panel-left {
+            width: 0;
+            opacity: 0;
+            border: none;
+        }
+        body.mode-manual .panel-right {
+            width: 100%;
+        }
+        body.mode-manual .row-success, body.mode-manual .row-warning, body.mode-manual .row-danger {
+            background: transparent !important;
+            border-left: 1px solid transparent !important;
+            opacity: 1 !important;
+            transform: translateX(0) !important;
+        }
+        body.mode-manual .confidence-indicator { display: none; }
+        body.mode-manual .math-check-card { display: none; }
+        body.mode-manual .grid-header { padding-left: 24px; padding-right: 24px;}
+        body.mode-manual .grid-row { padding-left: 24px; padding-right: 24px;}
+
+        /* --- FORM GRID & UI --- */
+        .form-header {
+            padding: 24px 32px;
+            border-bottom: 1px solid var(--border-light);
+            background: #F8FAFC;
+        }
+        .metadata-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-input {
+            padding: 10px 12px; border: 1px solid var(--border-dark); border-radius: 8px;
+            font-family: 'Lato', sans-serif; font-size: 14px; color: var(--text-main);
+            outline: none; transition: var(--transition-fast);
+        }
+        .form-input:focus { border-color: var(--brand-primary); box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1); }
+
+        .math-check-card { background: var(--bg-danger-light); border: 1px solid #FECACA; border-radius: 12px; padding: 16px; display: flex; justify-content: space-between; align-items: center; }
+        .math-total { font-family: 'Montserrat', sans-serif; font-size: 24px; font-weight: 800; color: var(--text-main); background: transparent; border: 1px dashed transparent; outline: none; padding: 2px 8px; border-radius: 6px; width: 140px; margin-left: -8px; transition: 0.2s; }
+        .math-total:hover { border-color: #FCA5A5; background: white; }
+        .math-total:focus { border-color: var(--color-danger); background: white; box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2); border-style: solid; }
+        .math-status { display: flex; align-items: center; gap: 6px; color: var(--color-danger); font-weight: 700; font-size: 13px; }
+
+        /* --- NEW GRIDS (Lines Table) --- */
+        .lines-table { width: 100%; padding: 24px 32px; flex: 1; overflow-y: auto; }
+        .lines-table-header { display: grid; grid-template-columns: 24px 50px 1fr 140px 95px 90px 90px 32px; gap: 8px; padding: 0 0 10px; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; border-bottom: 2px solid var(--border-light); margin-bottom: 4px; }
+        
+        .line-row { display: grid; grid-template-columns: 24px 50px 1fr 140px 95px 90px 90px 32px; gap: 8px; padding: 12px 0; border-bottom: 1px solid var(--border-light); align-items: start; position: relative; }
+        .line-row:last-child { border-bottom: none; }
+        .line-row > * { min-width: 0; }
+
+        .line-row.row-success { opacity: 0.7; }
+        .line-row.row-success:hover, .line-row.row-success:focus-within { opacity: 1; }
+        .line-row.row-warning { background: var(--bg-warning-light); border-left: 4px solid var(--color-warning); padding-left: 8px; transform: translateX(-4px); }
+        .line-row.row-danger { background: var(--bg-danger-light); border-left: 4px solid var(--color-danger); padding-left: 8px; transform: translateX(-4px); }
+        
+        .confidence-indicator { font-size: 18px; display: flex; align-items: center; justify-content: center; height: 38px; }
+        .conf-success { color: var(--color-success); }
+        .conf-warning { color: var(--color-warning); }
+        .conf-danger { color: var(--color-danger); }
+
+        .line-input { width: 100%; padding: 9px 12px; border: 1px solid transparent; border-radius: 7px; font-family: 'Lato'; font-size: 14px; color: var(--text-main); outline: none; transition: 0.15s; background: transparent; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
+        .line-input:hover { border-color: var(--border-light); background: white; }
+        .line-input:focus { border-color: var(--brand-primary); background: white; box-shadow: 0 0 0 2px rgba(249,115,22,0.1); }
+        .line-input.calculated { font-weight: 700; cursor: default; }
+        select.line-input { background: white; border: 1px solid var(--border-light); appearance: auto; }
+
+        .highlight-warning { border-color: var(--color-warning); background: white; font-weight: 700; color: #92400E; }
+        .highlight-danger { border-color: var(--color-danger); background: white; font-weight: 700; color: #991B1B; }
+
+        /* UNIDAD CELL */
+        .unit-cell { position: relative; width: 100%; }
+        .unit-selector { width: 100%; padding: 9px 12px; border: 1px solid var(--border-light); border-radius: 7px; font-family: 'Lato'; font-size: 14px; color: var(--text-main); outline: none; background: white; cursor: pointer; transition: 0.15s; }
+        .unit-selector:focus { border-color: var(--brand-primary); box-shadow: 0 0 0 2px rgba(249,115,22,0.1); }
+        
+        .family-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; font-family: 'Montserrat'; margin-top: 4px; }
+        .family-peso { background: #DBEAFE; color: #1E40AF; border: 1px solid #93C5FD; }
+        .unit-hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; padding: 4px 8px; background: #F9FAFB; border-radius: 6px; border-left: 3px solid var(--border-light); display: none; }
+        .unit-hint.visible { display: block; }
+
+        /* EQUIVALENCIA CELL */
+        .equiv-badge { display: flex; align-items: center; gap: 6px; background: #EFF6FF; color: #1E40AF; padding: 9px 12px; border-radius: 7px; border: 1px dashed #93C5FD; font-size: 13px; font-weight: 700; justify-content: center; transition: 0.2s; height: 38px; }
+        .equiv-badge.empty { background: transparent; color: var(--text-muted); border-color: var(--border-dark); font-weight: 500; font-size: 12px; }
+
+        .subtotal-ok { border-color: var(--color-success) !important; background: var(--bg-success-light) !important; color: #065F46 !important; font-weight: 700; }
+
+        .icon-del { background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 18px; padding: 4px; border-radius: 6px; display: flex; align-items: center; justify-content: center; height: 38px; width: 32px; }
+        .icon-del:hover { background: var(--bg-danger-light); color: var(--color-danger); }
+
+        .btn-add-row { margin: 16px 0; background: transparent; border: 2px dashed var(--border-dark); border-radius: 8px; padding: 12px; width: 100%; font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 13px; color: var(--text-muted); cursor: pointer; transition: var(--transition-fast); }
+        .btn-add-row:hover { border-color: var(--brand-primary); color: var(--brand-primary); background: rgba(234,88,12,0.05); }
+
+        .action-footer {
+            padding: 24px 32px; background: var(--bg-surface); border-top: 1px solid var(--border-light);
+            display: flex; justify-content: flex-end; gap: 12px; z-index: 10;
+        }
+        .btn-secondary { padding: 12px 24px; border: 1px solid var(--border-dark); background: white; border-radius: 8px; font-family: 'Montserrat', sans-serif; font-weight: 600; cursor: pointer; }
+        .btn-secondary:hover { background: #F8FAFC; }
+        .btn-primary { padding: 12px 32px; border: none; background: #D1D5DB; border-radius: 8px; font-family: 'Montserrat', sans-serif; font-weight: 700; color: #6B7280; cursor: not-allowed; }
+        
+        /* Simulación inteligente */
+        .suggestion-dropdown {
+            position: absolute; top: 100%; left: 0; width: 100%; background: white; border: 1px solid var(--border-light);
+            border-radius: 8px; box-shadow: var(--shadow-lg); z-index: 100; display: none;
+        }
+        .row-warning:focus-within .suggestion-dropdown { display: block; }
+        .sugg-item { padding: 10px 16px; font-size: 13px; border-bottom: 1px solid #F8FAFC; cursor: pointer; }
+        .sugg-item:hover { background: #F8FAFC; }
+
+        /* --- MODAL: CONVERSOR DE PRESENTACIONES (MAD-LIBS) --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);
+            z-index: 1000; display: none; justify-content: center; align-items: center;
+        }
+        .modal-overlay.active { display: flex; animation: fadeInOverlay 0.2s ease; }
+        @keyframes fadeInOverlay { from { opacity: 0; } to { opacity: 1; } }
+
+        .modal-card {
+            background: var(--bg-surface); border-radius: 16px; box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+            width: 580px; max-width: 95vw; overflow: hidden; animation: scaleIn 0.25s ease;
+        }
+        @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .modal-header {
+            padding: 24px 28px 20px; border-bottom: 1px solid var(--border-light);
+        }
+        .modal-header h2 { font-family: 'Montserrat', sans-serif; font-size: 18px; font-weight: 800; margin-bottom: 8px; }
+        .modal-header p { font-size: 14px; color: var(--text-muted); line-height: 1.5; }
+        .modal-header .product-name { color: var(--brand-primary); font-weight: 700; }
+
+        .modal-body { padding: 28px; }
+
+        /* Mad-Libs Sentence Builder */
+        .sentence-builder {
+            background: #F8FAFC; border: 1px solid var(--border-light); border-radius: 12px; padding: 24px;
+            margin-bottom: 24px;
+        }
+        .sentence-line {
+            display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+            font-size: 16px; font-weight: 600; color: var(--text-main); line-height: 2.4;
+        }
+        .sentence-static { white-space: nowrap; }
+
+        .sentence-input {
+            display: inline-flex; align-items: center; min-width: 60px; padding: 6px 14px;
+            border: 2px solid var(--brand-primary); border-radius: 8px; background: white;
+            font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 700; color: var(--brand-primary);
+            text-align: center; outline: none; transition: 0.2s;
+        }
+        .sentence-input:focus { box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.15); }
+        .sentence-input::placeholder { color: #CBD5E1; font-weight: 500; }
+
+        /* Inline Chips */
+        .chip-group { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+        .chip {
+            padding: 8px 16px; border: 2px solid var(--border-light); border-radius: 30px;
+            background: white; font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 13px;
+            color: var(--text-main); cursor: pointer; transition: 0.15s; user-select: none;
+        }
+        .chip:hover { border-color: var(--brand-primary); color: var(--brand-primary); background: #FFF7ED; }
+        .chip.active { border-color: var(--brand-primary); background: var(--brand-primary); color: white; }
+
+        /* Feedback Result */
+        .conversion-result {
+            background: var(--bg-success-light); border: 1px solid #A7F3D0; border-radius: 12px; padding: 16px 20px;
+            display: none; align-items: center; gap: 12px; animation: slideResult 0.3s ease;
+        }
+        .conversion-result.visible { display: flex; }
+        @keyframes slideResult { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .conversion-result i { font-size: 24px; color: var(--color-success); flex-shrink: 0; }
+        .conversion-result p { font-size: 14px; color: #065F46; line-height: 1.5; }
+        .conversion-result strong { font-weight: 800; }
+
+        .modal-footer {
+            padding: 16px 28px 24px; display: flex; justify-content: flex-end; gap: 12px;
+        }
+        .modal-btn-cancel { padding: 10px 20px; border: 1px solid var(--border-dark); background: white; border-radius: 8px; font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 14px; cursor: pointer; color: var(--text-main); }
+        .modal-btn-cancel:hover { background: #F8FAFC; }
+        .modal-btn-save { padding: 10px 24px; border: none; background: var(--brand-primary); color: white; border-radius: 8px; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 14px; cursor: pointer; transition: 0.2s; opacity: 0.5; pointer-events: none; }
+        .modal-btn-save.enabled { opacity: 1; pointer-events: auto; box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3); }
+        .modal-btn-save.enabled:hover { background: var(--brand-primary-hover); transform: translateY(-1px); }
+
+    
+        /* --- UNIFIED SIDEBAR CSS --- */
+        .sidebar { width: 80px; background-color: var(--bg-sidebar); display: flex; flex-direction: column; transition: var(--transition-smooth); z-index: 100; box-shadow: var(--shadow-lg); overflow-x: hidden; white-space: nowrap; }
+        .sidebar:hover { width: 260px; }
+        .sidebar-nav { padding: 16px 12px; flex: 1; overflow-y: auto; }
+        .nav-item { display: flex; align-items: center; padding: 12px 16px; color: var(--text-sidebar); text-decoration: none; border-radius: 8px; margin-bottom: 4px; transition: var(--transition-fast); font-size: 15px; font-weight: 500; }
+        .nav-item i { margin-right: 12px; font-size: 20px; transition: var(--transition-fast); }
+        .nav-item:hover { background-color: rgba(255,255,255,0.05); color: var(--text-sidebar-active); }
+        .nav-item.active { background-color: var(--brand-primary, #EA580C); color: white; box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3); }
+        .nav-dropdown { display: flex; flex-direction: column; }
+        .nav-dropdown .nav-item { width: 100%; }
+        .nav-dropdown .chevron { margin-left: auto; margin-right: 0; transition: transform 0.3s ease; }
+        .nav-dropdown.open .chevron { transform: rotate(180deg); }
+        .nav-submenu { display: none; flex-direction: column; background: rgba(0,0,0,0.2); padding: 8px 0; margin: 4px 16px; border-radius: 8px; }
+        .nav-dropdown.open .nav-submenu { display: flex; }
+        .submenu-item { padding: 10px 16px 10px 42px; color: var(--text-sidebar); text-decoration: none; font-size: 13px; transition: var(--transition-fast); border-radius: 6px; margin: 2px 8px; }
+        .submenu-item:hover { color: white; background-color: rgba(255,255,255,0.05); }
+        .sidebar-nav::-webkit-scrollbar { width: 6px; }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .sidebar-nav::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+</style>
+</head>
+<!-- El body usa una clase para controlar el layout -->
+<body class="mode-ia">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+    <div class="sidebar-header" style="padding: 24px; display: flex; align-items: center; gap: 12px; color: white; border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <div style="width: 28px;height: 28px;background:#000;border-radius: 4px;display: flex;align-items: center;justify-content: center;color: white;font-weight: 800;font-size: 11px;">BM</div>
+        <span style="font-family: 'Montserrat'; font-weight: 800; font-size: 14px; color: white;">BurgerMusic</span>
+    </div>
+    
+    <nav class="sidebar-nav">
+        <a href="dashboard_prototipo.html" class="nav-item"><i class="ri-home-4-line"></i> Inicio</a>
+        
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-shopping-bag-line"></i> Compras
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="compras_inbox_prototipo.html" class="submenu-item">Facturas</a>
+                <a href="compras_proveedores_prototipo.html" class="submenu-item">Proveedores</a>
+                <a href="compras_ordenes_prototipo.html" class="submenu-item">Órdenes de compra</a>
+                <a href="compras_recepciones_prototipo.html" class="submenu-item">Recepciones</a>
+            </div>
+        </div>
+
+        <a href="produccion_gerencial_prototipo.html" class="nav-item"><i class="ri-hammer-line"></i> Producción</a>
+        <a href="inventario_prototipo.html" class="nav-item"><i class="ri-box-3-line"></i> Inventario</a>
+
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-line-chart-line"></i> Ventas
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="ventas_dashboard_prototipo.html" class="submenu-item">Dashboard</a>
+                <a href="pos_prototipo.html" class="submenu-item">Nueva venta</a>
+                <a href="ventas_historial_prototipo.html" class="submenu-item">Historial de Tickets</a>
+                <a href="ventas_sincronizacion_prototipo.html" class="submenu-item">Sincronización</a>
+                <a href="ventas_cierre_z_prototipo.html" class="submenu-item">Cierre Z</a>
+            </div>
+        </div>
+
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-bank-card-line"></i> Finanzas
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="finanzas_dashboard_prototipo.html" class="submenu-item">Dashboard</a>
+                <a href="finanzas_movimientos_prototipo.html" class="submenu-item">Mov. caja</a>
+                <a href="finanzas_cuentas_pagar_prototipo.html" class="submenu-item">Cuentas por pagar</a>
+                <a href="finanzas_categorias_prototipo.html" class="submenu-item">Categorías financieras</a>
+            </div>
+        </div>
+        
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-safe-line"></i> Caja
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="caja_gastos_eventuales_prototipo.html" class="submenu-item">Gastos eventuales</a>
+                <a href="caja_gastos_fijos_prototipo.html" class="submenu-item">Gastos fijos</a>
+                <a href="caja_ingresos_extra_prototipo.html" class="submenu-item">Ingresos extra</a>
+            </div>
+        </div>
+
+        <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #475569; padding: 16px 14px 6px;">Operación</div>
+        <a href="pos_prototipo.html" class="nav-item"><i class="ri-store-2-line"></i> Punto de Venta</a>
+        <a href="kds_prototipo.html" class="nav-item"><i class="ri-restaurant-line"></i> Cocina</a>
+        <a href="delivery_prototipo.html" class="nav-item"><i class="ri-e-bike-2-line"></i> Delivery</a>
+        <a href="cajas_prototipo.html" class="nav-item"><i class="ri-money-dollar-box-line"></i> Caja POS</a>
+        <a href="produccion_prototipo.html" class="nav-item"><i class="ri-smartphone-line"></i> Producción (Móvil)</a>
+        <a href="auditoria_deposito_prototipo.html" class="nav-item"><i class="ri-clipboard-line"></i> Auditoría (Móvil)</a>
+    </nav>
+
+    <div style="margin-top: auto; padding: 20px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 16px;">
+        <select class="branch-select" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px; font-size: 13px; border-radius: 8px;">
+            <option value="lanus" selected style="color: black;">📍 Burger Music Lanus</option>
+        </select>
+        <div class="user-profile" style="display: flex; align-items: center; gap: 12px; padding: 0; cursor: pointer;">
+            <div class="avatar" style="width: 32px; height: 32px; font-size: 14px; background: #EA580C; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">G</div>
+            <div style="display: flex; flex-direction: column; overflow: hidden;">
+                <span style="font-size: 12px; font-weight: 600; color: white; white-space: nowrap;">gabriel@burgermusic.com</span>
+                <span style="font-size: 11px; color: #94A3B8;">Administrador</span>
+            </div>
+        </div>
+    </div>
+</aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Topbar Removed -->
+
+        <!-- Module Header -->
+        <div class="module-header">
+            <div class="page-title">
+                <h1>Ingresóo de Remitos / Facturas</h1>
+            </div>
+            
+            <div class="mode-toggle">
+                <button class="toggle-btn active" id="btn-ia" onclick="setMode('ia')">
+                    <i class="ri-robot-2-fill"></i> Extracción IA
+                </button>
+                <button class="toggle-btn" id="btn-manual" onclick="setMode('manual')">
+                    <i class="ri-keyboard-line"></i> Carga Manual
+                </button>
+            </div>
+        </div>
+
+        <!-- Workspace -->
+        <div class="workspace-body">
+            
+            <!-- LEFT PANEL: DOC VISUALIZER (Hides in manual mode) -->
+            <div class="panel-left">
+                <div class="doc-container" id="docViewer">
+                    <div class="doc-overlay-highlight" id="highlightBox"></div>
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL: GRID -->
+            <div class="panel-right">
+                
+                <div class="form-header">
+                    <div class="metadata-grid">
+                        <div class="form-group">
+                            <label class="form-label">Proveedor Identificado</label>
+                            <select class="form-input" style="font-weight: 700;">
+                                <option>Panificadora El Sol S.R.L.</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Fecha del Comprobante</label>
+                            <input type="date" class="form-input" value="2026-07-31">
+                        </div>
+                        <div class="form-group" id="manual-total" style="display: none;">
+                            <label class="form-label">Total Declarado</label>
+                            <input type="text" class="form-input" placeholder="$0.00">
+                        </div>
+                    </div>
+
+                    <!-- MATH CHECK (Solo Visible en modo IA) -->
+                    <div class="math-check-card" id="mathCard">
+                        <div>
+                            <div class="form-label" style="margin-bottom: 4px;">Total Extraído del Papel</div>
+                            <input type="text" class="math-total" value="$45.200">
+                        </div>
+                        <div class="math-status">
+                            <i class="ri-error-warning-fill" style="font-size: 20px;"></i>
+                            <span>Descalce: La suma da $50.500</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lines-table">
+                    <div class="lines-table-header">
+                        <div></div>
+                        <div>Cant</div>
+                        <div>Producto (Catálogo)</div>
+                        <div>Presentación</div>
+                        <div>Equivalencia</div>
+                        <div>P. Unit</div>
+                        <div>Subtotal</div>
+                        <div></div>
+                    </div>
+
+                    <!-- Fila 1 -->
+                    <div class="line-row row-success">
+                        <div class="confidence-indicator"><i class="ri-checkbox-circle-fill conf-success"></i></div>
+                        <input type="number" class="line-input" value="10">
+                        <select class="line-input"><option selected>Pan Hamburguesa Trad.</option></select>
+                        <div class="unit-cell">
+                            <select class="unit-selector" onchange="if(this.value==='__new__') { openModal('Pan Hamburguesa Trad.'); this.selectedIndex=0; }">
+                                <option value="Bolsa" selected>Bolsa 🛍️</option>
+                                <option value="__new__">+ Nueva presentación...</option>
+                            </select>
+                            <div class="unit-hint visible"><span class="family-badge family-peso">Conteo</span></div>
+                        </div>
+                        <div><div class="equiv-badge">10 Unidades</div></div>
+                        <input type="text" class="line-input" value="$1.500">
+                        <input type="text" class="line-input calculated subtotal-ok" value="$15.000" readonly>
+                        <button class="icon-del"><i class="ri-delete-bin-line"></i></button>
+                    </div>
+
+                    <!-- Fila 2 (Mapeo Inteligente) -->
+                    <div class="line-row row-warning" tabindex="0">
+                        <div class="confidence-indicator"><i class="ri-alert-fill conf-warning"></i></div>
+                        <input type="number" class="line-input" value="5">
+                        <div style="position: relative; width: 100%;">
+                            <input type="text" class="line-input highlight-warning" value="Pan Sanguche">
+                            <div class="suggestion-dropdown">
+                                <div style="padding: 8px 12px; background: #F8FAFC; font-size: 11px; font-weight: 700; color: var(--text-muted);">SUGERENCIAS (MISMO PROVEEDOR)</div>
+                                <div class="sugg-item">Pan TBP</div>
+                                <div style="padding: 8px 12px; background: #F8FAFC; font-size: 11px; font-weight: 700; color: var(--text-muted);">ACCIONES</div>
+                                <div class="sugg-item" style="color: var(--brand-primary); font-weight: 700;" onclick="openModal('Pan Sanguche')"><i class="ri-add-line"></i> Crear como Desconocido</div>
+                            </div>
+                        </div>
+                        <div class="unit-cell">
+                            <select class="unit-selector" onchange="if(this.value==='__new__') { openModal('Pan Sanguche'); this.selectedIndex=0; }">
+                                <option value="Bolsa" selected>Bolsa 🛍️</option>
+                                <option value="__new__">+ Nueva presentación...</option>
+                            </select>
+                            <div class="unit-hint visible"><span class="family-badge family-peso">Conteo</span></div>
+                        </div>
+                        <div><div class="equiv-badge">5 Unidades</div></div>
+                        <input type="text" class="line-input" value="$1.100">
+                        <input type="text" class="line-input calculated" value="$5.500" readonly>
+                        <button class="icon-del"><i class="ri-delete-bin-line"></i></button>
+                    </div>
+
+                    <!-- Fila 3 (Error Precio) -->
+                    <div class="line-row row-danger">
+                        <div class="confidence-indicator"><i class="ri-error-warning-fill conf-danger"></i></div>
+                        <input type="number" class="line-input" value="2">
+                        <select class="line-input"><option selected>Cheddar Fetas</option></select>
+                        <div class="unit-cell">
+                            <select class="unit-selector" onchange="if(this.value==='__new__') { openModal('Cheddar Fetas'); this.selectedIndex=0; }">
+                                <option value="Bolsa" selected>Bolsa 🛍️</option>
+                                <option value="__new__">+ Nueva presentación...</option>
+                            </select>
+                            <div class="unit-hint visible"><span class="family-badge family-peso">Conteo</span></div>
+                        </div>
+                        <div><div class="equiv-badge">2 Unidades</div></div>
+                        <input type="text" class="line-input highlight-danger" value="$15.000">
+                        <input type="text" class="line-input calculated highlight-danger" value="$30.000" readonly>
+                        <button class="icon-del"><i class="ri-delete-bin-line"></i></button>
+                    </div>
+
+                    <button class="btn-add-row"><i class="ri-add-line"></i> Añadir ítem manualmente</button>
+                </div>
+
+                <div class="action-footer">
+                    <button class="btn-secondary">Guardar Borrador</button>
+                    <button class="btn-primary">Aprobar e Ingresóar a Stock</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ============================================= -->
+    <!-- MODAL: CONVERSOR GUIADO DE PRESENTACIONES     -->
+    <!-- ============================================= -->
+    <div class="modal-overlay" id="modalPresentation">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2><i class="ri-lightbulb-flash-fill" style="color: var(--brand-primary);"></i> Nueva forma de comprar este producto</h2>
+                <p>Enseñale al sistema cómo viene <span class="product-name" id="modal-product-name">Bondiola base</span> cuando lo comprás a este proveedor.</p>
+            </div>
+
+            <div class="modal-body">
+
+                <!-- MAD-LIBS SENTENCE -->
+                <div class="sentence-builder">
+                    <div class="sentence-line">
+                        <span class="sentence-static">Yo compro</span>
+                        <input type="number" class="sentence-input" id="input-qty" placeholder="1" value="1" min="1" style="width: 60px;" oninput="updateConversion()">
+                    </div>
+                    <div style="margin: 12px 0 4px 0; font-size: 13px; font-weight: 700; color: var(--text-muted);">¿En qué vieneÍ (elegí uno)</div>
+                    <div class="chip-group" id="chips-format">
+                        <button class="chip" onclick="selectChip('format', this, 'Bolsa')">Bolsa</button>
+                        <button class="chip" onclick="selectChip('format', this, 'Caja')">Caja</button>
+                        <button class="chip" onclick="selectChip('format', this, 'Bidón')">Bidón</button>
+                        <button class="chip" onclick="selectChip('format', this, 'Balde')">Balde</button>
+                        <button class="chip" onclick="selectChip('format', this, 'Bulto')">Bulto</button>
+                        <button class="chip" onclick="selectChip('format', this, 'Pack')">Pack</button>
+                        <button class="chip" onclick="selectChip('format', this, 'Unidad')">Unidad</button>
+                    </div>
+
+                    <div class="sentence-line" style="margin-top: 20px;">
+                        <span class="sentence-static">y adentro trae</span>
+                        <input type="number" class="sentence-input" id="input-content" placeholder="5" min="0.01" step="any" style="width: 80px;" oninput="updateConversion()">
+                    </div>
+                    <div style="margin: 12px 0 4px 0; font-size: 13px; font-weight: 700; color: var(--text-muted);">¿De qué medidaÍ (elegí una)</div>
+                    <div class="chip-group" id="chips-unit">
+                        <button class="chip" onclick="selectChip('unit', this, 'Kilos')">Kilos</button>
+                        <button class="chip" onclick="selectChip('unit', this, 'Gramos')">Gramos</button>
+                        <button class="chip" onclick="selectChip('unit', this, 'Litros')">Litros</button>
+                        <button class="chip" onclick="selectChip('unit', this, 'Mililitros')">Mililitros</button>
+                        <button class="chip" onclick="selectChip('unit', this, 'Unidades')">Unidades</button>
+                    </div>
+                </div>
+
+                <!-- FEEDBACK RESULT (aparece solo cuando los 2 chips están seleccionados) -->
+                <div class="conversion-result" id="conversionResult">
+                    <i class="ri-checkbox-circle-fill"></i>
+                    <p id="conversionText">...</p>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button class="modal-btn-cancel" onclick="closeModal()">Cancelar</button>
+                <button class="modal-btn-save" id="btnSavePresentation" onclick="savePresentation()">Crear y usar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle UI modes
+        function setMode(mode) {
+            const body = document.body;
+            const btnIA = document.getElementById('btn-ia');
+            const btnManual = document.getElementById('btn-manual');
+            const mathCard = document.getElementById('mathCard');
+            const manualTotal = document.getElementById('manual-total');
+            const emptyRow = document.querySelector('.row-empty');
+
+            if(mode === 'ia') {
+                body.className = 'mode-ia';
+                btnIA.classList.add('active');
+                btnManual.classList.remove('active');
+                mathCard.style.display = 'flex';
+                manualTotal.style.display = 'none';
+                emptyRow.style.display = 'none';
+            } else {
+                body.className = 'mode-manual';
+                btnManual.classList.add('active');
+                btnIA.classList.remove('active');
+                mathCard.style.display = 'none';
+                manualTotal.style.display = 'flex';
+                emptyRow.style.display = 'grid'; 
+            }
+        }
+
+        // ====================================
+        // MODAL: Conversor de Presentaciones
+        // ====================================
+        let selectedFormat = null;
+        let selectedUnit = null;
+
+        function openModal(productName) {
+            document.getElementById('modal-product-name').textContent = productName || 'Bondiola base';
+            document.getElementById('modalPresentation').classList.add('active');
+            // Reset state
+            selectedFormat = null;
+            selectedUnit = null;
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            document.getElementById('conversionResult').classList.remove('visible');
+            document.getElementById('btnSavePresentation').classList.remove('enabled');
+            document.getElementById('input-qty').value = '1';
+            document.getElementById('input-content').value = '';
+        }
+
+        function closeModal() {
+            document.getElementById('modalPresentation').classList.remove('active');
+        }
+
+        function selectChip(group, el, value) {
+            // Deselect siblings
+            el.closest('.chip-group').querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+
+            if (group === 'format') selectedFormat = value;
+            if (group === 'unit') selectedUnit = value;
+
+            updateConversion();
+        }
+
+        function updateConversion() {
+            const qty = parseFloat(document.getElementById('input-qty').value) || 0;
+            const content = parseFloat(document.getElementById('input-content').value) || 0;
+            const resultEl = document.getElementById('conversionResult');
+            const textEl = document.getElementById('conversionText');
+            const btnSave = document.getElementById('btnSavePresentation');
+
+            if (selectedFormat && selectedUnit && content > 0 && qty > 0) {
+                // Conversion table to base unit (grams / ml / units)
+                const conversionTable = {
+                    'Kilos': { factor: 1000, base: 'gramos' },
+                    'Gramos': { factor: 1, base: 'gramos' },
+                    'Litros': { factor: 1000, base: 'mililitros' },
+                    'Mililitros': { factor: 1, base: 'mililitros' },
+                    'Unidades': { factor: 1, base: 'unidades' }
+                };
+                const conv = conversionTable[selectedUnit];
+                const totalBase = content * conv.factor;
+                const totalFormatted = totalBase.toLocaleString('es-AR');
+
+                textEl.innerHTML = `<strong>Perfecto.</strong> Cada vez que cargues <strong>${qty} ${selectedFormat}</strong> de <strong>${document.getElementById('modal-product-name').textContent}</strong>, el sistema sumará <strong>${totalFormatted} ${conv.base}</strong> al stock.`;
+                resultEl.classList.add('visible');
+                btnSave.classList.add('enabled');
+            } else {
+                resultEl.classList.remove('visible');
+                btnSave.classList.remove('enabled');
+            }
+        }
+
+        function savePresentation() {
+            // En producción, esto envía a la API.
+            // En el prototipo, simplemente cerramos con un feedback.
+            alert('Presentación creada con éxito. Se usará automáticamente en futuras compras de este artículo.');
+            closeModal();
+        }
+
+        // Hacer clic en la celda de Unidad ("Bolsas") de la Fila 1 para simular la creación
+        document.addEventListener('DOMContentLoaded', () => {
+            // El botón "+Añadir ítem" abre el modal como demo
+            const addBtn = document.querySelector('.btn-add-row');
+            // No sobreescribimos, añadimos un listener específico para el test
+        });
+    </script>
+
+
+    <!-- MODAL: MAD-LIBS PRESENTACIONES  -->
+    <!-- =============================== -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2><i class="ri-lightbulb-flash-fill" style="color: var(--brand-primary);"></i> Nueva forma de comprar este producto</h2>
+                <p>Enseñale al sistema cómo viene <strong class="product-name" id="m-pname">este artículo</strong> cuando lo comprás a este proveedor.<br>Será recordado para las próximas compras.</p>
+            </div>
+            <div class="modal-body">
+                
+                <div class="sentence-builder">
+                    <!-- ROW 1 -->
+                    <div class="sentence-line" id="ml-step-1">
+                        <span class="sentence-static">Voy a comprarlo por</span>
+                        <select class="sentence-input" style="width: auto;" id="m-fmt" onchange="checkModalSteps()">
+                            <option value="" disabled selected>¿Qué envase?</option>
+                            <option value="Bolsa">Bolsa 🛍️</option>
+                            <option value="Caja">Caja 📦</option>
+                            <option value="Bidón">Bidón 🛢️</option>
+                            <option value="Balde">Balde 🪣</option>
+                        </select>
+                        <span class="sentence-static">de <strong class="product-name" id="m-pname-inline">Tomate</strong>.</span>
+                    </div>
+
+                    <!-- ROW 2 -->
+                    <div class="sentence-line" style="margin-top: 16px; opacity: 0.4; pointer-events: none;" id="ml-step-2">
+                        <span class="sentence-static">Y cada envase trae</span>
+                        <input type="number" class="sentence-input" id="m-content" placeholder="-" min="0.01" step="any" oninput="calcModal()">
+                        <select class="sentence-input" style="width: auto;" id="m-unit" onchange="calcModal()">
+                            <option value="" disabled selected>¿De qué medida?</option>
+                            <optgroup label="Peso ⚖️">
+                                <option value="kg" data-ic="ri-scales-3-line">Kilos (kg)</option>
+                                <option value="g" data-ic="ri-scales-3-line">Gramos (g)</option>
+                            </optgroup>
+                            <optgroup label="Conteo 🔢">
+                                <option value="u" data-ic="ri-apps-2-line">Unidades (u)</option>
+                                <option value="doc" data-ic="ri-apps-2-line">Docenas</option>
+                            </optgroup>
+                            <optgroup label="Volumen 💧">
+                                <option value="l" data-ic="ri-drop-line">Litros (L)</option>
+                                <option value="ml" data-ic="ri-drop-line">Mililitros (ml)</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="conversion-result" id="m-feedback">
+                    <i class="ri-check-double-line"></i>
+                    <p>Perfecto. Cada vez que compres <strong>1 <span id="r-fmt">Envase</span></strong> de <span id="r-prod">Tomate</span>, van a ingresar <strong><span id="r-qty">X</span> <span id="r-unit">Unidades</span></strong> a tu stock real.</p>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn-cancel" onclick="closeModal()">Cancelar</button>
+                <button class="modal-btn-save" id="m-save" onclick="closeModal()">Crear y usar presentación</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts Básicos -->
+    <script>
+        function checkModalSteps() {
+            const fmt = document.getElementById('m-fmt').value;
+            const step2 = document.getElementById('ml-step-2');
+            
+            if (fmt) {
+                step2.style.opacity = '1';
+                step2.style.pointerEvents = 'auto';
+            }
+            calcModal();
+        }
+
+        function calcModal() {
+            const fmt = document.getElementById('m-fmt').options[document.getElementById('m-fmt').selectedIndex]?.text;
+            const cnt = document.getElementById('m-content').value;
+            const unt = document.getElementById('m-unit').options[document.getElementById('m-unit').selectedIndex]?.text;
+            
+            const fb = document.getElementById('m-feedback');
+            const saveBtn = document.getElementById('m-save');
+
+            if (fmt && cnt > 0 && document.getElementById('m-unit').value) {
+                document.getElementById('r-fmt').innerText = fmt;
+                document.getElementById('r-qty').innerText = cnt;
+                document.getElementById('r-unit').innerText = unt;
+                fb.classList.add('visible');
+                saveBtn.classList.add('enabled');
+            } else {
+                fb.classList.remove('visible');
+                saveBtn.classList.remove('enabled');
+            }
+        }
+
+        function openModal(prodName) {
+            document.getElementById('m-pname').innerText = prodName;
+            document.getElementById('m-pname-inline').innerText = prodName;
+            document.getElementById('r-prod').innerText = prodName;
+            
+            // Reset modal
+            document.getElementById('m-fmt').selectedIndex = 0;
+            document.getElementById('m-content').value = '';
+            document.getElementById('m-unit').selectedIndex = 0;
+            document.getElementById('ml-step-2').style.opacity = '0.4';
+            document.getElementById('ml-step-2').style.pointerEvents = 'none';
+            document.getElementById('m-feedback').classList.remove('visible');
+            document.getElementById('m-save').classList.remove('enabled');
+
+            document.getElementById('modal-overlay').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modal-overlay').classList.remove('active');
+        }
+
+        document.getElementById('modal-overlay').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Financiero — BurgerMusic OS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Lato:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-body: #F4F7F9;
+            --bg-surface: #FFFFFF;
+            --bg-sidebar: #1E293B;
+            --brand-primary: #EA580C;
+            --brand-primary-hover: #C2410C;
+            --brand-surface: #FFF7ED;
+            
+            --text-main: #0F172A;
+            --text-muted: #64748B;
+            --text-sidebar: #CBD5E1;
+            --text-sidebar-active: #FFFFFF;
+            
+            --color-in: #10B981;
+            --color-out: #EF4444;
+            --color-neutral: #3B82F6;
+            
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+            
+            --transition-fast: 0.15s ease-in-out;
+            --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Lato', sans-serif; background-color: var(--bg-body); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+        h1, h2, h3, h4, h5, h6, .montserrat { font-family: 'Montserrat', sans-serif; }
+
+        /* --- UNIFIED SIDEBAR CSS --- */
+        .sidebar { width: 260px; background-color: var(--bg-sidebar); display: flex; flex-direction: column; transition: var(--transition-smooth); z-index: 10; box-shadow: var(--shadow-lg); }
+        .sidebar-nav { padding: 16px 12px; flex: 1; overflow-y: auto; }
+        .nav-item { display: flex; align-items: center; padding: 12px 16px; color: var(--text-sidebar); text-decoration: none; border-radius: 8px; margin-bottom: 4px; transition: var(--transition-fast); font-size: 15px; font-weight: 500; }
+        .nav-item i { margin-right: 12px; font-size: 20px; transition: var(--transition-fast); }
+        .nav-item:hover { background-color: rgba(255,255,255,0.05); color: var(--text-sidebar-active); }
+        .nav-item.active { background-color: var(--brand-primary, #EA580C); color: white; box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3); }
+        .nav-dropdown { display: flex; flex-direction: column; }
+        .nav-dropdown .nav-item { width: 100%; }
+        .nav-dropdown .chevron { margin-left: auto; margin-right: 0; transition: transform 0.3s ease; }
+        .nav-dropdown.open .chevron { transform: rotate(180deg); }
+        .nav-submenu { display: none; flex-direction: column; background: rgba(0,0,0,0.2); padding: 8px 0; margin: 4px 16px; border-radius: 8px; }
+        .nav-dropdown.open .nav-submenu { display: flex; }
+        .submenu-item { padding: 10px 16px 10px 42px; color: var(--text-sidebar); text-decoration: none; font-size: 13px; transition: var(--transition-fast); border-radius: 6px; margin: 2px 8px; }
+        .submenu-item:hover { color: white; background-color: rgba(255,255,255,0.05); }
+        .submenu-item.active { color: var(--brand-primary); font-weight: bold; background-color: rgba(234, 88, 12, 0.1); }
+        .sidebar-nav::-webkit-scrollbar { width: 6px; }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .sidebar-nav::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+        /* --- MAIN CONTENT --- */
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
+        
+        .page-header { padding: 32px 40px; display: flex; justify-content: space-between; align-items: flex-end; background: white; border-bottom: 1px solid #E2E8F0; z-index: 5;}
+        .page-header h1 { font-family: 'Montserrat'; font-weight: 800; font-size: 28px; color: var(--text-main); margin-bottom: 4px; }
+        .page-header p { font-size: 14px; color: var(--text-muted); }
+
+        .date-picker-group { display: flex; align-items: center; background: #F8FAFC; border: 1px solid #CBD5E1; border-radius: 8px; overflow: hidden;}
+        .date-btn { padding: 10px 16px; background: none; border: none; font-family: 'Montserrat'; font-weight: 700; font-size: 13px; color: var(--text-muted); cursor: pointer; transition: 0.2s; border-right: 1px solid #CBD5E1; }
+        .date-btn:last-child { border-right: none; }
+        .date-btn:hover { background: #E2E8F0; color: var(--text-main); }
+        .date-btn.active { background: white; color: var(--brand-primary); box-shadow: 0 0 10px rgba(0,0,0,0.05); }
+
+        .content-area { padding: 32px 40px; max-width: 1400px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; gap: 24px;}
+
+        /* MODULAR GRID (Material Design Elevación) */
+        .grid-row { display: grid; gap: 24px; }
+        .grid-top { grid-template-columns: repeat(4, 1fr); }
+        .grid-mid { grid-template-columns: 2fr 1fr; }
+        
+        .card { background: white; border-radius: 16px; padding: 24px; box-shadow: var(--shadow-md); border: 1px solid rgba(0,0,0,0.02); transition: var(--transition-smooth); }
+        .card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+        
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+        .card-title { font-size: 13px; font-weight: 700; font-family: 'Montserrat'; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; }
+        
+        /* KPI Cards */
+        .kpi-value { font-family: 'Montserrat', sans-serif; font-variant-numeric: tabular-nums; font-size: 28px; font-weight: 700; color: var(--text-main); margin-bottom: 8px; letter-spacing: -0.5px; }
+        .kpi-trend { font-size: 13px; display: flex; align-items: center; gap: 4px; font-weight: 600; }
+        .trend-up { color: var(--color-in); }
+        .trend-down { color: var(--color-out); }
+        
+        /* Chart Containers */
+        .chart-container { position: relative; height: 300px; width: 100%; }
+        .donut-container { position: relative; height: 240px; width: 100%; display: flex; justify-content: center; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.3); }
+
+    </style>
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="sidebar-header" style="padding: 24px; display: flex; align-items: center; gap: 12px; color: white; border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <div style="width: 28px;height: 28px;background:#000;border-radius: 4px;display: flex;align-items: center;justify-content: center;color: white;font-weight: 800;font-size: 11px;">BM</div>
+        <span style="font-family: 'Montserrat'; font-weight: 800; font-size: 14px; color: white;">BurgerMusic</span>
+    </div>
+    
+    <nav class="sidebar-nav">
+        <a href="dashboard_prototipo.html" class="nav-item"><i class="ri-home-4-line"></i> Inicio</a>
+        
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-shopping-bag-line"></i> Compras
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="compras_inbox_prototipo.html" class="submenu-item">Facturas</a>
+                <a href="compras_proveedores_prototipo.html" class="submenu-item">Proveedores</a>
+                <a href="compras_ordenes_prototipo.html" class="submenu-item">Órdenes de compra</a>
+                <a href="compras_recepciones_prototipo.html" class="submenu-item">Recepciones</a>
+            </div>
+        </div>
+
+        <a href="produccion_gerencial_prototipo.html" class="nav-item"><i class="ri-hammer-line"></i> Producción</a>
+        <a href="inventario_prototipo.html" class="nav-item"><i class="ri-box-3-line"></i> Inventario</a>
+
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-line-chart-line"></i> Ventas
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="ventas_dashboard_prototipo.html" class="submenu-item">Dashboard</a>
+                <a href="pos_prototipo.html" class="submenu-item">Nueva venta</a>
+                <a href="ventas_historial_prototipo.html" class="submenu-item">Historial de Tickets</a>
+                <a href="ventas_sincronizacion_prototipo.html" class="submenu-item">Sincronización</a>
+                <a href="ventas_cierre_z_prototipo.html" class="submenu-item">Cierre Z</a>
+            </div>
+        </div>
+
+        <div class="nav-dropdown open">
+            <a href="#" class="nav-item nav-dropdown-toggle active" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-bank-card-line"></i> Finanzas
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="finanzas_dashboard_prototipo.html" class="submenu-item active">Dashboard</a>
+                <a href="finanzas_movimientos_prototipo.html" class="submenu-item">Mov. caja</a>
+                <a href="finanzas_cuentas_pagar_prototipo.html" class="submenu-item">Cuentas por pagar</a>
+                <a href="finanzas_categorias_prototipo.html" class="submenu-item">Categorías financieras</a>
+            </div>
+        </div>
+        
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-safe-line"></i> Caja
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="caja_gastos_eventuales_prototipo.html" class="submenu-item">Gastos eventuales</a>
+                <a href="caja_gastos_fijos_prototipo.html" class="submenu-item">Gastos fijos</a>
+                <a href="caja_ingresos_extra_prototipo.html" class="submenu-item">Ingresos extra</a>
+            </div>
+        </div>
+
+        <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #475569; padding: 16px 14px 6px;">Operación</div>
+        <a href="pos_prototipo.html" class="nav-item"><i class="ri-store-2-line"></i> Punto de Venta</a>
+        <a href="kds_prototipo.html" class="nav-item"><i class="ri-restaurant-line"></i> Cocina</a>
+        <a href="delivery_prototipo.html" class="nav-item"><i class="ri-e-bike-2-line"></i> Delivery</a>
+        <a href="cajas_prototipo.html" class="nav-item"><i class="ri-money-dollar-box-line"></i> Caja POS</a>
+        <a href="produccion_prototipo.html" class="nav-item"><i class="ri-smartphone-line"></i> Producción (Móvil)</a>
+        <a href="auditoria_deposito_prototipo.html" class="nav-item"><i class="ri-clipboard-line"></i> Auditoría (Móvil)</a>
+    </nav>
+
+    <div style="margin-top: auto; padding: 20px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 16px;">
+        <select class="branch-select" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px; font-size: 13px; border-radius: 8px;">
+            <option value="lanus" selected style="color: black;">📍 Burger Music Lanus</option>
+        </select>
+        <div class="user-profile" style="display: flex; align-items: center; gap: 12px; padding: 0; cursor: pointer;">
+            <div class="avatar" style="width: 32px; height: 32px; font-size: 14px; background: #EA580C; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">G</div>
+            <div style="display: flex; flex-direction: column; overflow: hidden;">
+                <span style="font-size: 12px; font-weight: 600; color: white; white-space: nowrap;">gabriel@burgermusic.com</span>
+                <span style="font-size: 11px; color: #94A3B8;">Administrador</span>
+            </div>
+        </div>
+    </div>
+</aside>
+
+<main class="main-content">
+    <div class="page-header">
+        <div>
+            <h1>Dashboard Financiero</h1>
+            <p>Salud financiera en tiempo real. Análisis de rentabilidad y flujos.</p>
+        </div>
+        <div class="date-picker-group">
+            <button class="date-btn">Hoy</button>
+            <button class="date-btn">Últimos 7 días</button>
+            <button class="date-btn active">Este Mes</button>
+            <button class="date-btn">Año</button>
+        </div>
+    </div>
+
+    <div class="content-area">
+        
+        <div class="grid-row grid-top">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Ingresos Netos</span>
+                    <i class="ri-arrow-right-up-line" style="color: var(--color-in); font-size: 20px;"></i>
+                </div>
+                <div class="kpi-value">$ 14.520.300</div>
+                <div class="kpi-trend trend-up"><i class="ri-funds-line"></i> +12.5% vs mes ant.</div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Egresos Operativos</span>
+                    <i class="ri-arrow-right-down-line" style="color: var(--color-out); font-size: 20px;"></i>
+                </div>
+                <div class="kpi-value">$ 8.240.100</div>
+                <div class="kpi-trend trend-up" style="color: var(--text-muted);"><i class="ri-equal-line"></i> Estable vs mes ant.</div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Resultado Operativo</span>
+                    <i class="ri-scales-3-line" style="color: var(--color-neutral); font-size: 20px;"></i>
+                </div>
+                <div class="kpi-value" style="color: var(--color-in);">$ 6.280.200</div>
+                <div class="kpi-trend trend-up"><i class="ri-funds-line"></i> +18.2% vs mes ant.</div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Margen Neto Est.</span>
+                    <i class="ri-pie-chart-2-line" style="color: var(--color-neutral); font-size: 20px;"></i>
+                </div>
+                <div class="kpi-value">43.2%</div>
+                <div class="kpi-trend trend-up"><i class="ri-funds-line"></i> +2.1% vs mes ant.</div>
+            </div>
+        </div>
+
+        <div class="grid-row grid-mid">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Flujo de Caja Diario (Ingresos vs Egresos)</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="flowChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Distribución de Egresos</span>
+                </div>
+                <div class="donut-container">
+                    <canvas id="expenseChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<script>
+    // Inicialización de Chart.js con animaciones fluidas
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        Chart.defaults.font.family = "'Lato', sans-serif";
+        Chart.defaults.color = "#64748B";
+        
+        // 1. Gráfico de Flujo de Caja (Líneas)
+        const ctxFlow = document.getElementById('flowChart').getContext('2d');
+        
+        const gradientIn = ctxFlow.createLinearGradient(0, 0, 0, 300);
+        gradientIn.addColorStop(0, 'rgba(16, 185, 129, 0.2)');
+        gradientIn.addColorStop(1, 'rgba(16, 185, 129, 0)');
+        
+        const gradientOut = ctxFlow.createLinearGradient(0, 0, 0, 300);
+        gradientOut.addColorStop(0, 'rgba(239, 68, 68, 0.2)');
+        gradientOut.addColorStop(1, 'rgba(239, 68, 68, 0)');
+
+        new Chart(ctxFlow, {
+            type: 'line',
+            data: {
+                labels: ['01/08', '02/08', '03/08', '04/08', '05/08', '06/08', '07/08'],
+                datasets: [
+                    {
+                        label: 'Ingresos',
+                        data: [420000, 480000, 450000, 520000, 610000, 680000, 720000],
+                        borderColor: '#10B981',
+                        backgroundColor: gradientIn,
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#FFFFFF',
+                        pointBorderColor: '#10B981',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    },
+                    {
+                        label: 'Egresos',
+                        data: [150000, 200000, 180000, 420000, 210000, 190000, 230000],
+                        borderColor: '#EF4444',
+                        backgroundColor: gradientOut,
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#FFFFFF',
+                        pointBorderColor: '#EF4444',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        align: 'end',
+                        labels: { usePointStyle: true, boxWidth: 8, font: { weight: '600' } }
+                    },
+                    tooltip: {
+                        backgroundColor: '#1E293B',
+                        titleFont: { family: 'Montserrat', size: 13 },
+                        bodyFont: { family: 'Montserrat', size: 14, weight: '500' },
+                        padding: 12,
+                        cornerRadius: 8,
+                        displayColors: true
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#F1F5F9', drawBorder: false },
+                        ticks: { callback: function(value) { return '$' + (value/1000) + 'k'; } }
+                    },
+                    x: {
+                        grid: { display: false, drawBorder: false }
+                    }
+                },
+                animation: {
+                    duration: 2000,
+                    easing: 'easeOutQuart'
+                }
+            }
+        });
+
+        // 2. Gráfico de Distribución de Egresos (Doughnut)
+        const ctxExpense = document.getElementById('expenseChart').getContext('2d');
+        new Chart(ctxExpense, {
+            type: 'doughnut',
+            data: {
+                labels: ['Materia Prima', 'Sueldos', 'Impuestos', 'Marketing', 'Otros'],
+                datasets: [{
+                    data: [45, 25, 15, 10, 5],
+                    backgroundColor: [
+                        '#EA580C', // Brand
+                        '#3B82F6', // Blue
+                        '#F59E0B', // Yellow
+                        '#8B5CF6', // Purple
+                        '#CBD5E1'  // Gray
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '75%',
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { usePointStyle: true, padding: 20, font: { size: 12 } }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return ' ' + context.label + ': ' + context.parsed + '%';
+                            }
+                        },
+                        backgroundColor: '#1E293B',
+                        bodyFont: { family: 'Montserrat', size: 13 },
+                        padding: 12,
+                        cornerRadius: 8
+                    }
+                },
+                animation: {
+                    animateScale: true,
+                    animateRotate: true,
+                    duration: 2000,
+                    easing: 'easeOutQuart'
+                }
+            }
+        });
+
+    });
+</script>
+
+</body>
+</html>

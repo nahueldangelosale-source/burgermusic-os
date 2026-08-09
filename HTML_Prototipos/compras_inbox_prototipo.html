@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compras — BurgerMusic OS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Lato:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :root {
+            /* Paleta de Colores Minimalista */
+            --bg-body: #F4F7F9;
+            --bg-surface: #FFFFFF;
+            --bg-sidebar: #1E293B; /* Tono oscuro elegante para el sidebar */
+            --brand-primary: #EA580C; /* Naranja refinado */
+            --brand-primary-hover: #C2410C;
+            --brand-surface: #FFF7ED; /* Fondo tenue para elementos activos */
+            
+            --text-main: #0F172A;
+            --text-muted: #64748B;
+            --text-sidebar: #CBD5E1;
+            --text-sidebar-active: #FFFFFF;
+            
+            /* Alertas */
+            --alert-high-bg: #FEF2F2;
+            --alert-high-text: #DC2626;
+            --alert-low-bg: #FFFBEB;
+            --alert-low-text: #D97706;
+            
+            /* Elevación (Sombras Material) */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+            
+            /* Transiciones (Microinteracciones) */
+            --transition-fast: 0.15s ease-in-out;
+            --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            
+            /* Bordes */
+            --radius-md: 12px;
+            --radius-lg: 16px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        h1, h2, h3, h4, h5, h6, .montserrat {
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        /* --- SIDEBAR --- */
+        /* --- MAIN CONTENT --- */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        /* --- CONCEPTOC: SELECTOR DE CONTEXTO --- */
+        .context-selector {
+            display: flex;
+            align-items: center;
+        }
+
+        .branch-select {
+            background-color: var(--bg-body);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--text-main);
+            outline: none;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            min-width: 250px;
+        }
+
+        .branch-select:focus {
+            border-color: var(--brand-primary);
+            box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1);
+        }
+
+        .topbar {
+            background-color: var(--bg-surface);
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-sm);
+            z-index: 5;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 30px;
+            transition: var(--transition-fast);
+        }
+        
+        .user-profile:hover {
+            background-color: var(--bg-body);
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            background-color: var(--brand-primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .content-area {
+            padding: 32px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .page-header {
+            margin-bottom: 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .page-title h1 {
+            font-size: 28px;
+            color: var(--text-main);
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .page-title p {
+            color: var(--text-muted);
+            font-size: 15px;
+        }
+
+        /* --- DASHBOARD WIDGETS --- */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .metric-card {
+            background: var(--bg-surface);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow-md);
+            transition: var(--transition-smooth);
+            border: 1px solid rgba(0,0,0,0.02);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* Microinteracción visual en hover */
+        .metric-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 4px;
+            background: var(--brand-primary);
+            opacity: 0;
+            transition: var(--transition-fast);
+        }
+        .metric-card:hover::after {
+            opacity: 1;
+        }
+
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .metric-title {
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--brand-surface);
+            color: var(--brand-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .metric-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 8px;
+        }
+
+        .metric-trend {
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .trend-up { color: #16A34A; }
+        .trend-down { color: #DC2626; }
+        .trend-neutral { color: var(--text-muted); }
+
+        /* --- ALERTAS DEL SISTEMA --- */
+        .alerts-section {
+            margin-bottom: 32px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            margin-bottom: 16px;
+            color: var(--text-main);
+        }
+
+        .alert-card {
+            display: flex;
+            align-items: center;
+            padding: 16px 20px;
+            border-radius: var(--radius-md);
+            margin-bottom: 12px;
+            gap: 16px;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition-fast);
+        }
+        
+        .alert-card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .alert-high {
+            background-color: var(--alert-high-bg);
+            border-left: 4px solid var(--alert-high-text);
+        }
+        
+        .alert-low {
+            background-color: var(--alert-low-bg);
+            border-left: 4px solid var(--alert-low-text);
+        }
+
+        .alert-icon-high { color: var(--alert-high-text); font-size: 24px; }
+        .alert-icon-low { color: var(--alert-low-text); font-size: 24px; }
+
+        .alert-content { flex: 1; }
+        .alert-title { font-weight: 700; font-family: 'Montserrat', sans-serif; font-size: 15px; margin-bottom: 4px; }
+        .alert-desc { font-size: 14px; color: var(--text-main); opacity: 0.8;}
+        .alert-high .alert-title { color: var(--alert-high-text); }
+        .alert-low .alert-title { color: var(--alert-low-text); }
+
+        .btn-action {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid currentColor;
+        }
+        
+        .alert-high .btn-outline:hover {
+            background: var(--alert-high-text);
+            color: white;
+        }
+
+        /* --- NUEVOS COMPONENTES DASHBOARD --- */
+        .donut-chart-container { display: flex; align-items: center; gap: 32px; margin-top: 16px; }
+        .donut-chart {
+            width: 140px; height: 140px; border-radius: 50%;
+            background: conic-gradient(var(--brand-primary) 0% 45%, #F59E0B 45% 70%, #10B981 70% 90%, #6366F1 90% 100%);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .donut-hole {
+            width: 100px; height: 100px; background-color: var(--bg-surface); border-radius: 50%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .donut-hole span:first-child { font-size: 12px; color: var(--text-muted); }
+        .donut-hole span:last-child { font-size: 18px; font-weight: 700; font-family: 'Montserrat'; }
+        .donut-legend { display: flex; flex-direction: column; gap: 12px; flex: 1; }
+        .legend-item { display: flex; align-items: center; justify-content: space-between; font-size: 14px; }
+        .legend-color { width: 12px; height: 12px; border-radius: 3px; margin-right: 8px; display: inline-block; }
+
+        .payments-list { display: flex; flex-direction: column; gap: 16px; margin-top: 16px;}
+        .payment-item { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .payment-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .payment-info h4 { font-size: 15px; font-weight: 600; margin-bottom: 2px;}
+        .payment-info p { font-size: 13px; color: var(--text-muted); }
+        .payment-tag { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; font-family: 'Montserrat'; letter-spacing: 0.5px;}
+        .tag-high { background-color: #F1F5F9; color: var(--text-main); border: 1px solid #CBD5E1; }
+        .tag-low { background-color: #F8FAFC; color: var(--text-muted); border: 1px solid #E2E8F0; }
+        
+        .metric-icon-bg { position: absolute; right: -10px; bottom: -20px; font-size: 90px; opacity: 0.04; z-index: 0; pointer-events: none; }
+        .metric-content { position: relative; z-index: 1; }
+        
+        .dashboard-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 32px; }
+        .widget-card { background: var(--bg-surface); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-md); border: 1px solid rgba(0,0,0,0.02); }
+        .widget-title { font-size: 16px; font-weight: 700; font-family: 'Montserrat'; color: var(--text-main); border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 12px; margin-bottom: 16px;}
+        
+        /* Acordeones (Details) */
+        details.widget-card { padding: 0; transition: all var(--transition-smooth); }
+        .widget-summary { padding: 20px 24px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; list-style: none; }
+        .widget-summary::-webkit-details-marker { display: none; }
+        .widget-summary .widget-title { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
+        .chevron-icon { font-size: 20px; color: var(--text-muted); transition: transform 0.2s; }
+        details[open] .chevron-icon { transform: rotate(180deg); }
+        .details-content { padding: 0 24px 24px 24px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 20px; }
+        
+        /* Barra Apilada de Canales */
+        .channels-bar-wrapper { margin-top: 12px; }
+        .channels-bar { display: flex; width: 100%; height: 12px; border-radius: 6px; overflow: hidden; cursor: default; }
+        .channels-bar-segment { height: 100%; transition: var(--transition-fast); }
+        .channels-bar:hover .channels-bar-segment { opacity: 0.5; }
+        .channels-bar-segment:hover { opacity: 1 !important; transform: scaleY(1.1); }
+        
+        .channels-details { display: flex; justify-content: space-between; opacity: 0; max-height: 0; overflow: hidden; transition: all var(--transition-smooth); }
+        .channels-bar-wrapper { cursor: pointer; padding-bottom: 12px; }
+        .channels-bar-wrapper.active .channels-details { opacity: 1; max-height: 100px; margin-top: 24px; }
+        .channel-stat { display: flex; flex-direction: column; align-items: flex-start; }
+        .channel-stat span { font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+        .channel-stat strong { font-family: 'Lato'; font-weight: 700; font-size: 16px; color: var(--text-main); margin-top: 4px; }
+        .channel-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+        
+        /* Inline Filters (Metric Cards) */
+        .inline-filters { display: flex; background: #F1F5F9; border-radius: 6px; padding: 2px; }
+        .filter-pill { font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 4px; cursor: pointer; color: var(--text-muted); transition: var(--transition-fast); }
+        .filter-pill.active { background: var(--bg-surface); color: var(--text-main); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+
+        /* Unified Alerts Bar */
+        .unified-alert-bar { display: flex; gap: 12px; margin-bottom: 24px; }
+        .alert-dropdown-container { position: relative; display: inline-block; }
+        .unified-alert { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 30px; font-size: 13px; font-weight: 600; box-shadow: var(--shadow-sm); cursor: pointer; user-select: none; transition: var(--transition-fast); white-space: nowrap; }
+        .unified-alert:hover { filter: brightness(0.95); }
+        .unified-alert i { font-size: 18px; }
+        
+        .stock-alert { background-color: var(--alert-high-bg); color: var(--alert-high-text); }
+        .payment-alert { background-color: var(--brand-surface); color: var(--brand-primary-hover); border: 1px solid rgba(234, 88, 12, 0.2); }
+        
+        /* Dropdown Estilos */
+        .alert-dropdown-menu { position: absolute; top: calc(100% + 8px); left: 0; background: white; border-radius: 12px; box-shadow: var(--shadow-lg); border: 1px solid #E2E8F0; width: 320px; z-index: 100; opacity: 0; visibility: hidden; transform: translateY(-10px); transition: var(--transition-fast); }
+        .alert-dropdown-menu.show { opacity: 1; visibility: visible; transform: translateY(0); }
+        .alert-dropdown-header { padding: 12px 16px; border-bottom: 1px solid #E2E8F0; font-weight: 700; font-size: 13px; }
+        .alert-dropdown-item { padding: 12px 16px; border-bottom: 1px solid #E2E8F0; font-size: 13px; }
+        .alert-dropdown-item:last-child { border-bottom: none; }
+        .alert-dropdown-action { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px; background: #F8FAFC; color: var(--brand-primary); font-weight: 700; text-decoration: none; border-radius: 0 0 12px 12px; transition: var(--transition-fast); }
+        .alert-dropdown-action:hover { background: #F1F5F9; color: var(--brand-primary-hover); }
+            /* TANGIBILIDAD Y MICROINTERACCIONES */
+        .widget-card { box-shadow: var(--shadow-md); border: 1px solid var(--border-light); transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .widget-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+
+        .btn-action-pulse { position: relative; overflow: hidden; }
+        .btn-action-pulse:active { transform: scale(0.95); transition: transform 0.1s; }
+        .btn-action-pulse::after {
+            content: ''; position: absolute; top: 50%; left: 50%; width: 5px; height: 5px; background: rgba(255, 255, 255, 0.5);
+            opacity: 0; border-radius: 100%; transform: scale(1, 1) translate(-50%); transform-origin: 50% 50%;
+        }
+        @keyframes ripple {
+            0% { transform: scale(0, 0); opacity: 0.5; }
+            20% { transform: scale(25, 25); opacity: 0.3; }
+            100% { opacity: 0; transform: scale(40, 40); }
+        }
+        .btn-action-pulse:focus:not(:active)::after { animation: ripple 0.5s ease-out; }
+    
+        /* ALERTAS PENDIENTES (Compras) */
+        .alerts-panel { background: var(--alert-low-bg); border: 1px solid #FCD34D; border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; display: flex; align-items: flex-start; gap: 12px; }
+        .alerts-panel i.alert-icon { font-size: 22px; color: var(--alert-low-text); flex-shrink: 0; margin-top: 2px; }
+        .alerts-body { flex: 1; }
+        .alerts-title { font-family: 'Montserrat'; font-weight: 700; font-size: 14px; color: #92400E; }
+        .alerts-list { margin-top: 6px; font-size: 13px; color: #92400E; line-height: 1.8; }
+        .alerts-list a { color: #B45309; font-weight: 700; text-decoration: underline; cursor: pointer; }
+
+        /* ONBOARDING (Compras) */
+        .onboarding { background: #DBEAFE; border: 2px solid #93C5FD; border-radius: 12px; padding: 18px 22px; margin-bottom: 24px; display: flex; align-items: center; gap: 14px; animation: slideDown 0.3s ease; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .onboarding i { font-size: 28px; color: #2563EB; flex-shrink: 0; }
+        .ob-text { flex: 1; }
+        .ob-text strong { font-family: 'Montserrat'; font-weight: 700; color: #1E40AF; }
+        .ob-text p { font-size: 13px; color: #1E40AF; margin-top: 4px; line-height: 1.5; }
+        .ob-close { background: none; border: none; font-size: 18px; color: #93C5FD; cursor: pointer; padding: 4px; }
+        .ob-close:hover { color: #1E40AF; }
+        
+        /* TIMELINE CARDS (Compras) */
+        .timeline { display: flex; flex-direction: column; background: white; border-radius: 12px; border: 1px solid var(--border-light); box-shadow: var(--shadow-sm); overflow: hidden; }
+        .timeline-header { display: flex; padding: 14px 22px 14px 60px; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; background: #F8FAFC; border-bottom: 1px solid var(--border-light); gap: 16px; align-items: center; }
+        .timeline-date { cursor: pointer; user-select: none; font-family: 'Montserrat'; font-weight: 700; font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; padding: 16px 22px; background: white; border-top: 1px solid var(--border-light); display: flex; align-items: center; gap: 8px; transition: color 0.2s; }
+        .timeline-group:first-child .timeline-date { border-top: none; }
+        .timeline-date:hover { color: var(--text-main); }
+        .timeline-date i { transition: transform 0.2s; }
+        .timeline-group.collapsed .timeline-date i { transform: rotate(-90deg); }
+        .timeline-group.collapsed .timeline-items { display: none; }
+        .timeline-items { display: flex; flex-direction: column; }
+        
+        .tl-card { background: white; padding: 16px 22px 16px 60px; border-bottom: 1px solid var(--border-light); display: flex; align-items: center; gap: 16px; transition: background 0.15s; cursor: pointer; }
+        .timeline-items .tl-card:last-child { border-bottom: none; }
+        .tl-card:hover { background: #F8FAFC; }
+        .tl-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+        .tl-icon.ok { background: #D1FAE5; color: #065F46; }
+        .tl-icon.pending { background: #FEF3C7; color: #92400E; }
+        .tl-icon.internal { background: #F3F4F6; color: #6B7280; }
+        .tl-icon.ai { background: #DBEAFE; color: #1E40AF; }
+        .tl-icon.error { background: #FEE2E2; color: #991B1B; }
+        .tl-icon.partial { background: #EDE9FE; color: #6D28D9; }
+        .tl-body { flex: 1; min-width: 0; }
+        .tl-title { font-family: 'Montserrat'; font-weight: 700; font-size: 14px; }
+        .tl-meta { font-size: 12px; color: var(--text-muted); margin-top: 3px; display: flex; gap: 12px; flex-wrap: wrap; }
+        .tl-meta span { display: flex; align-items: center; gap: 4px; }
+        .tl-badge { width: 130px; text-align: center; padding: 6px 10px; border-radius: 6px; font-family: 'Montserrat'; font-weight: 700; font-size: 11px; flex-shrink: 0; }
+        .tl-badge.ok { background: #D1FAE5; color: #065F46; }
+        .tl-badge.pending { background: #FEF3C7; color: #92400E; }
+        .tl-badge.internal { background: #F3F4F6; color: #6B7280; }
+        .tl-badge.ai { background: #DBEAFE; color: #1E40AF; }
+        .tl-badge.error { background: #FEE2E2; color: #991B1B; }
+        .tl-badge.partial { background: #EDE9FE; color: #6D28D9; }
+        .tl-amount { font-family: 'Montserrat'; font-weight: 800; font-size: 16px; text-align: right; flex-shrink: 0; width: 100px; }
+        .tl-action { width: 140px; text-align: center; padding: 8px 12px; border-radius: 8px; border: 2px solid var(--text-muted); font-family: 'Montserrat'; font-weight: 700; font-size: 12px; cursor: pointer; background: white; transition: 0.15s; flex-shrink: 0; color: var(--text-main); }
+        .tl-action:hover { border-color: var(--brand-primary); color: var(--brand-primary); }
+        .tl-action.cta { background: var(--brand-primary); color: white; border-color: var(--brand-primary); }
+        .tl-action.cta:hover { background: var(--brand-primary-hover); }
+        
+        /* Modal Flow (Compras) */
+        .overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.6); backdrop-filter: blur(4px); z-index: 200; display: none; justify-content: center; align-items: center; }
+        .overlay.open { display: flex; }
+        .modal-flow { background: white; border-radius: 20px; width: 640px; max-width: 95vw; box-shadow: var(--shadow-lg); animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes popIn { from { transform: scale(0.92) translateY(10px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+        .modal-flow-head { padding: 28px 32px 20px; }
+        .modal-flow-head h2 { font-family: 'Montserrat'; font-size: 20px; font-weight: 800; }
+        .modal-flow-head p { font-size: 14px; color: var(--text-muted); margin-top: 6px; line-height: 1.5; }
+        .modal-flow-body { padding: 0 32px 28px; display: flex; flex-direction: column; gap: 12px; }
+        .flow-option { display: flex; align-items: center; gap: 18px; padding: 20px 22px; border-radius: 14px; border: 2px solid var(--border-light); cursor: pointer; transition: 0.2s; }
+        .flow-option:hover { border-color: var(--brand-primary); background: var(--brand-surface); transform: translateX(4px); }
+        .fo-icon { width: 52px; height: 52px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; }
+        .fo-icon.manual { background: var(--brand-surface); color: var(--brand-primary); }
+        .fo-icon.email { background: #DBEAFE; color: #3B82F6; }
+        .fo-icon.nopaper { background: #F3F4F6; color: #6B7280; }
+        .fo-icon.order { background: #EDE9FE; color: #7C3AED; }
+        .fo-text h4 { font-family: 'Montserrat'; font-weight: 700; font-size: 15px; }
+        .fo-text p { font-size: 13px; color: var(--text-muted); margin-top: 3px; line-height: 1.4; }
+        .fo-arrow { font-size: 20px; color: var(--text-muted); margin-left: auto; transition: 0.2s; }
+        .flow-option:hover .fo-arrow { color: var(--brand-primary); transform: translateX(4px); }
+        .modal-flow-foot { padding: 16px 32px 24px; display: flex; justify-content: flex-end; border-top: 1px solid var(--border-light); }
+        .btn-cancel { background: none; border: 2px solid var(--text-muted); padding: 10px 22px; border-radius: 8px; font-family: 'Montserrat'; font-weight: 700; font-size: 14px; cursor: pointer; color: var(--text-muted); transition: 0.15s; }
+        .btn-cancel:hover { border-color: var(--text-main); color: var(--text-main); }
+    
+        /* COMPRAS STRUCTURAL RE-INJECTION */
+        .stats-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+        .stat-card { background: white; border-radius: 12px; padding: 18px 20px; border: 1px solid var(--border-light); box-shadow: var(--shadow-sm); }
+        .stat-card .label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; }
+        .stat-card .value { font-family: 'Montserrat'; font-size: 24px; font-weight: 800; margin-top: 6px; }
+        .stat-card .sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+        .filters-bar { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
+        .filter-chip { padding: 8px 16px; border-radius: 20px; border: 2px solid var(--border-light); background: white; font-family: 'Montserrat'; font-weight: 600; font-size: 12px; cursor: pointer; transition: 0.15s; }
+        .filter-chip:hover { border-color: var(--brand-primary); color: var(--brand-primary); }
+        .filter-chip.active { background: var(--brand-primary); color: white; border-color: var(--brand-primary); }
+        .filter-input { padding: 9px 14px; border: 1px solid var(--border-light); border-radius: 8px; font-family: 'Lato'; font-size: 13px; color: var(--text-main); outline: none; background: white; }
+        .filter-input:focus { border-color: var(--brand-primary); }
+        
+        .header { background: white; border-bottom: 1px solid var(--border-light); padding: 18px 36px; }
+        .header-content { display: flex; align-items: center; justify-content: space-between; }
+        .header-title h1 { font-family: 'Montserrat'; font-size: 22px; font-weight: 800; }
+        
+        /* Overrides for compras specific styles */
+        .btn-secondary { background: white; color: var(--text-main); border: 2px solid var(--border-light); padding: 10px 18px; border-radius: 8px; font-family: 'Montserrat'; font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.15s; }
+        .btn-secondary:hover { border-color: var(--brand-primary); color: var(--brand-primary); }
+
+
+        /* Estilos de Scrollbar Modernos */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.3); }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
+        .sidebar-nav::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+
+        /* --- MENU DESPLEGABLE SIDEBAR --- */
+        .nav-dropdown {
+            display: flex;
+            flex-direction: column;
+        }
+        .nav-dropdown .nav-item {
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+        .nav-dropdown .chevron {
+            margin-left: auto;
+            margin-right: 0;
+            transition: transform 0.3s ease;
+        }
+        .nav-dropdown.open .chevron {
+            transform: rotate(180deg);
+        }
+        .nav-submenu {
+            display: none;
+            flex-direction: column;
+            background: rgba(0,0,0,0.2);
+            padding: 8px 0;
+            margin: 4px 16px;
+            border-radius: 8px;
+        }
+        .nav-dropdown.open .nav-submenu {
+            display: flex;
+        }
+        .submenu-item {
+            padding: 10px 16px 10px 42px;
+            color: var(--text-sidebar);
+            text-decoration: none;
+            font-size: 13px;
+            transition: var(--transition-fast);
+            border-radius: 6px;
+            margin: 2px 8px;
+        }
+        .submenu-item:hover {
+            color: white;
+            background-color: rgba(255,255,255,0.05);
+        }
+        .submenu-item.active {
+            color: var(--brand-primary);
+            font-weight: bold;
+            background-color: rgba(234, 88, 12, 0.1);
+        }
+
+    
+        /* --- UNIFIED SIDEBAR CSS --- */
+        .sidebar { width: 260px; background-color: var(--bg-sidebar); display: flex; flex-direction: column; transition: var(--transition-smooth); z-index: 10; box-shadow: var(--shadow-lg); }
+        .sidebar-nav { padding: 16px 12px; flex: 1; overflow-y: auto; }
+        .nav-item { display: flex; align-items: center; padding: 12px 16px; color: var(--text-sidebar); text-decoration: none; border-radius: 8px; margin-bottom: 4px; transition: var(--transition-fast); font-size: 15px; font-weight: 500; }
+        .nav-item i { margin-right: 12px; font-size: 20px; transition: var(--transition-fast); }
+        .nav-item:hover { background-color: rgba(255,255,255,0.05); color: var(--text-sidebar-active); }
+        .nav-item.active { background-color: var(--brand-primary, #EA580C); color: white; box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3); }
+        .nav-dropdown { display: flex; flex-direction: column; }
+        .nav-dropdown .nav-item { width: 100%; }
+        .nav-dropdown .chevron { margin-left: auto; margin-right: 0; transition: transform 0.3s ease; }
+        .nav-dropdown.open .chevron { transform: rotate(180deg); }
+        .nav-submenu { display: none; flex-direction: column; background: rgba(0,0,0,0.2); padding: 8px 0; margin: 4px 16px; border-radius: 8px; }
+        .nav-dropdown.open .nav-submenu { display: flex; }
+        .submenu-item { padding: 10px 16px 10px 42px; color: var(--text-sidebar); text-decoration: none; font-size: 13px; transition: var(--transition-fast); border-radius: 6px; margin: 2px 8px; }
+        .submenu-item:hover { color: white; background-color: rgba(255,255,255,0.05); }
+        .sidebar-nav::-webkit-scrollbar { width: 6px; }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .sidebar-nav::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+
+        /* --- MODAL DETALLE CENTRAL --- */
+        .slideover-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 1000; opacity: 0; visibility: hidden; transition: 0.3s; backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; }
+        .slideover-overlay.open { opacity: 1; visibility: visible; }
+        .slideover-panel { background: #F8FAFC; width: 100%; max-width: 550px; max-height: 90vh; border-radius: 16px; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); transform: scale(0.95); opacity: 0; transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1); overflow: hidden; }
+        .slideover-overlay.open .slideover-panel { transform: scale(1); opacity: 1; }
+        .so-header { padding: 24px 32px; background: white; border-bottom: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center; }
+        .so-title { font-family: 'Montserrat'; font-size: 20px; font-weight: 800; color: var(--text-main); }
+        .so-close { background: #F1F5F9; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-muted); transition: 0.2s; }
+        .so-close:hover { background: #E2E8F0; color: var(--text-main); }
+        .so-body { padding: 32px; flex: 1; overflow-y: auto; }
+        .so-document { background: white; border-radius: 4px; box-shadow: 0 10px 25px rgba(0,0,0,0.05), 0 4px 10px rgba(0,0,0,0.03); padding: 40px 32px; margin-bottom: 32px; position: relative; }
+        .so-document::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 8px; background: repeating-linear-gradient(-45deg, #E2E8F0, #E2E8F0 10px, transparent 10px, transparent 20px); border-radius: 4px 4px 0 0; }
+        
+        .avatar-badge-wrapper { position: relative; display: inline-block; flex-shrink: 0; }
+        .avatar-initial { width: 44px; height: 44px; border-radius: 12px; background: #E2E8F0; color: #475569; display: flex; align-items: center; justify-content: center; font-family: 'Montserrat'; font-weight: 800; font-size: 18px; }
+        .avatar-initial.brand { background: #FFEDD5; color: #9A3412; }
+        .status-microbadge { position: absolute; bottom: -4px; right: -4px; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; color: white; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .mb-ok { background: #10B981; }
+        .mb-ai { background: #3B82F6; }
+        .mb-warn { background: #F59E0B; }
+        .mb-error { background: #EF4444; }
+
+</style>
+
+</head>
+<body>
+
+<!-- SIDEBAR UNIFICADA -->
+<aside class="sidebar">
+    <div class="sidebar-header" style="padding: 24px; display: flex; align-items: center; gap: 12px; color: white; border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <div style="width: 28px;height: 28px;background:#000;border-radius: 4px;display: flex;align-items: center;justify-content: center;color: white;font-weight: 800;font-size: 11px;">BM</div>
+        <span style="font-family: 'Montserrat'; font-weight: 800; font-size: 14px; color: white;">BurgerMusic</span>
+    </div>
+    
+    <nav class="sidebar-nav">
+        <a href="dashboard_prototipo.html" class="nav-item"><i class="ri-home-4-line"></i> Inicio</a>
+        
+        <div class="nav-dropdown open">
+            <a href="#" class="nav-item nav-dropdown-toggle active" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-shopping-bag-line"></i> Compras
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="compras_inbox_prototipo.html" class="submenu-item active">Facturas</a>
+                <a href="compras_proveedores_prototipo.html" class="submenu-item">Proveedores</a>
+                <a href="compras_ordenes_prototipo.html" class="submenu-item">Órdenes de compra</a>
+                <a href="compras_recepciones_prototipo.html" class="submenu-item">Recepciones</a>
+            </div>
+        </div>
+
+        <a href="produccion_gerencial_prototipo.html" class="nav-item"><i class="ri-hammer-line"></i> Producción</a>
+        <a href="inventario_prototipo.html" class="nav-item"><i class="ri-box-3-line"></i> Inventario</a>
+
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-line-chart-line"></i> Ventas
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="ventas_dashboard_prototipo.html" class="submenu-item">Dashboard</a>
+                <a href="pos_prototipo.html" class="submenu-item">Nueva venta</a>
+                <a href="ventas_historial_prototipo.html" class="submenu-item">Historial de Tickets</a>
+                <a href="ventas_sincronizacion_prototipo.html" class="submenu-item">Sincronización</a>
+                <a href="ventas_cierre_z_prototipo.html" class="submenu-item">Cierre Z</a>
+            </div>
+        </div>
+
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-bank-card-line"></i> Finanzas
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="finanzas_dashboard_prototipo.html" class="submenu-item">Dashboard</a>
+                <a href="finanzas_movimientos_prototipo.html" class="submenu-item">Mov. caja</a>
+                <a href="finanzas_cuentas_pagar_prototipo.html" class="submenu-item">Cuentas por pagar</a>
+                <a href="finanzas_categorias_prototipo.html" class="submenu-item">Categorías financieras</a>
+            </div>
+        </div>
+        
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-safe-line"></i> Caja
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="caja_gastos_eventuales_prototipo.html" class="submenu-item">Gastos eventuales</a>
+                <a href="caja_gastos_fijos_prototipo.html" class="submenu-item">Gastos fijos</a>
+                <a href="caja_ingresos_extra_prototipo.html" class="submenu-item">Ingresos extra</a>
+            </div>
+        </div>
+
+        <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #475569; padding: 16px 14px 6px;">Operación</div>
+        <a href="pos_prototipo.html" class="nav-item"><i class="ri-store-2-line"></i> Punto de Venta</a>
+        <a href="kds_prototipo.html" class="nav-item"><i class="ri-restaurant-line"></i> Cocina</a>
+        <a href="delivery_prototipo.html" class="nav-item"><i class="ri-e-bike-2-line"></i> Delivery</a>
+        <a href="cajas_prototipo.html" class="nav-item"><i class="ri-money-dollar-box-line"></i> Caja POS</a>
+        <a href="produccion_prototipo.html" class="nav-item"><i class="ri-smartphone-line"></i> Producción (Móvil)</a>
+        <a href="auditoria_deposito_prototipo.html" class="nav-item"><i class="ri-clipboard-line"></i> Auditoría (Móvil)</a>
+    </nav>
+
+    <div style="margin-top: auto; padding: 20px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 16px;">
+        <select class="branch-select" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px; font-size: 13px; border-radius: 8px;">
+            <option value="lanus" selected style="color: black;">📍 Burger Music Lanus</option>
+        </select>
+        <div class="user-profile" style="display: flex; align-items: center; gap: 12px; padding: 0; cursor: pointer;">
+            <div class="avatar" style="width: 32px; height: 32px; font-size: 14px; background: #EA580C; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">G</div>
+            <div style="display: flex; flex-direction: column; overflow: hidden;">
+                <span style="font-size: 12px; font-weight: 600; color: white; white-space: nowrap;">gabriel@burgermusic.com</span>
+                <span style="font-size: 11px; color: #94A3B8;">Administrador</span>
+            </div>
+        </div>
+    </div>
+</aside>
+
+
+<!-- MAIN -->
+<div class="main-content">
+    <div class="header">
+        <div class="header-content">
+            <div class="header-title">
+                <h1>Compras</h1>
+            </div>
+            <div class="topbar-actions" style="display: flex; gap: 10px;">
+                <button id="btn-toggle-mock" class="btn btn-secondary" onclick="toggleMock()" style="background: white; border: 2px solid #E2E8F0; padding: 12px 24px; border-radius: 10px; font-family: 'Montserrat'; font-weight: 700; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; color: var(--text-main);">
+                    <i class="ri-test-tube-line"></i> <span id="toggle-mock-text">Modo Demo: ON</span>
+                </button>
+                <button class="btn-primary btn-action-pulse" onclick="openFlowSelector()" style="background: var(--brand-primary); color: white; border: none; padding: 12px 24px; border-radius: 10px; font-family: 'Montserrat'; font-weight: 700; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px;"><i class="ri-add-line"></i> Cargar Factura</button>
+            </div>
+        </div>
+    </div>
+    <div class="container" style="padding: 32px 40px; flex: 1; overflow-y: auto;">
+        <!-- ONBOARDING -->
+        <div class="onboarding" id="onboarding">
+            <i class="ri-lightbulb-flash-line"></i>
+            <div class="ob-text">
+                <strong>👋 ¡Bienvenida a Compras!</strong>
+                <p>Acá vas a registrar todo lo que comprás. Cada vez que te llegue mercadería o una factura, tocá <strong>"Registrar Movimiento"</strong> y el sistema te guía paso a paso. Al terminar, tu stock se actualiza automáticamente.</p>
+            </div>
+            <button class="ob-close" onclick="document.getElementById('onboarding').style.display='none'"><i class="ri-close-line"></i></button>
+        </div>
+
+        <div id="mock-populated">
+        <!-- ALERTAS PENDIENTES -->
+        <details class="alerts-panel" style="display: block; cursor: pointer;">
+            <summary style="font-family: 'Montserrat'; font-weight: 700; font-size: 14px; color: #92400E; outline: none; list-style: none; display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i class="ri-alarm-warning-fill"></i> Tenés 3 cosas pendientes
+                </div>
+                <i class="ri-arrow-down-s-line" style="transition: transform 0.2s;"></i>
+            </summary>
+            <div class="alerts-list" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(146, 64, 14, 0.1); cursor: default;">
+                <div style="margin-bottom: 8px;">• <a>Panificadora El Sol</a> — Faltan recibir 3 cajas de pan (pedido parcial del 02/08)</div>
+                <div style="margin-bottom: 8px;">• <a>Coca-Cola Femsa</a> — Factura auto-leída por IA, pendiente de revisar</div>
+                <div>• <a>Verdulería Don Pedro</a> — Compraste ayer sin factura. ¿Querés registrar el comprobante?</div>
+            </div>
+        </details>
+        <style>
+            details.alerts-panel summary::-webkit-details-marker { display: none; }
+            details.alerts-panel[open] summary .ri-arrow-down-s-line { transform: rotate(180deg); }
+        
+        /* --- MODAL DETALLE CENTRAL --- */
+        .slideover-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 1000; opacity: 0; visibility: hidden; transition: 0.3s; backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; }
+        .slideover-overlay.open { opacity: 1; visibility: visible; }
+        .slideover-panel { background: #F8FAFC; width: 100%; max-width: 550px; max-height: 90vh; border-radius: 16px; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); transform: scale(0.95); opacity: 0; transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1); overflow: hidden; }
+        .slideover-overlay.open .slideover-panel { transform: scale(1); opacity: 1; }
+        .so-header { padding: 24px 32px; background: white; border-bottom: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center; }
+        .so-title { font-family: 'Montserrat'; font-size: 20px; font-weight: 800; color: var(--text-main); }
+        .so-close { background: #F1F5F9; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-muted); transition: 0.2s; }
+        .so-close:hover { background: #E2E8F0; color: var(--text-main); }
+        .so-body { padding: 32px; flex: 1; overflow-y: auto; }
+        .so-document { background: white; border-radius: 4px; box-shadow: 0 10px 25px rgba(0,0,0,0.05), 0 4px 10px rgba(0,0,0,0.03); padding: 40px 32px; margin-bottom: 32px; position: relative; }
+        .so-document::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 8px; background: repeating-linear-gradient(-45deg, #E2E8F0, #E2E8F0 10px, transparent 10px, transparent 20px); border-radius: 4px 4px 0 0; }
+        
+        .avatar-badge-wrapper { position: relative; display: inline-block; flex-shrink: 0; }
+        .avatar-initial { width: 44px; height: 44px; border-radius: 12px; background: #E2E8F0; color: #475569; display: flex; align-items: center; justify-content: center; font-family: 'Montserrat'; font-weight: 800; font-size: 18px; }
+        .avatar-initial.brand { background: #FFEDD5; color: #9A3412; }
+        .status-microbadge { position: absolute; bottom: -4px; right: -4px; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; color: white; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .mb-ok { background: #10B981; }
+        .mb-ai { background: #3B82F6; }
+        .mb-warn { background: #F59E0B; }
+        .mb-error { background: #EF4444; }
+
+</style>
+
+        <!-- STATS -->
+        <div class="stats-bar">
+            <div class="stat-card">
+                <div class="label">Este mes</div>
+                <div class="value" style="color: var(--brand);">$1.245.800</div>
+                <div class="sub">Total en compras registradas</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Facturas</div>
+                <div class="value">18</div>
+                <div class="sub">12 contabilizadas · 4 pendientes · 2 IA</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Proveedores activos</div>
+                <div class="value">7</div>
+                <div class="sub">2 sin factura este mes</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Pedidos abiertos</div>
+                <div class="value" style="color: var(--warning);">2</div>
+                <div class="sub">1 parcial · 1 pendiente de recibir</div>
+            </div>
+        </div>
+
+        <!-- FILTERS -->
+        <div class="filters-bar">
+            <div class="filter-chip active">Todo</div>
+            <div class="filter-chip">Contabilizadas</div>
+            <div class="filter-chip">Pendientes</div>
+            <div class="filter-chip">Sin factura</div>
+            <div class="filter-chip">Leídas por IA</div>
+            <div class="filter-chip">Con discrepancia</div>
+            <div style="flex: 1;"></div>
+            <input type="text" class="filter-input" placeholder="Buscar proveedor o producto..." style="width: 240px;">
+        </div>
+
+        <!-- TIMELINE -->
+        <div class="timeline">
+            <div class="timeline-header">
+                <div style="flex: 1;">Proveedor y Comprobante</div>
+                <div style="width: 130px; text-align: center;">Estado</div>
+                <div style="width: 100px; text-align: right;">Total</div>
+                <div style="width: 140px; text-align: center;">Siguiente Acción</div>
+            </div>
+
+            <div class="timeline-group" id="group-hoy">
+                <div class="timeline-date" onclick="document.getElementById('group-hoy').classList.toggle('collapsed')">
+                    <i class="ri-arrow-down-s-line"></i> Hoy, 04 de Agosto
+                </div>
+                <div class="timeline-items">
+                    <div class="tl-card" onclick="openSlideOver()">
+                        <div class="avatar-badge-wrapper"><div class="avatar-initial brand">F</div><div class="status-microbadge mb-ok"><i class="ri-check-line"></i></div></div>
+                        <div class="tl-body">
+                            <div class="tl-title">Frigorífico La Media Res</div>
+                            <div class="tl-meta">
+                                <span><i class="ri-file-text-line"></i> Fact. A-0001-00234</span>
+                                <span><i class="ri-stack-line"></i> 5 productos</span>
+                                <span><i class="ri-check-double-line"></i> Contabilizada · Ingresó al stock</span>
+                            </div>
+                        </div>
+                        <div class="tl-badge ok">Completa</div>
+                        <div class="tl-amount">$185.400</div>
+                        <button class="tl-action" onclick="event.stopPropagation(); window.location.href='#'">Ver detalle</button>
+                    </div>
+
+                    <div class="tl-card">
+                        <div class="avatar-badge-wrapper"><div class="avatar-initial">C</div><div class="status-microbadge mb-ai"><i class="ri-robot-2-line"></i></div></div>
+                        <div class="tl-body">
+                            <div class="tl-title">Coca-Cola Femsa</div>
+                            <div class="tl-meta">
+                                <span><i class="ri-mail-line"></i> Recibida por email (PDF)</span>
+                                <span><i class="ri-stack-line"></i> 8 productos detectados</span>
+                                <span><i class="ri-time-line"></i> Hace 2 horas</span>
+                            </div>
+                        </div>
+                        <div class="tl-badge ai">Requiere tu OK</div>
+                        <div class="tl-amount" style="color: var(--text-muted);">$92.100</div>
+                        <button class="tl-action cta" onclick="window.location.href='compras_validacion_prototipo.html'">Auditar IA →</button>
+                    </div>
+
+                    <div class="tl-card">
+                        <div class="avatar-badge-wrapper"><div class="avatar-initial brand">D</div><div class="status-microbadge mb-warn"><i class="ri-box-3-line"></i></div></div>
+                        <div class="tl-body">
+                            <div class="tl-title">De Todito SRL</div>
+                            <div class="tl-meta">
+                                <span><i class="ri-file-text-line"></i> Fact. B-0045-00892</span>
+                                <span><i class="ri-alert-line" style="color:#7C3AED;"></i> Llegaron 7 de 10 cajas</span>
+                            </div>
+                        </div>
+                        <div class="tl-badge partial">Recepción Parcial</div>
+                        <div class="tl-amount">$42.300</div>
+                        <button class="tl-action cta" onclick="window.location.href='compras_carga_manual_prototipo.html?tipo=remito&proveedor=4'">Ajustar stock →</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-group" id="group-ayer">
+                <div class="timeline-date" onclick="document.getElementById('group-ayer').classList.toggle('collapsed')">
+                    <i class="ri-arrow-down-s-line"></i> Ayer, 03 de Agosto
+                </div>
+                <div class="timeline-items">
+                    <div class="tl-card" onclick="openSlideOver()">
+                        <div class="tl-icon internal"><i class="ri-draft-line"></i></div>
+                        <div class="tl-body">
+                            <div class="tl-title">Verdulería Don Pedro</div>
+                            <div class="tl-meta">
+                                <span><i class="ri-price-tag-3-line"></i> Comprobante interno (sin factura)</span>
+                                <span><i class="ri-stack-line"></i> 4 productos</span>
+                                <span><i class="ri-check-line"></i> Ingresó al stock</span>
+                            </div>
+                        </div>
+                        <div class="tl-badge internal">Sin factura</div>
+                        <div class="tl-amount">$28.500</div>
+                        <button class="tl-action" onclick="event.stopPropagation(); window.location.href='#'">Ver detalle</button>
+                    </div>
+
+                    <div class="tl-card" onclick="openSlideOver()">
+                        <div class="avatar-badge-wrapper"><div class="avatar-initial brand">F</div><div class="status-microbadge mb-ok"><i class="ri-check-line"></i></div></div>
+                        <div class="tl-body">
+                            <div class="tl-title">Distribuidora Norte</div>
+                            <div class="tl-meta">
+                                <span><i class="ri-file-text-line"></i> Fact. A-0008-01456</span>
+                                <span><i class="ri-stack-line"></i> 12 productos</span>
+                                <span><i class="ri-check-double-line"></i> Contabilizada · Ingresó al stock</span>
+                            </div>
+                        </div>
+                        <div class="tl-badge ok">Completa</div>
+                        <div class="tl-amount">$312.600</div>
+                        <button class="tl-action" onclick="event.stopPropagation(); window.location.href='#'">Ver detalle</button>
+                    </div>
+
+                    <div class="tl-card" onclick="openSlideOver()">
+                        <div class="avatar-badge-wrapper"><div class="avatar-initial brand">F</div><div class="status-microbadge mb-error"><i class="ri-error-warning-line"></i></div></div>
+                        <div class="tl-body">
+                            <div class="tl-title">Frigorífico La Media Res</div>
+                            <div class="tl-meta">
+                                <span><i class="ri-file-text-line"></i> Fact. A-0001-00230</span>
+                                <span><i class="ri-alert-fill" style="color: var(--danger);"></i> La bondiola subió 22% respecto a la última compra</span>
+                            </div>
+                        </div>
+                        <div class="tl-badge error">Alerta Precio</div>
+                        <div class="tl-amount">$198.200</div>
+                        <button class="tl-action cta" onclick="event.stopPropagation(); window.location.href='#'">Corregir →</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-group" id="group-prev">
+                <div class="timeline-date" onclick="document.getElementById('group-prev').classList.toggle('collapsed')">
+                    <i class="ri-arrow-down-s-line"></i> 01 de Agosto
+                </div>
+                <div class="timeline-items">
+                    <div class="tl-card" onclick="openSlideOver()">
+                        <div class="avatar-badge-wrapper"><div class="avatar-initial">A</div><div class="status-microbadge mb-warn"><i class="ri-time-line"></i></div></div>
+                        <div class="tl-body">
+                            <div class="tl-title">Proveedor de Aceite — Juan</div>
+                            <div class="tl-meta">
+                                <span><i class="ri-file-text-line"></i> Factura pendiente de cargar</span>
+                                <span><i class="ri-check-line"></i> Mercadería ya recibida</span>
+                                <span><i class="ri-time-line"></i> Hace 3 días</span>
+                            </div>
+                        </div>
+                        <div class="tl-badge pending">Falta factura</div>
+                        <div class="tl-amount" style="color: var(--text-muted);">$45.000</div>
+                        <button class="tl-action cta" onclick="event.stopPropagation(); window.location.href='#'">Cargar ahora →</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div> <!-- END MOCK POPULATED -->
+
+        <!-- MOCK EMPTY STATE -->
+        <div id="mock-empty" style="display: none; height: 60vh; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: var(--text-muted);">
+            <div style="width: 120px; height: 120px; background: #F1F5F9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 24px;">
+                <i class="ri-inbox-archive-line" style="font-size: 48px; color: #94A3B8;"></i>
+            </div>
+            <h2 class="montserrat" style="font-size: 24px; color: var(--text-main); margin-bottom: 12px;">Bandeja de entrada al día</h2>
+            <p style="font-size: 15px; max-width: 400px; margin-bottom: 24px;">No tenés facturas pendientes de revisión. Cuando tus proveedores te envíen comprobantes o la IA procese una factura, aparecerán acá.</p>
+            <button class="btn btn-primary" onclick="openFlowSelector()" style="background: var(--brand-primary); color: white; border: none; padding: 12px 24px; border-radius: 10px; font-family: 'Montserrat'; font-weight: 700; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <i class="ri-add-line"></i> Cargar tu primera factura
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<!-- MODAL: SELECTOR DE FLUJO -->
+<div class="overlay" id="flow-overlay">
+    <div class="modal-flow">
+        <div class="modal-flow-head">
+            <h2>¿Qué querés registrarÍ</h2>
+            <p>Elegí según lo que tengas en la mano y te llevamos al flujo correcto.</p>
+        </div>
+        <div class="modal-flow-body">
+            <div class="flow-option" onclick="window.location.href='compras_carga_manual_prototipo.html?tipo=factura'">
+                <div class="fo-icon manual"><i class="ri-file-edit-line"></i></div>
+                <div class="fo-text">
+                    <h4>📄 Tengo la factura o remito en la mano</h4>
+                    <p>Cargá los datos paso a paso. El sistema calcula todo y lo ingresa al stock.</p>
+                </div>
+                <i class="fo-arrow ri-arrow-right-s-line"></i>
+            </div>
+            <div class="flow-option" onclick="window.location.href='compras_subir_pdf_prototipo.html'">
+                <div class="fo-icon email"><i class="ri-mail-open-line"></i></div>
+                <div class="fo-text">
+                    <h4>📧 Me llegó por email o tengo un PDF</h4>
+                    <p>Subí el archivo y la IA lo lee automáticamente. Vos solo revisás y confirmás.</p>
+                </div>
+                <i class="fo-arrow ri-arrow-right-s-line"></i>
+            </div>
+            <div class="flow-option" style="border-style: dashed;" onclick="window.location.href='compras_nueva_orden_prototipo.html'">
+                <div class="fo-icon order"><i class="ri-clipboard-line"></i></div>
+                <div class="fo-text">
+                    <h4>📋 Generar Orden de Compra</h4>
+                    <p>Armá un pedido anticipado antes de que llegue la mercadería. Después lo vinculás con la factura.</p>
+                </div>
+                <i class="fo-arrow ri-arrow-right-s-line"></i>
+            </div>
+        </div>
+        <div class="modal-flow-foot">
+            <button class="btn-cancel" onclick="closeFlowSelector()">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openFlowSelector() {
+        document.getElementById('flow-overlay').classList.add('open');
+    }
+    function closeFlowSelector() {
+        document.getElementById('flow-overlay').classList.remove('open');
+    }
+    document.getElementById('flow-overlay').addEventListener('click', function(e) {
+        if (e.target === this) closeFlowSelector();
+    });
+
+    // Toggle Mock Data
+    function toggleMock() {
+        const populated = document.getElementById('mock-populated');
+        const empty = document.getElementById('mock-empty');
+        const text = document.getElementById('toggle-mock-text');
+        
+        if (populated.style.display !== 'none') {
+            populated.style.display = 'none';
+            empty.style.display = 'flex';
+            text.innerText = 'Modo Demo: OFF';
+        } else {
+            populated.style.display = 'block';
+            empty.style.display = 'none';
+            text.innerText = 'Modo Demo: ON';
+        }
+    }
+
+    // Interactive Filters Logic
+    document.addEventListener("DOMContentLoaded", () => {
+        const chips = document.querySelectorAll(".filter-chip");
+        const cards = document.querySelectorAll(".tl-card");
+        
+        chips.forEach(chip => {
+            chip.addEventListener("click", () => {
+                chips.forEach(c => c.classList.remove("active"));
+                chip.classList.add("active");
+                
+                const filterText = chip.textContent.trim().toLowerCase();
+                
+                cards.forEach(card => {
+                    const badge = card.querySelector(".tl-badge");
+                    if (!badge) return;
+                    const badgeText = badge.textContent.trim().toLowerCase();
+                    
+                    let show = false;
+                    if (filterText === "todo") {
+                        show = true;
+                    } else if (filterText === "contabilizadas" && badgeText === "completa") {
+                        show = true;
+                    } else if (filterText === "pendientes" && badgeText === "falta factura") {
+                        show = true;
+                    } else if (filterText === "sin factura" && badgeText === "sin factura") {
+                        show = true;
+                    } else if (filterText === "leídas por ia" && badgeText === "requiere tu ok") {
+                        show = true;
+                    } else if (filterText === "con discrepancia" && (badgeText === "recepción parcial" || badgeText === "alerta precio")) {
+                        show = true;
+                    }
+                    
+                    card.style.display = show ? "flex" : "none";
+                });
+            });
+        });
+    });
+</script>
+
+
+<!-- SLIDE-OVER: DETALLE DE MOVIMIENTO -->
+<div class="slideover-overlay" id="slideover-detail" onclick="if(event.target===this) closeSlideOver()">
+    <div class="slideover-panel">
+        <div class="so-header">
+            <div>
+                <span style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Factura A-0001-00234</span>
+                <div class="so-title">Frigorífico La Media Res</div>
+            </div>
+            <button class="so-close" onclick="closeSlideOver()"><i class="ri-close-line"></i></button>
+        </div>
+        <div class="so-body">
+            
+            <!-- Document Metaphor -->
+            <div class="so-document">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 24px; border-bottom: 2px dashed #E2E8F0; padding-bottom: 16px;">
+                    <div>
+                        <div style="font-weight: 700; font-size: 24px;">$185.400</div>
+                        <div style="color: #10B981; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 4px; margin-top: 4px;"><i class="ri-checkbox-circle-fill"></i> Pagada (Contado)</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 12px; color: var(--text-muted);">04/08/2026</div>
+                        <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Ingresado por Gabriel</div>
+                    </div>
+                </div>
+                
+                <h4 style="font-family: 'Montserrat'; font-size: 13px; margin-bottom: 12px; color: var(--text-muted);">LÍNEAS INGRESADAS</h4>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 14px;">
+                        <div><strong style="display: block;">Medallones de carne</strong><span style="color: var(--text-muted); font-size: 12px;">100 unidades x $850</span></div>
+                        <div style="font-weight: 700;">$85.000</div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 14px;">
+                        <div><strong style="display: block;">Panceta ahumada</strong><span style="color: var(--text-muted); font-size: 12px;">5 kg x $12.500</span></div>
+                        <div style="font-weight: 700;">$62.500</div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 14px;">
+                        <div><strong style="display: block;">Queso Cheddar</strong><span style="color: var(--text-muted); font-size: 12px;">10 barras x $3.790</span></div>
+                        <div style="font-weight: 700;">$37.900</div>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn-primary" style="width: 100%; padding: 14px; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px;"><i class="ri-external-link-line"></i> Ver Factura Original en PDF</button>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    function openSlideOver() {
+        document.getElementById('slideover-detail').classList.add('open');
+        // Prevent scrolling on background
+        document.body.style.overflow = 'hidden';
+    }
+    function closeSlideOver() {
+        document.getElementById('slideover-detail').classList.remove('open');
+        document.body.style.overflow = 'auto';
+    }
+</script>
+
+</body>
+</html>

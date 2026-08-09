@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Burger Music - Cocina (KDS)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Montserrat:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :root {
+            /* Paleta Dark Mode Estricto (Reducción de Ruido) */
+            --bg-body: #05080F;       
+            --bg-surface: #0B1120;
+            --bg-card: #111827;
+            
+            --text-main: #F8FAFC;
+            --text-muted: #64748B;
+
+            /* Semántica de urgencia pura */
+            --urgency-ok: #10B981;        /* Verde flúo */
+            --urgency-warn: #F59E0B;      /* Ámbar intenso */
+            --urgency-rojo-alto: #EF4444; /* Rojo Alto */
+
+            /* Botones de acción */
+            --action-prep: #3B82F6;       
+            --action-ready: #10B981;      
+            --action-dispatch: #8B5CF6;   
+
+            --transition-smooth: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* --- TEMA MOSTRADOR (LIGHT MODE) --- */
+        body.theme-mostrador {
+            --bg-body: #F1F5F9;
+            --bg-surface: #FFFFFF;
+            --bg-card: #FFFFFF;
+            
+            --text-main: #0F172A;
+            --text-muted: #64748B;
+            
+            --action-prep: #EA580C; /* Brand Primary */
+            --action-ready: #22C55E;
+        }
+
+        body.theme-mostrador .kds-topbar {
+            border-bottom: 1px solid #E2E8F0;
+            box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
+        }
+        body.theme-mostrador .kds-topbar-left h1, 
+        body.theme-mostrador .kds-topbar-left i {
+            color: #EA580C;
+        }
+        body.theme-mostrador .order-card {
+            border: 1px solid #E2E8F0;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        body.theme-mostrador .item-name-kds,
+        body.theme-mostrador .lane-title,
+        body.theme-mostrador .lane-count,
+        body.theme-mostrador .order-number,
+        body.theme-mostrador .station-selector,
+        body.theme-mostrador .station-selector option {
+            color: var(--text-main);
+        }
+        
+        body.theme-mostrador .order-card-header {
+            background: #F1F5F9;
+            border-bottom: 1px solid #E2E8F0;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Lato', sans-serif;
+            background: var(--bg-body);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            user-select: none;
+            overflow: hidden;
+        }
+
+        h1, h2, h3, h4, .montserrat { font-family: 'Montserrat', sans-serif; }
+
+        /* --- TOPBAR COCINA --- */
+        .kds-topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 32px;
+            background: var(--bg-surface);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            z-index: 10;
+        }
+
+        .kds-topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .kds-topbar-left h1 {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        /* Selector de Estación (Enrutamiento) */
+        .station-selector {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            font-size: 14px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            outline: none;
+            cursor: pointer;
+            margin-left: 16px;
+        }
+
+        .station-selector option {
+            background: var(--bg-surface);
+            color: white;
+        }
+
+        /* --- LOTE ACTIVO (EDGE CASE FASE 2) --- */
+        .active-lote-badge {
+            background: rgba(139, 92, 246, 0.15); /* Violeta Brand */
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            color: #C4B5FD;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            font-size: 13px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-left: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .active-lote-badge:hover {
+            background: rgba(139, 92, 246, 0.25);
+            border-color: rgba(139, 92, 246, 0.5);
+        }
+
+        .active-lote-badge i { font-size: 16px; }
+
+        @keyframes badgeSuccess {
+            0% { background: rgba(16, 185, 129, 0.2); border-color: var(--urgency-ok); color: var(--urgency-ok); transform: scale(1.05); }
+            100% { background: rgba(139, 92, 246, 0.15); border-color: rgba(139, 92, 246, 0.3); color: #C4B5FD; transform: scale(1); }
+        }
+        .active-lote-badge.updated-success {
+            animation: badgeSuccess 0.8s ease forwards;
+        }
+
+        /* SLIDE-OVER LOTE SELECTOR */
+        .lote-slide-over {
+            position: fixed;
+            top: 0; right: -400px;
+            width: 380px; height: 100vh;
+            background: var(--bg-surface);
+            border-left: 1px solid rgba(255,255,255,0.05);
+            box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+            z-index: 200;
+            transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .lote-slide-over.open { right: 0; }
+
+        .lote-slide-header {
+            padding: 24px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .lote-slide-header h2 { font-size: 18px; font-weight: 900; }
+        .btn-close-slide { background: none; border: none; color: white; font-size: 24px; cursor: pointer; }
+
+        .lote-list { padding: 24px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+        
+        .lote-option {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .lote-option:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); }
+        .lote-option.selected { border-color: var(--action-dispatch); background: rgba(139, 92, 246, 0.1); }
+        
+        .lote-opt-name { font-family: 'Montserrat'; font-weight: 800; font-size: 14px; margin-bottom: 4px; }
+        .lote-opt-id { font-size: 12px; color: var(--text-muted); font-weight: 700; font-family: monospace; }
+        .lote-opt-exp { font-size: 11px; font-weight: 800; padding: 4px 8px; border-radius: 4px; background: rgba(255,255,255,0.05); }
+        .lote-opt-exp.warn { color: var(--urgency-warn); background: rgba(245,158,11,0.1); }
+
+        .kds-legend {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        .kds-clock {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 28px;
+            font-weight: 900;
+            color: var(--text-main);
+            letter-spacing: 1px;
+        }
+
+        /* --- KANBAN BOARD --- */
+        .kanban-board {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 0;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .kanban-lane {
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid rgba(255,255,255,0.02);
+            background: rgba(255,255,255,0.005);
+            overflow: hidden;
+        }
+
+        .kanban-lane:last-child { border-right: none; }
+
+        .lane-header {
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.4);
+            border-bottom: 2px solid rgba(255,255,255,0.02);
+        }
+
+        .lane-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 18px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #94A3B8;
+        }
+
+        .lane-count {
+            background: rgba(255,255,255,0.05);
+            color: white;
+            font-size: 16px;
+            font-weight: 900;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .lane-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* --- TARJETA DE COMANDA OPTIMIZADA --- */
+        .order-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            transition: transform var(--transition-smooth);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            /* Eliminamos bordes innecesarios, puro contraste de fondo */
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);
+        }
+
+        /* Indicadores de Urgencia Ultra Visibles */
+        .urgency-ok .card-top-bar { background: var(--urgency-ok); }
+        .urgency-warn .card-top-bar { background: var(--urgency-warn); }
+        .urgency-rojo-alto .card-top-bar { background: var(--urgency-rojo-alto); animation: pulseCritical 1.5s infinite; }
+
+        .card-top-bar {
+            height: 8px; /* Más gruesa */
+            width: 100%;
+            border-radius: 12px 12px 0 0;
+        }
+
+        @keyframes pulseCritical {
+            0% { opacity: 1; box-shadow: 0 0 15px var(--urgency-rojo-alto); }
+            50% { opacity: 0.6; box-shadow: 0 0 0px transparent; }
+            100% { opacity: 1; box-shadow: 0 0 15px var(--urgency-rojo-alto); }
+        }
+
+        .order-card-header {
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.1);
+        }
+
+        .order-number {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 900;
+            font-size: 26px; /* Más grande */
+            color: white;
+            letter-spacing: -1px;
+        }
+
+        .order-type {
+            font-size: 13px;
+            font-weight: 900;
+            padding: 6px 12px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .type-salon    { background: rgba(99,102,241,0.1); color: #818CF8; border: 1px solid rgba(129, 140, 248, 0.2); }
+        .type-takeaway { background: rgba(234,88,12,0.1);  color: #FB923C; border: 1px solid rgba(251, 146, 60, 0.2); }
+        .type-delivery { background: rgba(14,165,233,0.1); color: #38BDF8; border: 1px solid rgba(56, 189, 248, 0.2); }
+
+        .order-timer {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 18px;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .timer-ok    { color: var(--urgency-ok); }
+        .timer-warn  { color: var(--urgency-warn); }
+        .timer-critical { color: var(--urgency-rojo-alto); }
+
+        .order-card-body {
+            padding: 16px 20px 24px 20px;
+        }
+
+        .order-item {
+            display: flex;
+            gap: 16px;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+
+        .order-item:last-child { border-bottom: none; }
+
+        .item-qty-badge {
+            background: rgba(255,255,255,0.05);
+            color: white;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            font-weight: 900;
+            font-size: 18px;
+            font-family: 'Montserrat', sans-serif;
+            flex-shrink: 0;
+        }
+
+        .item-info {
+            flex: 1;
+        }
+
+        .item-name-kds {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            font-size: 19px;
+            color: white;
+            letter-spacing: -0.5px;
+            line-height: 1.1;
+        }
+
+        .item-mods {
+            font-size: 15px;
+            color: #F87171; 
+            font-weight: 700;
+            margin-top: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Botón de avanzar estado INTEGRADO */
+        .btn-advance {
+            width: 100%;
+            padding: 24px;
+            border: none;
+            border-radius: 0 0 12px 12px; /* Integrado al card */
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 900;
+            font-size: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: filter 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-start-prep { background: var(--action-prep); color: white; }
+        .btn-mark-ready { background: var(--action-ready); color: white; }
+        .btn-dispatch { background: var(--action-dispatch); color: white; }
+
+        /* MICROINTERACCIÓN ANTI RAGE-CLICKS (Feedback Táctil) */
+        @keyframes tactileSink {
+            0% { transform: scale(1); filter: brightness(1); }
+            50% { transform: scale(0.96); filter: brightness(1.5); background-color: white; color: black; }
+            100% { transform: scale(1); filter: brightness(1); }
+        }
+
+        .btn-advance.tapped {
+            animation: tactileSink 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            pointer-events: none; /* Previene clicks extra */
+        }
+
+        /* Ocultar botones en sus columnas destino */
+        .lane-prep .btn-start-prep { display: none; }
+        .lane-ready .btn-start-prep { display: none; }
+        .lane-ready .btn-mark-ready { display: none; }
+
+        .order-card.leaving {
+            opacity: 0;
+            transform: scale(0.9) translateX(50px);
+        }
+
+        /* Scrollbar minimalista */
+        .lane-body::-webkit-scrollbar { width: 4px; }
+        .lane-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 10px; }
+
+        /* EDGE CASES: Checklist Atómico y Recall */
+        .order-item.interactive { cursor: pointer; transition: all 0.2s; }
+        .order-item.interactive:hover { background: rgba(255,255,255,0.05); }
+        .order-item.completed { opacity: 0.5; filter: grayscale(1); }
+        .order-item.completed .item-name-kds { text-decoration: line-through; }
+        
+        .order-progress-bar { height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-bottom: 12px; overflow: hidden; }
+        .order-progress-fill { height: 100%; background: var(--urgency-ok); width: 0%; transition: width 0.3s; }
+        
+        .recall-panel { position: fixed; bottom: 20px; right: 20px; width: 320px; display: flex; flex-direction: column; gap: 12px; z-index: 100; }
+        .recall-card { background: #1E293B; border-left: 4px solid var(--action-ready); padding: 12px 16px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); animation: slideInUp 0.3s forwards; }
+        @keyframes slideInUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .btn-recall { background: rgba(255,255,255,0.1); color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .btn-recall:hover { background: rgba(255,255,255,0.2); }
+
+
+    </style>
+</head>
+<body>
+
+    <!-- Topbar -->
+    <header class="kds-topbar">
+        <div class="kds-topbar-left">
+            <a href="dashboard_prototipo.html" style="color: var(--text-muted); text-decoration: none; margin-right: 8px; font-size: 24px; transition: 0.2s;" onmouseover="this.style.color='var(--text-main)'" onmouseout="this.style.color='var(--text-muted)'" title="Volver al Dashboard"><i class="ri-arrow-left-line"></i></a>
+            <i class="ri-fire-fill"></i>
+            <h1 class="montserrat">DESPACHO</h1>
+            <select class="station-selector" onchange="changeStation(this.value)">
+                <option value="cocina">🍳 Estación: Parrilla & Cocina</option>
+                <option value="mostrador">🥤 Estación: Mostrador & Bebidas</option>
+            </select>
+            <!-- EDGE CASE FASE2: LOTE ACTIVO CON EXPLICACIÓN UX -->
+            <div style="display: flex; flex-direction: column; margin-left: 16px;">
+                <span style="font-size: 10px; color: #94A3B8; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; margin-left: 4px; display: flex; align-items: center; gap: 4px;">
+                    LOTE ACTUAL &bull; TOCA PARA CAMBIAR <i class="ri-drag-move-line"></i>
+                </span>
+                <div class="active-lote-badge" onclick="toggleLotePanel()" style="margin-left: 0;">
+                    <i class="ri-barcode-box-line"></i>
+                    <span id="currentLoteDisplay">Medallones (L-2807-MED)</span>
+                </div>
+            </div>
+        </div>
+        <div class="kds-legend">
+            <div class="legend-item" style="color: var(--urgency-ok);">
+                <div class="legend-dot" style="background: currentColor;"></div> &lt; 5 min
+            </div>
+            <div class="legend-item" style="color: var(--urgency-warn);">
+                <div class="legend-dot" style="background: currentColor;"></div> 5 – 10 min
+            </div>
+            <!-- CONCEPTO1: Renombramiento de Crítico a Rojo Alto -->
+            <div class="legend-item" style="color: var(--urgency-rojo-alto);">
+                <div class="legend-dot" style="background: currentColor;"></div> Rojo Alto
+            </div>
+        </div>
+        <div class="kds-clock" id="clock">18: 57</div>
+    </header>
+
+    <!-- SLIDE-OVER LOTE SELECTOR (EDGE CASE FASE 2) -->
+    <div class="lote-slide-over" id="lotePanel">
+        <div class="lote-slide-header">
+            <h2 class="montserrat">Cambiar Lote Activo</h2>
+            <button class="btn-close-slide" onclick="toggleLotePanel()"><i class="ri-close-line"></i></button>
+        </div>
+        <div class="lote-list">
+            <div class="lote-option selected" onclick="selectLote('Medallones', 'L-2807-MED', this)">
+                <div>
+                    <div class="lote-opt-name">Medallones de Carne</div>
+                    <div class="lote-opt-id">L-2807-MED</div>
+                </div>
+                <div class="lote-opt-exp">Vence 31/07</div>
+            </div>
+            <div class="lote-option" onclick="selectLote('Salsa Big Mac', 'L-2707-SBM', this)">
+                <div>
+                    <div class="lote-opt-name">Salsa Big Mac</div>
+                    <div class="lote-opt-id">L-2707-SBM</div>
+                </div>
+                <div class="lote-opt-exp warn">Vence HOY</div>
+            </div>
+            <div class="lote-option" onclick="selectLote('Pan TBP', 'L-2607-PAN', this)">
+                <div>
+                    <div class="lote-opt-name">Pan TBP</div>
+                    <div class="lote-opt-id">L-2607-PAN</div>
+                </div>
+                <div class="lote-opt-exp">Vence 29/07</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel de Recall -->
+    <div class="recall-panel" id="recallPanel"></div>
+
+    <!-- Kanban Board -->
+    <div class="kanban-board">
+
+        <!-- CARRIL1: Nuevas -->
+        <div class="kanban-lane">
+            <div class="lane-header">
+                <div class="lane-title">Nuevas</div>
+                <span class="lane-count" id="count-new">0</span>
+            </div>
+            <div class="lane-body" id="lane-new">
+                <!-- JS Renders here -->
+            </div>
+        </div>
+
+        <!-- CARRIL2: En Preparación -->
+        <div class="kanban-lane lane-prep">
+            <div class="lane-header">
+                <div class="lane-title">En Preparación</div>
+                <span class="lane-count" id="count-prep">0</span>
+            </div>
+            <div class="lane-body" id="lane-prep">
+                <!-- JS Renders here -->
+            </div>
+        </div>
+
+        <!-- CARRIL3: Listas -->
+        <div class="kanban-lane lane-ready">
+            <div class="lane-header">
+                <div class="lane-title" style="color: var(--action-ready);">Listas para Entregar</div>
+                <span class="lane-count" id="count-ready">0</span>
+            </div>
+            <div class="lane-body" id="lane-ready">
+                <!-- JS Renders here -->
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Filtrado por Estación
+        function changeStation(station) {
+            const allOrders = document.querySelectorAll('.order-card');
+            console.log(`[CRO Event] Cambio de estación a: ${station}`);
+            
+            if (station === 'mostrador') {
+                document.body.classList.add('theme-mostrador');
+                
+                // Mostrar solo bebidas dentro del pedido
+                allOrders.forEach(card => {
+                    let hasVisibleItems = false;
+                    const items = card.querySelectorAll('.order-item');
+                    
+                    items.forEach(item => {
+                        const text = item.innerText.toLowerCase();
+                        if (text.includes('coca') || text.includes('levite') || text.includes('agua') || text.includes('sprite') || text.includes('villavicencio')) {
+                            item.style.display = 'flex';
+                            hasVisibleItems = true;
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                    
+                    if (hasVisibleItems) {
+                        card.style.display = 'flex';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+                
+                // Actualizar título
+                document.querySelector('.kds-topbar-left h1').innerText = "MOSTRADOR";
+                document.querySelector('.kds-topbar-left i').className = "ri-cup-fill";
+            } else {
+                document.body.classList.remove('theme-mostrador');
+                
+                // Cocina: Mostrar todo por ahora (o solo comida)
+                allOrders.forEach(card => {
+                    let hasVisibleItems = false;
+                    const items = card.querySelectorAll('.order-item');
+                    items.forEach(item => {
+                        const text = item.innerText.toLowerCase();
+                        // En cocina ocultamos bebidas puras si quisieramos, pero por ahora mostramos todo menos las bebidas
+                        if (text.includes('coca') || text.includes('levite') || text.includes('agua') || text.includes('sprite') || text.includes('villavicencio')) {
+                            item.style.display = 'none';
+                        } else {
+                            item.style.display = 'flex';
+                            hasVisibleItems = true;
+                        }
+                    });
+                    
+                    if (hasVisibleItems) {
+                        card.style.display = 'flex';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+                document.querySelector('.kds-topbar-left h1').innerText = "DESPACHO";
+                document.querySelector('.kds-topbar-left i').className = "ri-fire-fill";
+            }
+            updateCounts();
+        }
+
+        // Actualizar Reloj
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('clock').innerText = timeString;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Mover Tarjetas con Microinteracción (Feedback Táctil) y Animación
+        function moveCard(cardId, sourceLaneId, targetLaneId, sourceCountId, targetCountId, btnElement) {
+            // CONCEPTO2: Microinteracción Anti Rage-Clicks
+            btnElement.classList.add('tapped');
+            
+            // CONCEPTO 3: (Simulación CRO) Lanzar evento de analytics al backend
+            console.log(`[CRO Event] Ticket ${cardId} cambió de ${sourceLaneId} a ${targetLaneId}`);
+
+            const card = document.getElementById(cardId);
+            const targetLane = document.getElementById(targetLaneId);
+            
+            // Esperar a que termine la microinteracción táctil antes de mover la tarjeta (250ms)
+            setTimeout(() => {
+                // Animación de salida
+                card.classList.add('leaving');
+                
+                setTimeout(() => {
+                    card.classList.remove('leaving');
+                    targetLane.appendChild(card);
+                    
+                    // Actualizar contadores
+                    const sourceCount = document.getElementById(sourceCountId);
+                    const targetCount = document.getElementById(targetCountId);
+                    sourceCount.innerText = parseInt(sourceCount.innerText) - 1;
+                    targetCount.innerText = parseInt(targetCount.innerText) + 1;
+                    
+                    // Reset CSS states
+                    btnElement.classList.remove('tapped');
+                    
+                    // Recrear botón según el nuevo carril
+                    if (targetLaneId === 'lane-prep') {
+                        card.querySelector('.btn-start-prep').style.display = 'none';
+                        const newBtn = document.createElement('button');
+                        newBtn.className = 'btn-advance btn-mark-ready';
+                        newBtn.innerHTML = '¡LISTA! <i class="ri-check-double-line"></i>';
+                        newBtn.onclick = function() { moveCard(cardId, 'lane-prep', 'lane-ready', 'count-prep', 'count-ready', this); };
+                        card.appendChild(newBtn);
+                    }
+                    
+                    if (targetLaneId === 'lane-ready') {
+                        const existingBtn = card.querySelector('.btn-mark-ready');
+                        if (existingBtn) existingBtn.remove();
+                        
+                        const dispatchBtn = document.createElement('button');
+                        dispatchBtn.className = 'btn-advance btn-dispatch';
+                        dispatchBtn.innerHTML = 'ENTREGADA <i class="ri-send-plane-fill"></i>';
+                        dispatchBtn.onclick = function() { dispatchOrder(cardId, this); };
+                        card.appendChild(dispatchBtn);
+                    }
+                }, 200); // Salida de la columna
+            }, 250); // Duración de la microinteracción 'tapped'
+        }
+
+        // Despachar Orden Final y enviar a Recall
+        function dispatchOrder(cardId, btnElement) {
+            btnElement.classList.add('tapped');
+            console.log(`[CRO Event] Ticket ${cardId} completado y despachado.`);
+
+            setTimeout(() => {
+                const card = document.getElementById(cardId);
+                card.classList.add('leaving');
+                
+                // Clonar para el recall
+                const orderNumber = card.querySelector('.order-number').innerText;
+                const clone = card.cloneNode(true);
+                clone.classList.remove('leaving');
+                clone.querySelector('.btn-dispatch').classList.remove('tapped');
+
+                setTimeout(() => {
+                    card.remove();
+                    const countReady = document.getElementById('count-ready');
+                    countReady.innerText = parseInt(countReady.innerText) - 1;
+                    
+                    // Crear Recall
+                    createRecall(cardId, orderNumber, clone);
+                }, 200);
+            }, 250);
+        }
+
+        // --- LÓGICA EDGE CASES ---
+        function createRecall(originalId, number, nodeClone) {
+            const panel = document.getElementById('recallPanel');
+            const recallId = 'recall-' + Date.now();
+            const recallHtml = document.createElement('div');
+            recallHtml.className = 'recall-card';
+            recallHtml.id = recallId;
+            recallHtml.innerHTML = `
+                <div>
+                    <div style="font-size: 12px; color: var(--text-muted); font-weight: 700;">Terminado</div>
+                    <div style="font-size: 16px; font-weight: 800; font-family: 'Montserrat';">Orden ${number}</div>
+                </div>
+                <button class="btn-recall" onclick="undoRecall('${recallId}', '${originalId}')"><i class="ri-arrow-go-back-line"></i> Deshacer</button>
+            `;
+            // Guardamos el nodo HTML en texto puro
+            recallHtml.setAttribute('data-clone', encodeURIComponent(nodeClone.outerHTML));
+            panel.appendChild(recallHtml);
+            
+            // Auto destruir a los 10 segundos
+            setTimeout(() => {
+                const r = document.getElementById(recallId);
+                if (r) {
+                    r.style.opacity = '0';
+                    setTimeout(() => r.remove(), 300);
+                }
+            }, 10000);
+        }
+
+        function undoRecall(recallId, originalId) {
+            const recallEl = document.getElementById(recallId);
+            const cloneHtml = decodeURIComponent(recallEl.getAttribute('data-clone'));
+            
+            // Reinsertar en listos
+            const targetLane = document.getElementById('lane-ready');
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = cloneHtml;
+            const newCard = tempDiv.firstElementChild;
+            
+            // Re-bindear el boton dispatch
+            const btn = newCard.querySelector('.btn-dispatch');
+            if (btn) btn.onclick = function() { dispatchOrder(originalId, this); };
+            
+            // Re-bindear interactividad de items
+            newCard.querySelectorAll('.order-item').forEach(item => {
+                item.onclick = function() {
+                    this.classList.toggle('completed');
+                    updateProgress(this.closest('.order-card'));
+                };
+            });
+
+            targetLane.appendChild(newCard);
+            
+            // Actualizar contador
+            const countReady = document.getElementById('count-ready');
+            countReady.innerText = parseInt(countReady.innerText) + 1;
+            
+            // Eliminar recall
+            recallEl.remove();
+        }
+
+        // Checklist Atómico Inicial
+        document.querySelectorAll('.order-item').forEach(item => {
+            item.classList.add('interactive');
+            item.onclick = function() {
+                this.classList.toggle('completed');
+                updateProgress(this.closest('.order-card'));
+            };
+        });
+
+        function updateProgress(card) {
+            const items = card.querySelectorAll('.order-item');
+            const completed = card.querySelectorAll('.order-item.completed');
+            const pct = items.length ? (completed.length / items.length) * 100 : 0;
+            
+            let bar = card.querySelector('.order-progress-bar');
+            if (!bar) {
+                bar = document.createElement('div');
+                bar.className = 'order-progress-bar';
+                bar.innerHTML = '<div class="order-progress-fill"></div>';
+                card.querySelector('.order-card-body').prepend(bar);
+            }
+            card.querySelector('.order-progress-fill').style.width = pct + '%';
+        }
+
+        // Lógica de Lotes (Edge Case Fase 2)
+        function toggleLotePanel() {
+            document.getElementById('lotePanel').classList.toggle('open');
+        }
+
+        function selectLote(name, loteId, el) {
+            document.querySelectorAll('.lote-option').forEach(opt => opt.classList.remove('selected'));
+            el.classList.add('selected');
+            document.getElementById('currentLoteDisplay').innerText = `${name} (${loteId})`;
+            console.log(`[UX] Lote activo cambiado a: ${loteId}. Se adjuntará a las nuevas comandas.`);
+            
+            // Cerrar panel tras selección y dar feedback visual
+            setTimeout(() => {
+                toggleLotePanel();
+                const badge = document.querySelector('.active-lote-badge');
+                badge.classList.remove('updated-success'); // reset por si acaso
+                void badge.offsetWidth; // trigger reflow
+                badge.classList.add('updated-success');
+            }, 250);
+        }
+    
+        
+        // --- LOGICA DE INTEGRACION POS -> KDS ---
+        function renderOrderCard(order) {
+            let typeClass = 'type-salon';
+            if(order.type && order.type.toLowerCase() === 'takeaway') typeClass = 'type-takeaway';
+            if(order.type && order.type.toLowerCase() === 'delivery') typeClass = 'type-delivery';
+            
+            let itemsHTML = '';
+            if (order.items && Array.isArray(order.items)) {
+                order.items.forEach(item => {
+                    let modStr = '';
+                    if(item.mods && item.mods.length > 0) {
+                        modStr = `<div class="item-mods" style="color:var(--brand-danger); font-size:12px; margin-top:4px;"> + ${item.mods.join(', ')}</div>`;
+                    }
+                    itemsHTML += `
+                        <div class="order-item interactive">
+                            <div class="item-qty-badge">${item.qty || 1}</div>
+                            <div class="item-info">
+                                <div class="item-name-kds">${item.name}</div>
+                                ${modStr}
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            
+            let actionBtn = `<button class="btn-advance btn-start-prep" onclick="moveCard('order-${order.id}', 'lane-new', 'lane-prep', 'count-new', 'count-prep', this)">EMPEZAR <i class="ri-arrow-right-line"></i></button>`;
+            
+            return `
+                <div class="order-card urgency-ok" id="order-${order.id}" data-id="${order.id}">
+                    <div class="card-top-bar"></div>
+                    <div class="order-card-header">
+                        <span class="order-number">#${order.id}</span>
+                        <span class="order-type ${typeClass}">${(order.type || 'Salon').toUpperCase()}</span>
+                        <span class="order-timer timer-ok"><i class="ri-timer-line"></i> 00: 00</span>
+                    </div>
+                    <div class="order-card-body">
+                        ${itemsHTML}
+                    </div>
+                    ${actionBtn}
+                </div>
+            `;
+        }
+
+        function loadOrders() {
+            const laneNew = document.getElementById('lane-new');
+            let orders = JSON.parse(localStorage.getItem('kds_orders') || '[]');
+            
+            // Limpiar columna nuevas
+            laneNew.innerHTML = '';
+            
+            // Solo renderizamos las 'nuevas' (el resto dependera del backend o ms lgica en un sistema real, ac lo simplificamos)
+            orders.forEach(order => {
+                // Solo si no est ya en otra columna (para no duplicar si drag&drop)
+                if(!document.getElementById('order-' + order.id)) {
+                    laneNew.innerHTML += renderOrderCard(order);
+                }
+            });
+            
+            // Re-bind interactive items
+            document.querySelectorAll('.order-item.interactive').forEach(item => {
+                item.onclick = function() {
+                    this.classList.toggle('completed');
+                    updateProgress(this.closest('.order-card'));
+                };
+            });
+            
+            const currentStation = document.querySelector('.station-selector').value;
+            changeStation(currentStation);
+            
+            updateCounts();
+        }
+
+        function updateCounts() {
+            const laneNew = document.getElementById('lane-new');
+            const lanePrep = document.getElementById('lane-prep');
+            const laneReady = document.getElementById('lane-ready');
+            
+            if(laneNew) document.getElementById('count-new').innerText = laneNew.querySelectorAll('.order-card').length;
+            if(lanePrep) document.getElementById('count-prep').innerText = lanePrep.querySelectorAll('.order-card').length;
+            if(laneReady) document.getElementById('count-ready').innerText = laneReady.querySelectorAll('.order-card').length;
+        }
+
+        window.addEventListener('storage', (e) => {
+            if(e.key === 'kds_orders') {
+                loadOrders();
+                new Audio('https://www.soundjay.com/buttons/sounds/button-3.mp3').play().catch(e=>console.log(e));
+            }
+        });
+
+        // Modificamos el init para que cargue
+        document.addEventListener('DOMContentLoaded', () => {
+            loadOrders();
+            setInterval(loadOrders, 2000); // Polling por si localStorage events fallan en mismas tabs
+        });
+
+    </script>
+</body>
+</html>

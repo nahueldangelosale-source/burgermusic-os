@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cierre Z — BurgerMusic OS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Lato:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-body: #F8FAFC;
+            --bg-surface: #FFFFFF;
+            --bg-sidebar: #1E293B;
+            --brand-primary: #EA580C;
+            --brand-primary-hover: #C2410C;
+            
+            --text-main: #0F172A;
+            --text-muted: #64748B;
+            --text-sidebar: #CBD5E1;
+            --text-sidebar-active: #FFFFFF;
+            
+            --color-in: #10B981;
+            --color-out: #EF4444;
+            
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+            
+            --transition-fast: 0.15s ease-in-out;
+            --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Lato', sans-serif; background-color: var(--bg-body); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+        h1, h2, h3, h4, h5, h6, .montserrat { font-family: 'Montserrat', sans-serif; }
+
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
+        
+        .page-header { padding: 32px 40px; display: flex; justify-content: space-between; align-items: flex-end; background: white; border-bottom: 1px solid #E2E8F0; z-index: 5;}
+        .page-header h1 { font-family: 'Montserrat'; font-weight: 800; font-size: 28px; color: var(--text-main); margin-bottom: 4px; }
+        .page-header p { font-size: 14px; color: var(--text-muted); }
+
+        .btn-primary { background: var(--brand-primary); color: white; border: none; font-family: 'Montserrat'; font-weight: 700; font-size: 13px; padding: 12px 24px; border-radius: 8px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(234,88,12,0.3);}
+        .btn-primary:hover { background: var(--brand-primary-hover); transform: translateY(-2px); }
+        .btn-primary:active { transform: scale(0.98); }
+        
+        .content-area { padding: 32px 40px; max-width: 1000px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; gap: 24px;}
+
+        .card { background: white; border-radius: 12px; padding: 32px; box-shadow: var(--shadow-sm); border: 1px solid #E2E8F0; }
+        
+        /* Simulación de Cuadre */
+        .cuadre-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; margin-bottom: 32px; }
+        .cuadre-col { display: flex; flex-direction: column; gap: 16px; }
+        
+        .cuadre-box { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 16px; position: relative; }
+        .cuadre-title { font-family: 'Montserrat'; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .cuadre-value { font-family: 'Montserrat'; font-variant-numeric: tabular-nums; font-size: 20px; font-weight: 800; color: var(--text-main); margin-bottom: 4px; }
+        .cuadre-desc { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+        
+        .operator { display: flex; align-items: center; justify-content: center; font-size: 24px; color: #94A3B8; font-weight: 800; }
+        
+        .input-arqueo { width: 100%; height: 48px; border: 2px solid #E2E8F0; border-radius: 8px; font-family: 'Montserrat'; font-size: 18px; font-weight: 700; padding: 0 16px; text-align: right; margin-top: 8px; outline: none; transition: 0.2s; }
+        .input-arqueo:focus { border-color: var(--brand-primary); }
+
+        .result-box { margin-top: 24px; padding: 24px; border-radius: 12px; border: 2px solid #E2E8F0; background: #F8FAFC; text-align: center; transition: 0.3s; }
+        .result-box.success { border-color: #10B981; background: #ECFDF5; }
+        .result-box.error { border-color: #EF4444; background: #FEF2F2; }
+        
+        .result-title { font-family: 'Montserrat'; font-size: 18px; font-weight: 800; margin-bottom: 8px; }
+        .result-diff { font-family: 'Montserrat'; font-size: 28px; font-weight: 800; }
+
+        /* --- UNIFIED SIDEBAR CSS --- */
+        .sidebar { width: 260px; background-color: var(--bg-sidebar); display: flex; flex-direction: column; transition: var(--transition-smooth); z-index: 10; box-shadow: var(--shadow-lg); }
+        .sidebar-nav { padding: 16px 12px; flex: 1; overflow-y: auto; }
+        .nav-item { display: flex; align-items: center; padding: 12px 16px; color: var(--text-sidebar); text-decoration: none; border-radius: 8px; margin-bottom: 4px; transition: var(--transition-fast); font-size: 15px; font-weight: 500; }
+        .nav-item i { margin-right: 12px; font-size: 20px; transition: var(--transition-fast); }
+        .nav-item:hover { background-color: rgba(255,255,255,0.05); color: var(--text-sidebar-active); }
+        .nav-item.active { background-color: var(--brand-primary, #EA580C); color: white; box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3); }
+        .nav-dropdown { display: flex; flex-direction: column; }
+        .nav-dropdown .nav-item { width: 100%; }
+        .nav-dropdown .chevron { margin-left: auto; margin-right: 0; transition: transform 0.3s ease; }
+        .nav-dropdown.open .chevron { transform: rotate(180deg); }
+        .nav-submenu { display: none; flex-direction: column; background: rgba(0,0,0,0.2); padding: 8px 0; margin: 4px 16px; border-radius: 8px; }
+        .nav-dropdown.open .nav-submenu { display: flex; }
+        .submenu-item { padding: 10px 16px 10px 42px; color: var(--text-sidebar); text-decoration: none; font-size: 13px; transition: var(--transition-fast); border-radius: 6px; margin: 2px 8px; }
+        .submenu-item:hover { color: white; background-color: rgba(255,255,255,0.05); }
+        .submenu-item.active { color: var(--brand-primary); font-weight: bold; background-color: rgba(234, 88, 12, 0.1); }
+        .sidebar-nav::-webkit-scrollbar { width: 6px; }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .sidebar-nav::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+    </style>
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="sidebar-header" style="padding: 24px; display: flex; align-items: center; gap: 12px; color: white; border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <div style="width: 28px;height: 28px;background:#000;border-radius: 4px;display: flex;align-items: center;justify-content: center;color: white;font-weight: 800;font-size: 11px;">BM</div>
+        <span style="font-family: 'Montserrat'; font-weight: 800; font-size: 14px; color: white;">BurgerMusic</span>
+    </div>
+    
+    <nav class="sidebar-nav">
+        <a href="dashboard_prototipo.html" class="nav-item"><i class="ri-home-4-line"></i> Inicio</a>
+        
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-shopping-bag-line"></i> Compras
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="compras_inbox_prototipo.html" class="submenu-item">Facturas</a>
+                <a href="compras_proveedores_prototipo.html" class="submenu-item">Proveedores</a>
+                <a href="compras_ordenes_prototipo.html" class="submenu-item">Órdenes de compra</a>
+                <a href="compras_recepciones_prototipo.html" class="submenu-item">Recepciones</a>
+            </div>
+        </div>
+
+        <a href="produccion_gerencial_prototipo.html" class="nav-item"><i class="ri-hammer-line"></i> Producción</a>
+        <a href="inventario_prototipo.html" class="nav-item"><i class="ri-box-3-line"></i> Inventario</a>
+
+        <div class="nav-dropdown open">
+            <a href="#" class="nav-item nav-dropdown-toggle active" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-line-chart-line"></i> Ventas
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="ventas_dashboard_prototipo.html" class="submenu-item">Dashboard</a>
+                <a href="pos_prototipo.html" class="submenu-item">Nueva venta</a>
+                <a href="ventas_historial_prototipo.html" class="submenu-item">Historial de Tickets</a>
+                <a href="ventas_sincronizacion_prototipo.html" class="submenu-item">Sincronización</a>
+                <a href="ventas_cierre_z_prototipo.html" class="submenu-item active">Cierre Z</a>
+            </div>
+        </div>
+
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-bank-card-line"></i> Finanzas
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="finanzas_dashboard_prototipo.html" class="submenu-item">Dashboard</a>
+                <a href="finanzas_movimientos_prototipo.html" class="submenu-item">Mov. caja</a>
+                <a href="finanzas_cuentas_pagar_prototipo.html" class="submenu-item">Cuentas por pagar</a>
+                <a href="finanzas_categorias_prototipo.html" class="submenu-item">Categorías financieras</a>
+            </div>
+        </div>
+        
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-safe-line"></i> Caja
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="caja_gastos_eventuales_prototipo.html" class="submenu-item">Gastos eventuales</a>
+                <a href="caja_gastos_fijos_prototipo.html" class="submenu-item">Gastos fijos</a>
+                <a href="caja_ingresos_extra_prototipo.html" class="submenu-item">Ingresos extra</a>
+            </div>
+        </div>
+
+        <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #475569; padding: 16px 14px 6px;">Operación</div>
+        <a href="pos_prototipo.html" class="nav-item"><i class="ri-store-2-line"></i> Punto de Venta</a>
+        <a href="kds_prototipo.html" class="nav-item"><i class="ri-restaurant-line"></i> Cocina</a>
+        <a href="delivery_prototipo.html" class="nav-item"><i class="ri-e-bike-2-line"></i> Delivery</a>
+        <a href="cajas_prototipo.html" class="nav-item"><i class="ri-money-dollar-box-line"></i> Caja POS</a>
+        <a href="produccion_prototipo.html" class="nav-item"><i class="ri-smartphone-line"></i> Producción (Móvil)</a>
+        <a href="auditoria_deposito_prototipo.html" class="nav-item"><i class="ri-clipboard-line"></i> Auditoría (Móvil)</a>
+    </nav>
+
+    <div style="margin-top: auto; padding: 20px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 16px;">
+        <select class="branch-select" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px; font-size: 13px; border-radius: 8px;">
+            <option value="lanus" selected style="color: black;">📍 Burger Music Lanus</option>
+        </select>
+        <div class="user-profile" style="display: flex; align-items: center; gap: 12px; padding: 0; cursor: pointer;">
+            <div class="avatar" style="width: 32px; height: 32px; font-size: 14px; background: #EA580C; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">G</div>
+            <div style="display: flex; flex-direction: column; overflow: hidden;">
+                <span style="font-size: 12px; font-weight: 600; color: white; white-space: nowrap;">gabriel@burgermusic.com</span>
+                <span style="font-size: 11px; color: #94A3B8;">Administrador</span>
+            </div>
+        </div>
+    </div>
+</aside>
+
+<main class="main-content">
+    <div class="page-header">
+        <div>
+            <h1>Simulación de Cierre Z (3-Way Match)</h1>
+            <p>Calculadora interactiva del cuadre diario: Ventas Sistema vs. Cobros Digitales vs. Arqueo Físico.</p>
+        </div>
+    </div>
+    
+    <div class="content-area">
+        
+        <div class="card">
+            <h2 style="font-family: 'Montserrat'; font-size: 18px; font-weight: 800; margin-bottom: 24px; color: var(--text-main); text-align: center;">Conciliación del Turno</h2>
+            
+            <div class="cuadre-grid">
+                <!-- Columna 1: Registradora (POS) -->
+                <div class="cuadre-col">
+                    <div style="text-align: center; margin-bottom: 8px;">
+                        <i class="ri-store-2-line" style="font-size: 24px; color: var(--brand-primary);"></i>
+                        <h3 style="font-family: 'Montserrat'; font-size: 14px; font-weight: 700; margin-top: 8px;">Sistema (POS)</h3>
+                    </div>
+                    
+                    <div class="cuadre-box">
+                        <div class="cuadre-title">Ventas Efectivo</div>
+                        <div class="cuadre-value" id="posEfectivo">$ 45.000</div>
+                        <div class="cuadre-desc">Registradas en el mostrador.</div>
+                    </div>
+                    
+                    <div class="cuadre-box">
+                        <div class="cuadre-title">Ventas Tarjeta/QR</div>
+                        <div class="cuadre-value" id="posDigital">$ 120.000</div>
+                        <div class="cuadre-desc">Terminales MercadoPago/Visa.</div>
+                    </div>
+                </div>
+                
+                <!-- Columna 2: Delivery & Apps -->
+                <div class="cuadre-col">
+                    <div style="text-align: center; margin-bottom: 8px;">
+                        <i class="ri-e-bike-2-line" style="font-size: 24px; color: #0284C7;"></i>
+                        <h3 style="font-family: 'Montserrat'; font-size: 14px; font-weight: 700; margin-top: 8px;">Apps de Delivery</h3>
+                    </div>
+                    
+                    <div class="cuadre-box" style="border-left: 3px solid #E11D48;">
+                        <div class="cuadre-title">PedidosYa / Rappi</div>
+                        <div class="cuadre-value" id="appsVenta">$ 85.000</div>
+                        <div class="cuadre-desc">Cobro automático vía Sincronización.</div>
+                    </div>
+                    
+                    <div class="cuadre-box" style="opacity: 0.7;">
+                        <div class="cuadre-title">Errores Pendientes</div>
+                        <div class="cuadre-value" style="color: #EF4444;">$ 0</div>
+                        <div class="cuadre-desc">No hay ventas pausadas.</div>
+                    </div>
+                </div>
+                
+                <!-- Columna 3: Arqueo Físico (Input del usuario) -->
+                <div class="cuadre-col">
+                    <div style="text-align: center; margin-bottom: 8px;">
+                        <i class="ri-safe-line" style="font-size: 24px; color: #10B981;"></i>
+                        <h3 style="font-family: 'Montserrat'; font-size: 14px; font-weight: 700; margin-top: 8px;">Realidad (Físico)</h3>
+                    </div>
+                    
+                    <div class="cuadre-box" style="background: white; border: 2px solid var(--brand-primary); box-shadow: 0 4px 12px rgba(234,88,12,0.1);">
+                        <div class="cuadre-title" style="color: var(--brand-primary);">Ingresá Efectivo en Caja</div>
+                        <div class="cuadre-desc">Contá los billetes (descontando el fondo fijo) y escribí el total.</div>
+                        <input type="number" id="inputCaja" class="input-arqueo" placeholder="0" oninput="calcularCuadre()">
+                    </div>
+                </div>
+            </div>
+            
+            <div style="height: 1px; background: #E2E8F0; margin: 32px 0;"></div>
+            
+            <div style="text-align: center; margin-bottom: 16px;">
+                <p style="font-family: 'Montserrat'; font-weight: 700; font-size: 14px; color: var(--text-muted); text-transform: uppercase;">Resultado del 3-Way Match</p>
+            </div>
+            
+            <div id="resultadoBox" class="result-box">
+                <div id="resultadoIcon" style="font-size: 40px; margin-bottom: 8px; color: #94A3B8;"><i class="ri-scales-3-line"></i></div>
+                <div id="resultadoTitle" class="result-title" style="color: var(--text-muted);">Esperando Arqueo...</div>
+                <div id="resultadoDiff" class="result-diff" style="color: var(--text-main);">-</div>
+                <p id="resultadoDesc" style="color: var(--text-muted); font-size: 14px; margin-top: 12px;">Ingresá el efectivo real en la caja para ver si cuadra con el sistema.</p>
+            </div>
+            
+            <div style="display: flex; justify-content: center; margin-top: 32px;">
+                <button id="btnCierre" class="btn-primary" style="opacity: 0.5; cursor: not-allowed; width: 300px;" disabled>Emitir Cierre Z</button>
+            </div>
+            
+        </div>
+    </div>
+</main>
+
+<script>
+    const posEfectivoEsperado = 45000;
+    
+    function formatMoney(amount) {
+        return '$ ' + Math.abs(amount).toLocaleString('es-AR');
+    }
+    
+    function calcularCuadre() {
+        const input = document.getElementById('inputCaja');
+        const box = document.getElementById('resultadoBox');
+        const icon = document.getElementById('resultadoIcon');
+        const title = document.getElementById('resultadoTitle');
+        const diff = document.getElementById('resultadoDiff');
+        const desc = document.getElementById('resultadoDesc');
+        const btn = document.getElementById('btnCierre');
+        
+        let valorReal = parseInt(input.value);
+        if (isNaN(valorReal)) {
+            box.className = 'result-box';
+            icon.innerHTML = '<i class="ri-scales-3-line"></i>';
+            icon.style.color = '#94A3B8';
+            title.innerHTML = 'Esperando Arqueo...';
+            title.style.color = 'var(--text-muted)';
+            diff.innerHTML = '-';
+            diff.style.color = 'var(--text-main)';
+            desc.innerHTML = 'Ingresá el efectivo real en la caja para ver si cuadra con el sistema.';
+            btn.style.opacity = '0.5';
+            btn.style.cursor = 'not-allowed';
+            btn.disabled = true;
+            return;
+        }
+        
+        let diferencia = valorReal - posEfectivoEsperado;
+        
+        if (diferencia === 0) {
+            box.className = 'result-box success';
+            icon.innerHTML = '<i class="ri-checkbox-circle-fill"></i>';
+            icon.style.color = '#10B981';
+            title.innerHTML = '¡Cuadre Perfecto!';
+            title.style.color = '#059669';
+            diff.innerHTML = '$ 0';
+            diff.style.color = '#059669';
+            desc.innerHTML = 'El efectivo en caja coincide exactamente con el sistema. Las integraciones digitales están conciliadas.';
+            btn.style.opacity = '1';
+            btn.style.cursor = 'pointer';
+            btn.disabled = false;
+        } else if (diferencia < 0) {
+            box.className = 'result-box error';
+            icon.innerHTML = '<i class="ri-error-warning-fill"></i>';
+            icon.style.color = '#EF4444';
+            title.innerHTML = 'Faltante de Caja';
+            title.style.color = '#DC2626';
+            diff.innerHTML = '-' + formatMoney(diferencia);
+            diff.style.color = '#DC2626';
+            desc.innerHTML = 'Falta dinero físico respecto a lo que el POS dice que se vendió en efectivo.';
+            btn.style.opacity = '1';
+            btn.style.cursor = 'pointer';
+            btn.disabled = false;
+        } else {
+            box.className = 'result-box error';
+            icon.innerHTML = '<i class="ri-error-warning-fill"></i>';
+            icon.style.color = '#EF4444';
+            title.innerHTML = 'Sobrante de Caja';
+            title.style.color = '#DC2626';
+            diff.innerHTML = '+' + formatMoney(diferencia);
+            diff.style.color = '#DC2626';
+            desc.innerHTML = 'Hay más dinero físico que el reportado. ¿Te olvidaste de registrar alguna venta?';
+            btn.style.opacity = '1';
+            btn.style.cursor = 'pointer';
+            btn.disabled = false;
+        }
+    }
+    
+    document.getElementById('btnCierre').addEventListener('click', function() {
+        this.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Emitiendo Cierre...';
+        setTimeout(() => {
+            this.innerHTML = '<i class="ri-check-line"></i> Turno Cerrado';
+            this.style.background = '#10B981';
+        }, 1500);
+    });
+</script>
+
+</body>
+</html>

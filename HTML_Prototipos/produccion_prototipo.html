@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Music OS - Producción</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Montserrat:wght@500;700;900&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-body: #F8FAFC;
+            --bg-surface: #FFFFFF;
+            --brand-primary: #8B5CF6; /* Violeta distintivo para producción */
+            --brand-success: #10B981;
+            --brand-danger: #EF4444;
+            --brand-warning: #F59E0B;
+            --text-main: #0F172A;
+            --text-muted: #64748B;
+            --border-light: #E2E8F0;
+            --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            --shadow-fab: 0 10px 15px -3px rgba(139, 92, 246, 0.3);
+            --alert-high-bg: #FEF2F2;
+            --alert-high-text: #DC2626;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: #1E293B;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .mobile-container {
+            width: 100%;
+            max-width: 400px;
+            height: 100vh;
+            max-height: 850px;
+            background-color: var(--bg-body);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        @media (min-width: 450px) {
+            .mobile-container {
+                height: 85vh;
+                border-radius: 32px;
+                border: 8px solid #0F172A;
+            }
+        }
+
+        .app-bar {
+            background-color: var(--bg-surface);
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            z-index: 10;
+        }
+
+        .app-bar h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .app-bar-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* --- SCREEN1: SELECTOR --- */
+        #screenSelector {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .category-title {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+
+        .grid-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .product-card {
+            background: var(--bg-surface);
+            border: 2px solid transparent;
+            border-radius: 16px;
+            padding: 20px 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            box-shadow: var(--shadow-card);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .product-card:active {
+            transform: scale(0.95);
+            border-color: var(--brand-primary);
+        }
+
+        .product-icon {
+            font-size: 32px;
+            color: var(--brand-primary);
+            margin-bottom: 12px;
+            background: #EDE9FE;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 16px;
+        }
+
+        .product-name {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--text-main);
+            line-height: 1.2;
+        }
+
+        /* --- SCREEN2: FORMULARIO --- */
+        #screenForm {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: none; /* Oculto por defecto */
+            flex-direction: column;
+            background: var(--bg-surface);
+            animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+
+        .form-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .btn-back {
+            background: #F1F5F9;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: var(--text-main);
+            cursor: pointer;
+        }
+
+        .form-title {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 900;
+            font-size: 20px;
+            color: var(--text-main);
+        }
+
+        .input-group {
+            margin-bottom: 24px;
+        }
+
+        .input-label {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .giant-input {
+            width: 100%;
+            background: #F8FAFC;
+            border: 2px solid var(--border-light);
+            border-radius: 16px;
+            padding: 20px;
+            font-family: 'Lato', sans-serif;
+            font-weight: 900;
+            font-size: 32px;
+            text-align: center;
+            color: var(--text-main);
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .giant-input:focus {
+            border-color: var(--brand-primary);
+            background: #FFFFFF;
+            box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1);
+        }
+
+        .giant-input.error {
+            border-color: var(--brand-danger);
+            color: var(--brand-danger);
+            background: #FEF2F2;
+        }
+
+        .error-msg {
+            color: var(--brand-danger);
+            font-size: 12px;
+            font-weight: 700;
+            margin-top: 8px;
+            display: none;
+        }
+
+        /* LOTE INFO CARD */
+        .lote-info-card {
+            background: #1E293B;
+            border-radius: 16px;
+            padding: 24px;
+            margin-top: auto;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .lote-info-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--brand-primary);
+        }
+
+        .lote-data-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .lote-data-row:last-child { margin-bottom: 0; }
+
+        .lote-label {
+            font-size: 12px;
+            color: #94A3B8;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .lote-value {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 900;
+            font-size: 18px;
+            color: #FFFFFF;
+        }
+        
+        .lote-value.exp { color: var(--brand-warning); }
+
+        /* FAB ACTION */
+        .btn-action {
+            width: 100%;
+            background: var(--brand-primary);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            padding: 20px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 900;
+            font-size: 16px;
+            box-shadow: var(--shadow-fab);
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-action: disabled {
+            background: #CBD5E1;
+            box-shadow: none;
+            color: #94A3B8;
+        }
+
+        .btn-action.printing {
+            background: var(--brand-warning);
+            box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.3);
+            animation: pulseWarning 1s infinite alternate;
+        }
+
+        @keyframes pulseWarning {
+            from { filter: brightness(1); }
+            to { filter: brightness(1.1); }
+        }
+
+        /* SUCCESS OVERLAY */
+        .success-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--brand-success);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            color: white;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .success-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .success-icon {
+            font-size: 80px;
+            margin-bottom: 16px;
+            animation: scaleIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="mobile-container">
+        
+        <header class="app-bar">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <a href="dashboard_prototipo.html" style="color: var(--text-main); font-size: 24px; text-decoration: none;"><i class="ri-arrow-left-line"></i></a>
+                <div>
+                    <h1>Producción Operativa</h1>
+                <div class="app-bar-subtitle" onclick="configShift()" style="cursor: pointer; display: inline-flex; align-items: center; gap: 4px; border-bottom: 1px dashed rgba(148, 163, 184, 0.5);">
+                    <span id="shiftText">Turno Mañana</span> • Encargado: <span id="managerText">Lucas</span> <i class="ri-edit-box-line"></i>
+                </div>
+            </div>
+            <div style="font-size: 24px; color: var(--brand-primary);">
+                <i class="ri-barcode-box-line"></i>
+            </div>
+        </header>
+
+        <!-- SCREEN1: SELECTOR -->
+        <div id="screenSelector">
+
+
+            <div>
+                <div class="category-title">Carnes</div>
+                <div class="grid-selector">
+                    <div class="product-card" onclick="openForm('Medallones', 'MED', 3, 2000)">
+                        <div class="product-icon"><i class="ri-record-circle-line"></i></div>
+                        <div class="product-name">Medallones de Carne</div>
+                    </div>
+                    <div class="product-card" onclick="openForm('Churrascos', 'NIR', 4, 150)">
+                        <div class="product-icon"><i class="ri-restaurant-line"></i></div>
+                        <div class="product-name">Churrascos (Nirvana)</div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="category-title">Panadería y Salsas</div>
+                <div class="grid-selector">
+                    <div class="product-card" onclick="openForm('Pan TBP', 'PAN', 5, 400)">
+                        <div class="product-icon"><i class="ri-stack-line"></i></div>
+                        <div class="product-name">Pan TBP</div>
+                    </div>
+                    <div class="product-card" onclick="openForm('Salsa Big Mac', 'SBM', 2, 50)">
+                        <div class="product-icon"><i class="ri-drop-line"></i></div>
+                        <div class="product-name">Salsa Big Mac</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN2: FORMULARIO -->
+        <div id="screenForm">
+            <div class="form-header">
+                <button class="btn-back" onclick="closeForm()"><i class="ri-arrow-left-line"></i></button>
+                <div class="form-title" id="formTitle">Producto</div>
+            </div>
+
+            <div id="meatInputGroup" style="display: none;">
+                <div class="input-group">
+                    <label class="input-label" style="color: #38BDF8;">1. KG CARNE INGRESADOS (Materia Prima)</label>
+                    <input type="number" step="0.1" class="giant-input" id="inputMeatKg" inputmode="decimal" placeholder="0.0" style="font-size: 24px; padding: 16px; border-color: #BAE6FD; background: #F0F9FF;">
+                </div>
+            </div>
+
+            <div id="trayInputGroup" style="display: none;">
+                <div class="input-group">
+                    <label class="input-label" style="color: var(--brand-primary); display: flex; justify-content: space-between; align-items: center;">
+                        <span>2. BANDEJAS COMPLETAS</span>
+                        <span style="font-size: 11px; display: flex; align-items: center; gap: 4px;">
+                            <input type="number" id="unitsPerTray" value="60" style="width: 40px; padding: 2px 4px; text-align: center; border: 1px solid #DDD6FE; border-radius: 4px; font-weight: 900; color: var(--brand-primary); outline: none;" oninput="validateForm()">
+                            Uds/c.u
+                        </span>
+                    </label>
+                    <input type="number" class="giant-input" id="inputTrays" inputmode="numeric" placeholder="0" oninput="validateForm()" style="border-color: #DDD6FE;">
+                </div>
+                <div class="input-group">
+                    <label class="input-label" style="color: var(--brand-primary);">3. + UNIDADES SUELTAS (Pico incompleto)</label>
+                    <input type="number" class="giant-input" id="inputLoose" inputmode="numeric" placeholder="0" oninput="validateForm()" style="border-color: #DDD6FE; font-size: 24px; padding: 16px;">
+                    <div style="text-align: center; color: var(--brand-primary); font-weight: 900; margin-top: 12px; font-size: 18px;" id="calcUnits">0 Unidades Totales</div>
+                </div>
+            </div>
+
+            <div class="input-group" id="standardInputGroup">
+                <label class="input-label">CANTIDAD OBTENIDA (Unidades/Lts)</label>
+                <input type="number" class="giant-input" id="inputQty" inputmode="numeric" placeholder="0" oninput="validateForm()">
+                <div id="liquidHint" style="display: none; text-align: center; color: #94A3B8; font-size: 13px; margin-top: 8px; font-weight: 700;">Rinde Técnico Esperado : 95% (Margen de envase)</div>
+            </div>
+
+            <div class="error-msg" id="errorQty" style="margin-bottom: 24px;"></div>
+
+            <div class="grid-selector" style="gap: 12px; margin-bottom: 24px;">
+                <div class="input-group" style="margin-bottom: 0;">
+                    <label class="input-label" style="color: var(--brand-danger);">DESCARTE REAL (KG)</label>
+                    <input type="number" step="0.1" class="giant-input" id="inputWaste" inputmode="decimal" placeholder="0.0" style="font-size: 20px; padding: 12px; border-color: #FECACA; background: #FEF2F2;" oninput="validateForm()">
+                </div>
+                <div class="input-group" style="margin-bottom: 0;">
+                    <label class="input-label" style="color: #D97706;">REAPROVECHAMIENTO</label>
+                    <input type="number" step="0.1" class="giant-input" id="inputRework" inputmode="decimal" placeholder="0.0" style="font-size: 20px; padding: 12px; border-color: #FDE68A; background: #FFFBEB;" oninput="validateForm()">
+                </div>
+            </div>
+
+            <div class="lote-info-card">
+                <div class="lote-data-row">
+                    <div class="lote-label">Número de Lote</div>
+                    <div class="lote-value" id="loteId">L-0000-XXX</div>
+                </div>
+                <div class="lote-data-row">
+                    <div class="lote-label">Vencimiento</div>
+                    <div class="lote-value exp" id="loteExp">20/10/2026</div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-top: 12px;">
+                <button class="btn-action" id="btnAction" onclick="handleAction(false)" disabled style="flex: 2;">
+                    <i class="ri-printer-line"></i> IMPRIMIR
+                </button>
+                <button class="btn-action" id="btnActionFast" onclick="handleAction(true)" disabled style="flex: 1; background: #334155; color: white;">
+                    <i class="ri-skip-forward-mini-line"></i> LOTE RÁPIDO
+                </button>
+            </div>
+        </div>
+
+        <!-- SUCCESS OVERLAY -->
+        <div class="success-overlay" id="successOverlay">
+            <i class="ri-checkbox-circle-fill success-icon"></i>
+            <h2 class="montserrat">¡Lote Creado!</h2>
+            <p style="margin-top: 8px;">La etiqueta ha sido impresa.</p>
+        </div>
+
+    </div>
+
+    <script>
+        // ESTADO
+        let currentProduct = null;
+        let currentCode = null;
+        let currentDaysExp = 0;
+        let maxLimit = 0;
+        let printTimer = null;
+        let isPrinting = false;
+
+        const elSelector = document.getElementById('screenSelector');
+        const elForm = document.getElementById('screenForm');
+        const inputQty = document.getElementById('inputQty');
+        const inputWaste = document.getElementById('inputWaste');
+        const btnAction = document.getElementById('btnAction');
+        const errorQty = document.getElementById('errorQty');
+
+        // FORMATEADOR DE FECHAS
+        function formatDate(date) {
+            return date.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        }
+
+        // CONFIGURAR TURNO
+        function configShift() {
+            const currentShift = document.getElementById('shiftText').innerText.replace('Turno ', '');
+            const currentManager = document.getElementById('managerText').innerText;
+            
+            const newShift = prompt("Ingrese el Turno (ej. Mañana, Tarde, Noche):", currentShift);
+            if(newShift !== null && newShift.trim() !== "") {
+                document.getElementById('shiftText').innerText = "Turno " + newShift.trim();
+            }
+            
+            const newManager = prompt("Ingrese el nombre del Encargado:", currentManager);
+            if(newManager !== null && newManager.trim() !== "") {
+                document.getElementById('managerText').innerText = newManager.trim();
+            }
+        }
+
+        // GENERAR LOTE ID
+        function generateLotId(code) {
+            const today = new Date();
+            const d = String(today.getDate()).padStart(2, '0');
+            const m = String(today.getMonth() + 1).padStart(2, '0');
+            // Formato: L-DDMM-COD
+            return `L-${d}${m}-${code}`;
+        }
+
+        // CALCULAR VENCIMIENTO
+        function calcExpiration(days) {
+            const date = new Date();
+            date.setDate(date.getDate() + days);
+            return formatDate(date);
+        }
+
+        // ABRIR FORMULARIO
+        function openForm(name, code, expDays, max) {
+            currentProduct = name;
+            currentCode = code;
+            currentDaysExp = expDays;
+            maxLimit = max;
+
+            document.getElementById('formTitle').innerText = name;
+            document.getElementById('loteId').innerText = generateLotId(code);
+            document.getElementById('loteExp').innerText = calcExpiration(expDays);
+
+            // Toggle form mode (Flujo de Rinde para Carnes)
+            const isMedallon = code === 'MED';
+            const isMeat = code === 'MED' || code === 'NIR';
+            const isLiquid = code === 'SBM';
+            
+            document.getElementById('meatInputGroup').style.display = isMeat ? 'block' : 'none';
+            document.getElementById('trayInputGroup').style.display = isMedallon ? 'block' : 'none';
+            document.getElementById('standardInputGroup').style.display = isMedallon ? 'none' : 'block';
+            
+            // Smart Defaults para Líquidos
+            const hint = document.getElementById('liquidHint');
+            if (isLiquid) {
+                hint.style.display = 'block';
+                document.getElementById('inputQty').placeholder = "Ej: 19";
+            } else {
+                hint.style.display = 'none';
+                document.getElementById('inputQty').placeholder = "0";
+            }
+
+            // Reset UI
+            document.getElementById('inputQty').value = '';
+            document.getElementById('inputMeatKg').value = '';
+            document.getElementById('inputTrays').value = '';
+            document.getElementById('inputLoose').value = '';
+            document.getElementById('inputWaste').value = '';
+            document.getElementById('inputRework').value = '';
+            document.getElementById('calcUnits').innerText = '0 Unidades Totales';
+            
+            validateForm();
+            resetPrintState();
+
+            elSelector.style.display = 'none';
+            elForm.style.display = 'flex';
+            
+            // Analytics simulado
+            console.log(`[UX] Abrió formulario producción: ${name}`);
+        }
+
+        // CERRAR FORMULARIO
+        function closeForm() {
+            elForm.style.display = 'none';
+            elSelector.style.display = 'flex';
+        }
+
+        // VALIDACIÓN EN TIEMPO REAL (PREVENCIÓN DE FAT-FINGER)
+        function validateForm() {
+            const isMedallon = currentCode === 'MED';
+            let val = 0;
+            
+            if (isMedallon) {
+                const trays = parseInt(document.getElementById('inputTrays').value) || 0;
+                const loose = parseInt(document.getElementById('inputLoose').value) || 0;
+                const unitsPerTray = parseInt(document.getElementById('unitsPerTray').value) || 60;
+                val = (trays * unitsPerTray) + loose;
+                document.getElementById('calcUnits').innerText = val + ' Unidades Totales';
+            } else {
+                val = parseInt(document.getElementById('inputQty').value) || 0;
+            }
+
+            let isValid = false;
+            let targetInput = isMedallon ? document.getElementById('inputTrays') : document.getElementById('inputQty');
+
+            if (isNaN(val) || val <= 0) {
+                errorQty.style.display = 'none';
+                targetInput.classList.remove('error');
+            } else if (val > maxLimit) {
+                // Validación estricta
+                errorQty.innerText = `Límite operativo excedido (Máx: ${maxLimit}). Verificá tu ingreso.`;
+                errorQty.style.display = 'block';
+                targetInput.classList.add('error');
+                
+                console.log(`[UX/CRO Warning] Fat-finger detectado. Ingresóó ${val}, límite ${maxLimit}.`);
+            } else {
+                errorQty.style.display = 'none';
+                targetInput.classList.remove('error');
+                isValid = true;
+            }
+
+            btnAction.disabled = !isValid || isPrinting;
+            btnActionFast.disabled = !isValid || isPrinting;
+        }
+
+        // MANEJO DE ESTADO DEL BOTÓN (IMPRIMIR -> CANCELAR)
+        function handleAction(isFast) {
+            if (isPrinting) {
+                // ESTADO: DESHACER (ABORTAR)
+                clearTimeout(printTimer);
+                resetPrintState();
+                console.log('[UX] Impresión abortada por el usuario (Línea de Vida).');
+                return;
+            }
+
+            // ESTADO: INICIAR IMPRESIÓN (3 seg delay)
+            isPrinting = true;
+            let targetBtn = isFast ? btnActionFast : btnAction;
+            
+            targetBtn.classList.add('printing');
+            let timeLeft = 3;
+            
+            console.log(`[CRO Event] Inició impresión Lote ${currentCode}. Cantidad: ${inputQty.value}. Modo Rápido: ${isFast}`);
+
+            const tick = () => {
+                if (timeLeft > 0) {
+                    targetBtn.innerHTML = `<i class="ri-close-circle-line"></i> CANCELAR (${timeLeft}s)`;
+                    timeLeft--;
+                    printTimer = setTimeout(tick, 1000);
+                } else {
+                    // ÉXITO
+                    targetBtn.innerHTML = `<i class="ri-check-line"></i> PROCESADO`;
+                    targetBtn.classList.remove('printing');
+                    if(isFast) {
+                        showFastSuccess();
+                    } else {
+                        showSuccess();
+                    }
+                }
+            };
+            tick();
+        }
+
+        function resetPrintState() {
+            isPrinting = false;
+            btnAction.classList.remove('printing');
+            btnActionFast.classList.remove('printing');
+            btnAction.innerHTML = `<i class="ri-printer-line"></i> IMPRIMIR`;
+            btnActionFast.innerHTML = `<i class="ri-skip-forward-mini-line"></i> LOTE RÁPIDO`;
+            validateForm();
+        }
+
+        function showFastSuccess() {
+            // Microinteracción de reinicio lateral
+            elForm.style.transform = 'translateX(-100%)';
+            elForm.style.opacity = '0';
+            
+            setTimeout(() => {
+                // Generar nuevo lote y limpiar campos
+                openForm(currentProduct, currentCode, currentDaysExp, maxLimit);
+                elForm.style.transition = 'none';
+                elForm.style.transform = 'translateX(100%)';
+                
+                setTimeout(() => {
+                    elForm.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+                    elForm.style.transform = 'translateX(0)';
+                    elForm.style.opacity = '1';
+                }, 50);
+            }, 300);
+            
+            console.log(`[System] Lote registrado rápido. Listo para el próximo batch.`);
+        }
+
+        function showSuccess() {
+            const overlay = document.getElementById('successOverlay');
+            overlay.classList.add('active');
+            console.log(`[System] Lote registrado en BD e impreso exitosamente.`);
+
+            setTimeout(() => {
+                overlay.classList.remove('active');
+                closeForm();
+            }, 2000);
+        }
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Burger Music - Dashboard Control Tower</title>
+    <!-- Fuentes: Montserrat para encabezados, Lato para cuerpo -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Montserrat:wght@500;600;700&display=swap" rel="stylesheet">
+    <!-- Iconos -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :root {
+            /* Paleta de Colores Minimalista */
+            --bg-body: #F4F7F9;
+            --bg-surface: #FFFFFF;
+            --bg-sidebar: #1E293B; /* Tono oscuro elegante para el sidebar */
+            --brand-primary: #EA580C; /* Naranja refinado */
+            --brand-primary-hover: #C2410C;
+            --brand-surface: #FFF7ED; /* Fondo tenue para elementos activos */
+            
+            --text-main: #0F172A;
+            --text-muted: #64748B;
+            --text-sidebar: #CBD5E1;
+            --text-sidebar-active: #FFFFFF;
+            
+            /* Alertas */
+            --alert-high-bg: #FEF2F2;
+            --alert-high-text: #DC2626;
+            --alert-low-bg: #FFFBEB;
+            --alert-low-text: #D97706;
+            
+            /* Elevación (Sombras Material) */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+            
+            /* Transiciones (Microinteracciones) */
+            --transition-fast: 0.15s ease-in-out;
+            --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            
+            /* Bordes */
+            --radius-md: 12px;
+            --radius-lg: 16px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        h1, h2, h3, h4, h5, h6, .montserrat {
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        /* --- SIDEBAR --- */
+        /* --- MAIN CONTENT --- */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        /* --- CONCEPTOC: SELECTOR DE CONTEXTO --- */
+        .context-selector {
+            display: flex;
+            align-items: center;
+        }
+
+        .branch-select {
+            background-color: var(--bg-body);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--text-main);
+            outline: none;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            min-width: 250px;
+        }
+
+        .branch-select:focus {
+            border-color: var(--brand-primary);
+            box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1);
+        }
+
+        .topbar {
+            background-color: var(--bg-surface);
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-sm);
+            z-index: 5;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 30px;
+            transition: var(--transition-fast);
+        }
+        
+        .user-profile:hover {
+            background-color: var(--bg-body);
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            background-color: var(--brand-primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .content-area {
+            padding: 32px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .page-header {
+            margin-bottom: 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .page-title h1 {
+            font-size: 28px;
+            color: var(--text-main);
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .page-title p {
+            color: var(--text-muted);
+            font-size: 15px;
+        }
+
+        /* --- DASHBOARD WIDGETS --- */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .metric-card {
+            background: var(--bg-surface);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow-md);
+            transition: var(--transition-smooth);
+            border: 1px solid rgba(0,0,0,0.02);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* Microinteracción visual en hover */
+        .metric-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 4px;
+            background: var(--brand-primary);
+            opacity: 0;
+            transition: var(--transition-fast);
+        }
+        .metric-card:hover::after {
+            opacity: 1;
+        }
+
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .metric-title {
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--brand-surface);
+            color: var(--brand-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .metric-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 8px;
+        }
+
+        .metric-trend {
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .trend-up { color: #16A34A; }
+        .trend-down { color: #DC2626; }
+        .trend-neutral { color: var(--text-muted); }
+
+        /* --- ALERTAS DEL SISTEMA --- */
+        .alerts-section {
+            margin-bottom: 32px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            margin-bottom: 16px;
+            color: var(--text-main);
+        }
+
+        .alert-card {
+            display: flex;
+            align-items: center;
+            padding: 16px 20px;
+            border-radius: var(--radius-md);
+            margin-bottom: 12px;
+            gap: 16px;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition-fast);
+        }
+        
+        .alert-card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .alert-high {
+            background-color: var(--alert-high-bg);
+            border-left: 4px solid var(--alert-high-text);
+        }
+        
+        .alert-low {
+            background-color: var(--alert-low-bg);
+            border-left: 4px solid var(--alert-low-text);
+        }
+
+        .alert-icon-high { color: var(--alert-high-text); font-size: 24px; }
+        .alert-icon-low { color: var(--alert-low-text); font-size: 24px; }
+
+        .alert-content { flex: 1; }
+        .alert-title { font-weight: 700; font-family: 'Montserrat', sans-serif; font-size: 15px; margin-bottom: 4px; }
+        .alert-desc { font-size: 14px; color: var(--text-main); opacity: 0.8;}
+        .alert-high .alert-title { color: var(--alert-high-text); }
+        .alert-low .alert-title { color: var(--alert-low-text); }
+
+        .btn-action {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid currentColor;
+        }
+        
+        .alert-high .btn-outline:hover {
+            background: var(--alert-high-text);
+            color: white;
+        }
+
+        /* --- NUEVOS COMPONENTES DASHBOARD --- */
+        .donut-chart-container { display: flex; align-items: center; gap: 32px; margin-top: 16px; }
+        .donut-chart {
+            width: 140px; height: 140px; border-radius: 50%;
+            background: conic-gradient(var(--brand-primary) 0% 45%, #F59E0B 45% 70%, #10B981 70% 90%, #6366F1 90% 100%);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .donut-hole {
+            width: 100px; height: 100px; background-color: var(--bg-surface); border-radius: 50%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .donut-hole span:first-child { font-size: 12px; color: var(--text-muted); }
+        .donut-hole span:last-child { font-size: 18px; font-weight: 700; font-family: 'Montserrat'; }
+        .donut-legend { display: flex; flex-direction: column; gap: 12px; flex: 1; }
+        .legend-item { display: flex; align-items: center; justify-content: space-between; font-size: 14px; }
+        .legend-color { width: 12px; height: 12px; border-radius: 3px; margin-right: 8px; display: inline-block; }
+
+        .payments-list { display: flex; flex-direction: column; gap: 16px; margin-top: 16px;}
+        .payment-item { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .payment-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .payment-info h4 { font-size: 15px; font-weight: 600; margin-bottom: 2px;}
+        .payment-info p { font-size: 13px; color: var(--text-muted); }
+        .payment-tag { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; font-family: 'Montserrat'; letter-spacing: 0.5px;}
+        .tag-high { background-color: #F1F5F9; color: var(--text-main); border: 1px solid #CBD5E1; }
+        .tag-low { background-color: #F8FAFC; color: var(--text-muted); border: 1px solid #E2E8F0; }
+        
+        .metric-icon-bg { position: absolute; right: -10px; bottom: -20px; font-size: 90px; opacity: 0.04; z-index: 0; pointer-events: none; }
+        .metric-content { position: relative; z-index: 1; }
+        
+        .dashboard-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 32px; }
+        .widget-card { background: var(--bg-surface); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-md); border: 1px solid rgba(0,0,0,0.02); }
+        .widget-title { font-size: 16px; font-weight: 700; font-family: 'Montserrat'; color: var(--text-main); border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 12px; margin-bottom: 16px;}
+        
+        /* Acordeones (Details) */
+        details.widget-card { padding: 0; transition: all var(--transition-smooth); }
+        .widget-summary { padding: 20px 24px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; list-style: none; }
+        .widget-summary::-webkit-details-marker { display: none; }
+        .widget-summary .widget-title { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
+        .chevron-icon { font-size: 20px; color: var(--text-muted); transition: transform 0.2s; }
+        details[open] .chevron-icon { transform: rotate(180deg); }
+        .details-content { padding: 0 24px 24px 24px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 20px; }
+        
+        /* Barra Apilada de Canales */
+        .channels-bar-wrapper { margin-top: 12px; }
+        .channels-bar { display: flex; width: 100%; height: 12px; border-radius: 6px; overflow: hidden; cursor: default; }
+        .channels-bar-segment { height: 100%; transition: var(--transition-fast); }
+        .channels-bar:hover .channels-bar-segment { opacity: 0.5; }
+        .channels-bar-segment:hover { opacity: 1 !important; transform: scaleY(1.1); }
+        
+        .channels-details { display: flex; justify-content: space-between; opacity: 0; max-height: 0; overflow: hidden; transition: all var(--transition-smooth); }
+        .channels-bar-wrapper { cursor: pointer; padding-bottom: 12px; }
+        .channels-bar-wrapper.active .channels-details { opacity: 1; max-height: 100px; margin-top: 24px; }
+        .channel-stat { display: flex; flex-direction: column; align-items: flex-start; }
+        .channel-stat span { font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+        .channel-stat strong { font-family: 'Lato'; font-weight: 700; font-size: 16px; color: var(--text-main); margin-top: 4px; }
+        .channel-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+        
+        /* Inline Filters (Metric Cards) */
+        .inline-filters { display: flex; background: #F1F5F9; border-radius: 6px; padding: 2px; }
+        .filter-pill { font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 4px; cursor: pointer; color: var(--text-muted); transition: var(--transition-fast); }
+        .filter-pill.active { background: var(--bg-surface); color: var(--text-main); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+
+        /* Unified Alerts Bar */
+        .unified-alert-bar { display: flex; gap: 12px; margin-bottom: 24px; }
+        .alert-dropdown-container { position: relative; display: inline-block; }
+        .unified-alert { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 30px; font-size: 13px; font-weight: 600; box-shadow: var(--shadow-sm); cursor: pointer; user-select: none; transition: var(--transition-fast); white-space: nowrap; }
+        .unified-alert:hover { filter: brightness(0.95); }
+        .unified-alert i { font-size: 18px; }
+        
+        .stock-alert { background-color: var(--alert-high-bg); color: var(--alert-high-text); }
+        .payment-alert { background-color: var(--brand-surface); color: var(--brand-primary-hover); border: 1px solid rgba(234, 88, 12, 0.2); }
+        
+        /* Dropdown Estilos */
+        .alert-dropdown-menu { position: absolute; top: calc(100% + 8px); left: 0; background: white; border-radius: 12px; box-shadow: var(--shadow-lg); border: 1px solid #E2E8F0; width: 320px; z-index: 100; opacity: 0; visibility: hidden; transform: translateY(-10px); transition: var(--transition-fast); }
+        .alert-dropdown-menu.show { opacity: 1; visibility: visible; transform: translateY(0); }
+        .alert-dropdown-header { padding: 12px 16px; border-bottom: 1px solid #E2E8F0; font-weight: 700; font-size: 13px; }
+        .alert-dropdown-item { padding: 12px 16px; border-bottom: 1px solid #E2E8F0; font-size: 13px; }
+        .alert-dropdown-item:last-child { border-bottom: none; }
+        .alert-dropdown-action { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px; background: #F8FAFC; color: var(--brand-primary); font-weight: 700; text-decoration: none; border-radius: 0 0 12px 12px; transition: var(--transition-fast); }
+        .alert-dropdown-action:hover { background: #F1F5F9; color: var(--brand-primary-hover); }
+    
+        /* Estilos de Scrollbar Modernos */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.3); }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
+        .sidebar-nav::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+
+        /* --- MENU DESPLEGABLE SIDEBAR --- */
+        .nav-dropdown {
+            display: flex;
+            flex-direction: column;
+        }
+        .nav-dropdown .nav-item {
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+        .nav-dropdown .chevron {
+            margin-left: auto;
+            margin-right: 0;
+            transition: transform 0.3s ease;
+        }
+        .nav-dropdown.open .chevron {
+            transform: rotate(180deg);
+        }
+        .nav-submenu {
+            display: none;
+            flex-direction: column;
+            background: rgba(0,0,0,0.2);
+            padding: 8px 0;
+            margin: 4px 16px;
+            border-radius: 8px;
+        }
+        .nav-dropdown.open .nav-submenu {
+            display: flex;
+        }
+        .submenu-item {
+            padding: 10px 16px 10px 42px;
+            color: var(--text-sidebar);
+            text-decoration: none;
+            font-size: 13px;
+            transition: var(--transition-fast);
+            border-radius: 6px;
+            margin: 2px 8px;
+        }
+        .submenu-item:hover {
+            color: white;
+            background-color: rgba(255,255,255,0.05);
+        }
+        .submenu-item.active {
+            color: var(--brand-primary);
+            font-weight: bold;
+            background-color: rgba(234, 88, 12, 0.1);
+        }
+
+    
+        /* --- UNIFIED SIDEBAR CSS --- */
+        .sidebar { width: 260px; background-color: var(--bg-sidebar); display: flex; flex-direction: column; transition: var(--transition-smooth); z-index: 10; box-shadow: var(--shadow-lg); }
+        .sidebar-nav { padding: 16px 12px; flex: 1; overflow-y: auto; }
+        .nav-item { display: flex; align-items: center; padding: 12px 16px; color: var(--text-sidebar); text-decoration: none; border-radius: 8px; margin-bottom: 4px; transition: var(--transition-fast); font-size: 15px; font-weight: 500; }
+        .nav-item i { margin-right: 12px; font-size: 20px; transition: var(--transition-fast); }
+        .nav-item:hover { background-color: rgba(255,255,255,0.05); color: var(--text-sidebar-active); }
+        .nav-item.active { background-color: var(--brand-primary, #EA580C); color: white; box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3); }
+        .nav-dropdown { display: flex; flex-direction: column; }
+        .nav-dropdown .nav-item { width: 100%; }
+        .nav-dropdown .chevron { margin-left: auto; margin-right: 0; transition: transform 0.3s ease; }
+        .nav-dropdown.open .chevron { transform: rotate(180deg); }
+        .nav-submenu { display: none; flex-direction: column; background: rgba(0,0,0,0.2); padding: 8px 0; margin: 4px 16px; border-radius: 8px; }
+        .nav-dropdown.open .nav-submenu { display: flex; }
+        .submenu-item { padding: 10px 16px 10px 42px; color: var(--text-sidebar); text-decoration: none; font-size: 13px; transition: var(--transition-fast); border-radius: 6px; margin: 2px 8px; }
+        .submenu-item:hover { color: white; background-color: rgba(255,255,255,0.05); }
+        .sidebar-nav::-webkit-scrollbar { width: 6px; }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .sidebar-nav::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+</style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <!-- SIDEBAR UNIFICADA -->
+<aside class="sidebar">
+    <div class="sidebar-header" style="padding: 24px; display: flex; align-items: center; gap: 12px; color: white; border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <div style="width: 28px;height: 28px;background:#000;border-radius: 4px;display: flex;align-items: center;justify-content: center;color: white;font-weight: 800;font-size: 11px;">BM</div>
+        <span style="font-family: 'Montserrat'; font-weight: 800; font-size: 14px; color: white;">BurgerMusic</span>
+    </div>
+    
+    <nav class="sidebar-nav">
+        <a href="dashboard_prototipo.html" class="nav-item active"><i class="ri-home-4-line"></i> Inicio</a>
+        
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-shopping-bag-line"></i> Compras
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="compras_inbox_prototipo.html" class="submenu-item">Facturas</a>
+                <a href="compras_proveedores_prototipo.html" class="submenu-item">Proveedores</a>
+                <a href="compras_ordenes_prototipo.html" class="submenu-item">Órdenes de compra</a>
+                <a href="compras_recepciones_prototipo.html" class="submenu-item">Recepciones</a>
+            </div>
+        </div>
+
+        <a href="produccion_gerencial_prototipo.html" class="nav-item"><i class="ri-hammer-line"></i> Producción</a>
+        <a href="inventario_prototipo.html" class="nav-item"><i class="ri-box-3-line"></i> Inventario</a>
+
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-line-chart-line"></i> Ventas
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="ventas_dashboard_prototipo.html" class="submenu-item">Dashboard</a>
+                <a href="pos_prototipo.html" class="submenu-item">Nueva venta</a>
+                <a href="ventas_historial_prototipo.html" class="submenu-item">Historial de Tickets</a>
+                <a href="ventas_sincronizacion_prototipo.html" class="submenu-item">Sincronización</a>
+                <a href="ventas_cierre_z_prototipo.html" class="submenu-item">Cierre Z</a>
+            </div>
+        </div>
+
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-bank-card-line"></i> Finanzas
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="finanzas_dashboard_prototipo.html" class="submenu-item">Dashboard</a>
+                <a href="finanzas_movimientos_prototipo.html" class="submenu-item">Mov. caja</a>
+                <a href="finanzas_cuentas_pagar_prototipo.html" class="submenu-item">Cuentas por pagar</a>
+                <a href="finanzas_categorias_prototipo.html" class="submenu-item">Categorías financieras</a>
+            </div>
+        </div>
+        
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-safe-line"></i> Caja
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="caja_gastos_eventuales_prototipo.html" class="submenu-item">Gastos eventuales</a>
+                <a href="caja_gastos_fijos_prototipo.html" class="submenu-item">Gastos fijos</a>
+                <a href="caja_ingresos_extra_prototipo.html" class="submenu-item">Ingresos extra</a>
+            </div>
+        </div>
+
+        <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #475569; padding: 16px 14px 6px;">Operación</div>
+        <a href="pos_prototipo.html" class="nav-item"><i class="ri-store-2-line"></i> Punto de Venta</a>
+        <a href="kds_prototipo.html" class="nav-item"><i class="ri-restaurant-line"></i> Cocina</a>
+        <a href="delivery_prototipo.html" class="nav-item"><i class="ri-e-bike-2-line"></i> Delivery</a>
+        <a href="cajas_prototipo.html" class="nav-item"><i class="ri-money-dollar-box-line"></i> Caja POS</a>
+        <a href="produccion_prototipo.html" class="nav-item"><i class="ri-smartphone-line"></i> Producción (Móvil)</a>
+        <a href="auditoria_deposito_prototipo.html" class="nav-item"><i class="ri-clipboard-line"></i> Auditoría (Móvil)</a>
+    </nav>
+
+    <div style="margin-top: auto; padding: 20px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 16px;">
+        <select class="branch-select" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px; font-size: 13px; border-radius: 8px;">
+            <option value="lanus" selected style="color: black;">📍 Burger Music Lanus</option>
+        </select>
+        <div class="user-profile" style="display: flex; align-items: center; gap: 12px; padding: 0; cursor: pointer;">
+            <div class="avatar" style="width: 32px; height: 32px; font-size: 14px; background: #EA580C; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">G</div>
+            <div style="display: flex; flex-direction: column; overflow: hidden;">
+                <span style="font-size: 12px; font-weight: 600; color: white; white-space: nowrap;">gabriel@burgermusic.com</span>
+                <span style="font-size: 11px; color: #94A3B8;">Administrador</span>
+            </div>
+        </div>
+    </div>
+</aside>
+
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Topbar Removed (Moved to Sidebar) -->
+
+        <!-- Content Area -->
+        <div class="content-area">
+            <div class="page-header">
+                <div class="page-title">
+                    <h1>Torre de Control</h1>
+                    <p>Resumen operativo y alertas prioritarias al instante.</p>
+                </div>
+                <button id="btn-toggle-mock" class="btn btn-secondary" onclick="toggleMock()" style="background: white; border: 2px solid #E2E8F0; padding: 10px 18px; border-radius: 8px; font-family: 'Montserrat'; font-weight: 600; font-size: 13px; cursor: pointer; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                    <i class="ri-test-tube-line"></i> <span id="toggle-mock-text">Modo Demo: ON</span>
+                </button>
+            </div>
+
+            <div id="mock-populated">
+            <div class="unified-alert-bar">
+                <!-- Dropdown Alerta Stock -->
+                <div class="alert-dropdown-container">
+                    <div class="unified-alert stock-alert" onclick="toggleAlertDropdown('dropdown-stock')">
+                        <i class="ri-error-warning-fill"></i> 1 Alerta de Stock (Pan de papa) <i class="ri-arrow-down-s-line" style="margin-left: 4px; font-size: 16px;"></i>
+                    </div>
+                    <div class="alert-dropdown-menu" id="dropdown-stock">
+                        <div class="alert-dropdown-header" style="color: var(--alert-high-text);">Detalle de Alerta</div>
+                        <div class="alert-dropdown-item">
+                            <div style="font-weight: 600; font-size: 14px;">Pan de papa (Fargo)</div>
+                            <div style="color: var(--text-muted); margin-top: 4px;">Stock actual: 200 un. | Mínimo: 250 un.</div>
+                        </div>
+                        <div style="display: flex; border-top: 1px solid #E2E8F0;">
+                            <a href="inventario_prototipo.html" class="alert-dropdown-action" style="flex: 1; border-radius: 0 0 0 12px; border-right: 1px solid #E2E8F0; color: var(--alert-high-text);">
+                                <i class="ri-box-3-line"></i> Ver en Inventario
+                            </a>
+                            <a href="compras_inbox_prototipo.html" class="alert-dropdown-action" style="flex: 1; border-radius: 0 0 12px 0;">
+                                <i class="ri-shopping-cart-2-line"></i> Crear OC
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dropdown Alerta Pagos -->
+                <div class="alert-dropdown-container">
+                    <div class="unified-alert payment-alert" onclick="toggleAlertDropdown('dropdown-payment')">
+                        <i class="ri-money-dollar-circle-fill"></i> 2 Pagos Inminentes ($205.000) <i class="ri-arrow-down-s-line" style="margin-left: 4px; font-size: 16px;"></i>
+                    </div>
+                    <div class="alert-dropdown-menu" id="dropdown-payment">
+                        <div class="alert-dropdown-header" style="color: var(--brand-primary-hover);">Vencimientos Próximos</div>
+                        <div class="alert-dropdown-item">
+                            <div style="display: flex; justify-content: space-between; font-weight: 600; font-size: 14px;">
+                                <span>Frigorífico La Media Res</span>
+                                <span>$150.000</span>
+                            </div>
+                            <div style="color: var(--text-muted); margin-top: 4px;">Vence hoy</div>
+                        </div>
+                        <div class="alert-dropdown-item">
+                            <div style="display: flex; justify-content: space-between; font-weight: 600; font-size: 14px;">
+                                <span>Panificadora Fargo</span>
+                                <span>$55.000</span>
+                            </div>
+                            <div style="color: var(--text-muted); margin-top: 4px;">Vence mañana</div>
+                        </div>
+                        <a href="cajas_prototipo.html" class="alert-dropdown-action">
+                            <i class="ri-wallet-3-line"></i> Ir a Cajas y Pagos
+                        </a>
+                    </div>
+                </div> <!-- FALTA ESTE CIERRE -->
+
+                <!-- Dropdown Alerta Desviación Rinde -->
+                <div class="alert-dropdown-container">
+                    <div class="unified-alert" style="background-color: var(--alert-high-bg); color: var(--alert-high-text);" onclick="toggleAlertDropdown('dropdown-yield')">
+                        <i class="ri-bar-chart-grouped-line"></i> 1 Desviación de Rinde (Lote L-2807) <i class="ri-arrow-down-s-line" style="margin-left: 4px; font-size: 16px;"></i>
+                    </div>
+                    <div class="alert-dropdown-menu" id="dropdown-yield">
+                        <div class="alert-dropdown-header" style="color: var(--alert-high-text);">Desviación de rinde</div>
+                        <div class="alert-dropdown-item">
+                            <div style="font-weight: 600; font-size: 14px;">Lote L-2807-MED (Medallones)</div>
+                            <div style="color: var(--text-muted); margin-top: 4px;">Rendimiento -25% vs esperado.<br>Reportado por: Lucas (Cocina).</div>
+                        </div>
+                        <a href="produccion_gerencial_prototipo.html" class="alert-dropdown-action">
+                            <i class="ri-search-eye-line"></i> Auditar Lote en Producción
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Dropdown Alerta Facturas -->
+                <div class="alert-dropdown-container">
+                    <div class="unified-alert" style="background-color: #FEF3C7; color: #D97706; border: 1px solid rgba(217, 119, 6, 0.2);" onclick="toggleAlertDropdown('dropdown-invoices')">
+                        <i class="ri-file-list-3-fill"></i> 3 Facturas para Aprobar <i class="ri-arrow-down-s-line" style="margin-left: 4px; font-size: 16px;"></i>
+                    </div>
+                    <div class="alert-dropdown-menu" id="dropdown-invoices">
+                        <div class="alert-dropdown-header" style="color: #D97706;">Facturas Pendientes</div>
+                        <div class="alert-dropdown-item">
+                            <div style="font-weight: 600; font-size: 14px;">Carnes Nirvana (Fac. A-0001)</div>
+                            <div style="color: var(--text-muted); margin-top: 4px;">Subida vía IA (informal)<br>Requiere match con remito.</div>
+                        </div>
+                        <div class="alert-dropdown-item">
+                            <div style="font-weight: 600; font-size: 14px;">Panificadora (Fac. B-092)</div>
+                            <div style="color: var(--text-muted); margin-top: 4px;">Diferencia de precio detectada.</div>
+                        </div>
+                        <a href="compras_validacion_prototipo.html" class="alert-dropdown-action" style="color: #D97706;">
+                            <i class="ri-checkbox-circle-line"></i> Validar Facturas
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 1. Grilla Financiera (Siempre Visible) -->
+            <section class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <span class="metric-title">Facturación</span>
+                        <div class="inline-filters">
+                            <span class="filter-pill active">Hoy</span>
+                            <span class="filter-pill">15d</span>
+                            <span class="filter-pill">30d</span>
+                        </div>
+                    </div>
+                    <div class="metric-value montserrat">$ 245.500</div>
+                    <div class="metric-trend trend-up" style="display: flex; justify-content: space-between; width: 100%;">
+                        <div><i class="ri-arrow-up-line"></i> <span>+12% vs. ayer</span></div>
+                        <div style="color: var(--text-muted); font-size: 12px; font-weight: 600;">Promedio: $215k/día</div>
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <span class="metric-title">Tickets Hoy</span>
+                        <div class="metric-icon"><i class="ri-receipt-line"></i></div>
+                    </div>
+                    <div class="metric-value montserrat">128</div>
+                    <div class="metric-trend trend-up">
+                        <i class="ri-arrow-up-line"></i> <span>+5% vs. ayer</span>
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <span class="metric-title">Gastos Hoy</span>
+                        <div class="metric-icon" style="color: #64748B; background: #F1F5F9;"><i class="ri-shopping-cart-line"></i></div>
+                    </div>
+                    <div class="metric-value montserrat">$ 42.100</div>
+                    <div class="metric-trend trend-down">
+                        <i class="ri-arrow-down-line"></i> <span>-3% vs. ayer</span>
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <span class="metric-title">Margen Hoy</span>
+                        <div class="metric-icon" style="color: #16A34A; background: #DCFCE7;"><i class="ri-pie-chart-line"></i></div>
+                    </div>
+                    <div class="metric-value montserrat">82%</div>
+                    <div class="metric-trend trend-neutral">
+                        <i class="ri-subtract-line"></i> <span>Estable</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. Hero Section (KPIs Secundarios) -->
+            <section class="metrics-grid">
+                <div class="metric-card">
+                    <i class="ri-receipt-line metric-icon-bg"></i>
+                    <div class="metric-content">
+                        <div class="metric-header">
+                            <span class="metric-title">Ticket Promedio</span>
+                        </div>
+                        <div class="metric-value montserrat">$ 15.420</div>
+                        <div class="metric-trend trend-up">
+                            <i class="ri-arrow-up-line"></i> <span>+8% vs. semana pasada</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <i class="ri-goblet-line metric-icon-bg"></i>
+                    <div class="metric-content">
+                        <div class="metric-header">
+                            <span class="metric-title">Combos Vendidos</span>
+                        </div>
+                        <div class="metric-value montserrat">184</div>
+                        <div class="metric-trend trend-neutral">
+                            <i class="ri-subtract-line"></i> <span>Burger + Papas</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <i class="ri-music-2-line metric-icon-bg"></i>
+                    <div class="metric-content">
+                        <div class="metric-header">
+                            <span class="metric-title">Tickets Music Pizza</span>
+                        </div>
+                        <div class="metric-value montserrat">42</div>
+                        <div class="metric-trend trend-up">
+                            <i class="ri-arrow-up-line"></i> <span>+15% (Alta demanda)</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. y 5. Layout Modular -->
+            <section class="dashboard-layout">
+                <!-- Canales de Venta: Barra Apilada -->
+                <div class="widget-card">
+                    <h3 class="widget-title" style="margin-bottom: 0; border-bottom: none; display: flex; align-items: center; gap: 8px;">
+                        Mix de Canales de Venta
+                        <i class="ri-arrow-down-s-line" style="color: var(--text-muted);"></i>
+                    </h3>
+                    <div class="channels-bar-wrapper" onclick="this.classList.toggle('active')">
+                        <!-- Barra Minimalista -->
+                        <div class="channels-bar">
+                            <div class="channels-bar-segment" style="width: 45%; background: var(--brand-primary);" title="Mostrador"></div>
+                            <div class="channels-bar-segment" style="width: 25%; background: #F59E0B;" title="PedidosYa"></div>
+                            <div class="channels-bar-segment" style="width: 20%; background: #10B981;" title="Take Away"></div>
+                            <div class="channels-bar-segment" style="width: 10%; background: #6366F1;" title="Pedix"></div>
+                        </div>
+                        
+                        <!-- Divulgación Progresiva (Hover) -->
+                        <div class="channels-details">
+                            <div class="channel-stat">
+                                <span><i class="channel-dot" style="background: var(--brand-primary);"></i> Mostrador</span>
+                                <strong>45%</strong>
+                            </div>
+                            <div class="channel-stat">
+                                <span><i class="channel-dot" style="background: #F59E0B;"></i> PedidosYa</span>
+                                <strong>25%</strong>
+                            </div>
+                            <div class="channel-stat">
+                                <span><i class="channel-dot" style="background: #10B981;"></i> Take Away</span>
+                                <strong>20%</strong>
+                            </div>
+                            <div class="channel-stat">
+                                <span><i class="channel-dot" style="background: #6366F1;"></i> Pedix</span>
+                                <strong>10%</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pagos Sin Urgencia: Acordeón -->
+                <details class="widget-card">
+                    <summary class="widget-summary">
+                        <h3 class="widget-title">Pagos (Sin urgencia)</h3>
+                        <i class="ri-arrow-down-s-line chevron-icon"></i>
+                    </summary>
+                    <div class="details-content">
+                        <div class="payments-list">
+                            <div class="payment-item">
+                                <div class="payment-info">
+                                    <h4>Proveedor Carteles</h4>
+                                    <p>Vence en 5 días</p>
+                                </div>
+                                <span class="payment-tag tag-low">Low</span>
+                            </div>
+                            <div class="payment-item">
+                                <div class="payment-info">
+                                    <h4>Insumos Limpieza</h4>
+                                    <p>Vence en 10 días</p>
+                                </div>
+                                <span class="payment-tag tag-low">Low</span>
+                            </div>
+                        </div>
+                    </div>
+                </details>
+            </section>
+            </div> <!-- END MOCK POPULATED -->
+
+            <!-- MOCK EMPTY STATE -->
+            <div id="mock-empty" style="display: none; height: 60vh; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: var(--text-muted);">
+                <div style="width: 120px; height: 120px; background: #F1F5F9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 24px;">
+                    <i class="ri-bar-chart-2-line" style="font-size: 48px; color: #94A3B8;"></i>
+                </div>
+                <h2 class="montserrat" style="font-size: 24px; color: var(--text-main); margin-bottom: 12px;">Tu Torre de Control está lista</h2>
+                <p style="font-size: 15px; max-width: 400px; margin-bottom: 24px;">Aún no tenés datos operativos. A medida que registres ventas y compras, tus métricas clave aparecerán aquí.</p>
+                <div style="display: flex; gap: 16px;">
+                    <a href="pos_prototipo.html" class="btn btn-primary" style="background: var(--brand-primary); color: white; border: none; padding: 12px 24px; border-radius: 10px; font-family: 'Montserrat'; font-weight: 700; font-size: 14px; text-decoration: none;">Ir al Punto de Venta</a>
+                    <a href="compras_inbox_prototipo.html" class="btn btn-secondary" style="background: white; border: 2px solid #E2E8F0; padding: 12px 24px; border-radius: 10px; font-family: 'Montserrat'; font-weight: 700; font-size: 14px; color: var(--text-main); text-decoration: none;">Cargar Facturas</a>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- SLIDE-OVER MODAL: Lotes Desviados -->
+    <div id="yieldModal" style="position: fixed; top: 0; right: -400px; width: 400px; height: 100vh; background: var(--bg-surface); box-shadow: -10px 0 25px rgba(0,0,0,0.1); z-index: 1000; transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column;">
+        <div style="padding: 24px; border-bottom: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center;">
+            <h2 class="montserrat" style="font-size: 18px;">Lotes Desviados</h2>
+            <button onclick="closeYieldModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted);"><i class="ri-close-line"></i></button>
+        </div>
+        <div style="padding: 24px; flex: 1; overflow-y: auto;">
+            <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 24px;">Se encontraron lotes con merma superior al 3% tolerado.</p>
+            
+            <!-- Item 1 -->
+            <div style="background: var(--alert-high-bg); border-left: 4px solid var(--alert-high-text); padding: 16px; border-radius: 0 8px 8px 0; margin-bottom: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                    <div>
+                        <div class="montserrat" style="font-weight: 700; font-size: 15px; color: var(--text-main);">L-2807-MED</div>
+                        <div style="font-size: 13px; color: var(--text-muted);">Encargado: Lucas • Hoy • 11:45</div>
+                    </div>
+                    <div style="background: white; padding: 4px 8px; border-radius: 4px; font-weight: 700; color: var(--alert-high-text); font-size: 13px;">Merma: 8%</div>
+                </div>
+                <button class="btn-action" style="width: 100%; background: white; color: var(--text-main); border: 1px solid var(--border-light); margin-top: 8px;">Auditar Producción</button>
+            </div>
+            
+            <!-- Item 2 -->
+            <div style="background: #FFFBEB; border-left: 4px solid #D97706; padding: 16px; border-radius: 0 8px 8px 0;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                    <div>
+                        <div class="montserrat" style="font-weight: 700; font-size: 15px; color: var(--text-main);">L-2807-PAN</div>
+                        <div style="font-size: 13px; color: var(--text-muted);">Encargado: Mariana • Hoy • 09:10</div>
+                    </div>
+                    <div style="background: white; padding: 4px 8px; border-radius: 4px; font-weight: 700; color: #D97706; font-size: 13px;">Merma: 5%</div>
+                </div>
+                <button class="btn-action" style="width: 100%; background: white; color: var(--text-main); border: 1px solid var(--border-light); margin-top: 8px;">Auditar Producción</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Backdrop -->
+    <div id="modalBackdrop" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.3); z-index: 999; opacity: 0; pointer-events: none; transition: opacity 0.3s;" onclick="closeYieldModal()"></div>
+
+    <script>
+        function openYieldModal() {
+            document.getElementById('yieldModal').style.right = '0';
+            document.getElementById('modalBackdrop').style.opacity = '1';
+            document.getElementById('modalBackdrop').style.pointerEvents = 'all';
+        }
+        function closeYieldModal() {
+            document.getElementById('yieldModal').style.right = '-400px';
+            document.getElementById('modalBackdrop').style.opacity = '0';
+            document.getElementById('modalBackdrop').style.pointerEvents = 'none';
+        }
+        function toggleAlertDropdown(id) {
+            // Cerrar todos primero
+            document.querySelectorAll('.alert-dropdown-menu').forEach(menu => {
+                if(menu.id !== id) menu.classList.remove('show');
+            });
+            // Toggle el clickeado
+            const target = document.getElementById(id);
+            if (target) {
+                target.classList.toggle('show');
+            }
+        }
+
+        // Cerrar dropdown al clickear afuera
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.alert-dropdown-container')) {
+                document.querySelectorAll('.alert-dropdown-menu').forEach(menu => {
+                    menu.classList.remove('show');
+                });
+            }
+        });
+
+        // Toggle Mock Data
+        function toggleMock() {
+            const populated = document.getElementById('mock-populated');
+            const empty = document.getElementById('mock-empty');
+            const text = document.getElementById('toggle-mock-text');
+            
+            if (populated.style.display !== 'none') {
+                populated.style.display = 'none';
+                empty.style.display = 'flex';
+                text.innerText = 'Modo Demo: OFF';
+            } else {
+                populated.style.display = 'block';
+                empty.style.display = 'none';
+                text.innerText = 'Modo Demo: ON';
+            }
+        }
+    </script>
+</body>
+</html>

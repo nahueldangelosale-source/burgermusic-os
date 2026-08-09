@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gastos Eventuales — BurgerMusic OS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Lato:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :root {
+            /* Paleta de Colores Minimalista */
+            --bg-body: #F8FAFC;
+            --bg-surface: #FFFFFF;
+            --bg-sidebar: #1E293B;
+            --brand-primary: #EA580C;
+            --brand-primary-hover: #C2410C;
+            --brand-surface: #FFF7ED;
+            
+            --text-main: #0F172A;
+            --text-muted: #64748B;
+            --text-sidebar: #CBD5E1;
+            --text-sidebar-active: #FFFFFF;
+            
+            /* Colores Semánticos */
+            --color-in: #10B981; /* Verde Ingreso */
+            --color-out: #EF4444; /* Rojo Egreso */
+            
+            /* Elevación */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+            
+            /* Transiciones */
+            --transition-fast: 0.15s ease-in-out;
+            --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Lato', sans-serif; background-color: var(--bg-body); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+        h1, h2, h3, h4, h5, h6, .montserrat { font-family: 'Montserrat', sans-serif; }
+
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
+        
+        .page-header { padding: 32px 40px; display: flex; justify-content: space-between; align-items: flex-end; background: white; border-bottom: 1px solid #E2E8F0; z-index: 5;}
+        .page-header h1 { font-family: 'Montserrat'; font-weight: 800; font-size: 28px; color: var(--text-main); margin-bottom: 4px; }
+        .page-header p { font-size: 14px; color: var(--text-muted); }
+
+        .btn-primary { background: var(--brand-primary); color: white; border: none; font-family: 'Montserrat'; font-weight: 700; font-size: 13px; padding: 12px 24px; border-radius: 8px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(234,88,12,0.3);}
+        .btn-primary:hover { background: var(--brand-primary-hover); transform: translateY(-2px); }
+        
+        .content-area { padding: 40px; max-width: 900px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;}
+
+        /* Ghost Form / Empty State */
+        .ghost-form-container { background: white; border-radius: 16px; padding: 48px; width: 100%; max-width: 600px; box-shadow: var(--shadow-sm); border: 1px dashed #CBD5E1; text-align: center; }
+        .ghost-icon { font-size: 48px; color: #E2E8F0; margin-bottom: 16px; }
+        .ghost-title { font-size: 20px; font-weight: 700; font-family: 'Montserrat'; margin-bottom: 8px; color: var(--text-main); }
+        .ghost-desc { font-size: 14px; color: var(--text-muted); margin-bottom: 32px; }
+
+        .form-group { display: flex; flex-direction: column; gap: 6px; text-align: left; margin-bottom: 20px; }
+        .form-group label { font-family: 'Montserrat'; font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-input { height: 48px; padding: 0 16px; border: 1px solid #E2E8F0; border-radius: 8px; font-family: 'Lato'; font-size: 15px; outline: none; background: #F8FAFC; transition: 0.2s; width: 100%;}
+        .form-input:focus { border-color: var(--brand-primary); background: white; box-shadow: 0 0 0 3px rgba(234,88,12,0.1); }
+        
+        .form-input.amount { font-family: 'Montserrat', sans-serif; font-variant-numeric: tabular-nums; font-weight: 700; font-size: 20px; color: var(--color-out); text-align: right; }
+
+        .form-row { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+
+            /* --- UNIFIED SIDEBAR CSS --- */
+.sidebar { width: 260px; background-color: var(--bg-sidebar); display: flex; flex-direction: column; transition: var(--transition-smooth); z-index: 10; box-shadow: var(--shadow-lg); }
+        .sidebar-nav { padding: 16px 12px; flex: 1; overflow-y: auto; }
+        .nav-item { display: flex; align-items: center; padding: 12px 16px; color: var(--text-sidebar); text-decoration: none; border-radius: 8px; margin-bottom: 4px; transition: var(--transition-fast); font-size: 15px; font-weight: 500; }
+        .nav-item i { margin-right: 12px; font-size: 20px; transition: var(--transition-fast); }
+        .nav-item:hover { background-color: rgba(255,255,255,0.05); color: var(--text-sidebar-active); }
+        .nav-item.active { background-color: var(--brand-primary, #EA580C); color: white; box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3); }
+        .nav-dropdown { display: flex; flex-direction: column; }
+        .nav-dropdown .nav-item { width: 100%; }
+        .nav-dropdown .chevron { margin-left: auto; margin-right: 0; transition: transform 0.3s ease; }
+        .nav-dropdown.open .chevron { transform: rotate(180deg); }
+        .nav-submenu { display: none; flex-direction: column; background: rgba(0,0,0,0.2); padding: 8px 0; margin: 4px 16px; border-radius: 8px; }
+        .nav-dropdown.open .nav-submenu { display: flex; }
+        .submenu-item { padding: 10px 16px 10px 42px; color: var(--text-sidebar); text-decoration: none; font-size: 13px; transition: var(--transition-fast); border-radius: 6px; margin: 2px 8px; }
+        .submenu-item:hover { color: white; background-color: rgba(255,255,255,0.05); }
+        .submenu-item.active { color: var(--brand-primary); font-weight: bold; background-color: rgba(234, 88, 12, 0.1); }
+        .sidebar-nav::-webkit-scrollbar { width: 6px; }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .sidebar-nav::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+        /* --- MAIN CONTENT --- */
+
+    </style>
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="sidebar-header" style="padding: 24px; display: flex; align-items: center; gap: 12px; color: white; border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <div style="width: 28px;height: 28px;background:#000;border-radius: 4px;display: flex;align-items: center;justify-content: center;color: white;font-weight: 800;font-size: 11px;">BM</div>
+        <span style="font-family: 'Montserrat'; font-weight: 800; font-size: 14px; color: white;">BurgerMusic</span>
+    </div>
+    
+    <nav class="sidebar-nav">
+        <a href="dashboard_prototipo.html" class="nav-item"><i class="ri-home-4-line"></i> Inicio</a>
+        
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-shopping-bag-line"></i> Compras
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="compras_inbox_prototipo.html" class="submenu-item">Facturas</a>
+                <a href="compras_proveedores_prototipo.html" class="submenu-item">Proveedores</a>
+                <a href="compras_ordenes_prototipo.html" class="submenu-item">Órdenes de compra</a>
+                <a href="compras_recepciones_prototipo.html" class="submenu-item">Recepciones</a>
+            </div>
+        </div>
+
+        <a href="produccion_gerencial_prototipo.html" class="nav-item"><i class="ri-hammer-line"></i> Producción</a>
+        <a href="inventario_prototipo.html" class="nav-item"><i class="ri-box-3-line"></i> Inventario</a>
+
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-line-chart-line"></i> Ventas
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="ventas_dashboard_prototipo.html" class="submenu-item">Dashboard</a>
+                <a href="pos_prototipo.html" class="submenu-item">Nueva venta</a>
+                <a href="ventas_historial_prototipo.html" class="submenu-item">Historial de Tickets</a>
+                <a href="ventas_sincronizacion_prototipo.html" class="submenu-item">Sincronización</a>
+                <a href="ventas_cierre_z_prototipo.html" class="submenu-item">Cierre Z</a>
+            </div>
+        </div>
+
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-bank-card-line"></i> Finanzas
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="finanzas_dashboard_prototipo.html" class="submenu-item">Dashboard</a>
+                <a href="finanzas_movimientos_prototipo.html" class="submenu-item">Mov. caja</a>
+                <a href="finanzas_cuentas_pagar_prototipo.html" class="submenu-item">Cuentas por pagar</a>
+                <a href="finanzas_categorias_prototipo.html" class="submenu-item">Categorías financieras</a>
+            </div>
+        </div>
+        
+        <div class="nav-dropdown open">
+            <a href="#" class="nav-item nav-dropdown-toggle active" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-safe-line"></i> Caja
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="caja_gastos_eventuales_prototipo.html" class="submenu-item active">Gastos eventuales</a>
+                <a href="caja_gastos_fijos_prototipo.html" class="submenu-item">Gastos fijos</a>
+                <a href="caja_ingresos_extra_prototipo.html" class="submenu-item">Ingresos extra</a>
+            </div>
+        </div>
+
+        <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #475569; padding: 16px 14px 6px;">Operación</div>
+        <a href="pos_prototipo.html" class="nav-item"><i class="ri-store-2-line"></i> Punto de Venta</a>
+        <a href="kds_prototipo.html" class="nav-item"><i class="ri-restaurant-line"></i> Cocina</a>
+        <a href="delivery_prototipo.html" class="nav-item"><i class="ri-e-bike-2-line"></i> Delivery</a>
+        <a href="cajas_prototipo.html" class="nav-item"><i class="ri-money-dollar-box-line"></i> Caja POS</a>
+        <a href="produccion_prototipo.html" class="nav-item"><i class="ri-smartphone-line"></i> Producción (Móvil)</a>
+        <a href="auditoria_deposito_prototipo.html" class="nav-item"><i class="ri-clipboard-line"></i> Auditoría (Móvil)</a>
+    </nav>
+
+    <div style="margin-top: auto; padding: 20px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 16px;">
+        <select class="branch-select" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px; font-size: 13px; border-radius: 8px;">
+            <option value="lanus" selected style="color: black;">📍 Burger Music Lanus</option>
+        </select>
+        <div class="user-profile" style="display: flex; align-items: center; gap: 12px; padding: 0; cursor: pointer;">
+            <div class="avatar" style="width: 32px; height: 32px; font-size: 14px; background: #EA580C; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">G</div>
+            <div style="display: flex; flex-direction: column; overflow: hidden;">
+                <span style="font-size: 12px; font-weight: 600; color: white; white-space: nowrap;">gabriel@burgermusic.com</span>
+                <span style="font-size: 11px; color: #94A3B8;">Administrador</span>
+            </div>
+        </div>
+    </div>
+</aside>
+
+<main class="main-content">
+    <div class="page-header">
+        <div>
+            <h1>Gastos Eventuales</h1>
+            <p>Registrá salidas de dinero del día (compras menores, viáticos, etc.)</p>
+        </div>
+        <div>
+            <a href="finanzas_movimientos_prototipo.html" class="btn-primary" style="background: white; color: var(--text-main); border: 1px solid #CBD5E1; box-shadow: none; text-decoration: none; display: inline-block;">Ver historial</a>
+        </div>
+    </div>
+
+    <div class="content-area">
+        
+        <div class="ghost-form-container">
+            <i class="ri-receipt-line ghost-icon"></i>
+            <h2 class="ghost-title">Cargá el primer gasto del turno</h2>
+            <p class="ghost-desc">Usá este formulario rápido para registrar cualquier salida de caja que no esté programada. Se descontará de la caja actual.</p>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Fecha y hora</label>
+                    <div style="position: relative;">
+                        <input type="text" class="form-input" value="07/08/2026 12:03">
+                        <i class="ri-calendar-line" style="position: absolute; right: 16px; top: 14px; color: var(--text-muted); font-size: 18px;"></i>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Categoría</label>
+                    <select class="form-input" style="appearance: none; cursor: pointer;">
+                        <option value="">Elegí categoría</option>
+                        <option>Mantenimiento y Limpieza</option>
+                        <option>Viáticos</option>
+                        <option value="new_category" style="font-weight: bold; color: var(--brand-primary);">+ Crear nueva categoría...</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Monto (ARS)</label>
+                    <input type="text" class="form-input amount" placeholder="$ 0.00">
+                </div>
+                <div class="form-group">
+                    <label>Método de pago</label>
+                    <select class="form-input" style="appearance: none; cursor: pointer;">
+                        <option>Efectivo</option>
+                        <option>Mercado Pago</option>
+                        <option>Transferencia</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Contraparte (opcional)</label>
+                    <select class="form-input" style="appearance: none; cursor: pointer;">
+                        <option value="">-- Ninguno --</option>
+                        <option>Limpieza Sur (Proveedor)</option>
+                        <option>Librería Central (Proveedor)</option>
+                        <option value="new_provider" style="font-weight: bold; color: var(--brand-primary);">+ Cargar nuevo proveedor...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Descripción</label>
+                    <input type="text" class="form-input" placeholder="Ej: Compra de lavandina">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Comprobante (opcional)</label>
+                <div style="display: flex; align-items: center; border: 1px solid #E2E8F0; border-radius: 8px; height: 48px; padding: 0 16px; background: #F8FAFC;">
+                    <button type="button" class="btn-secondary" style="background: white; border: 1px solid #CBD5E1; box-shadow: none; padding: 6px 12px; border-radius: 6px; margin-right: 12px; font-size: 12px;">Seleccionar archivo</button>
+                    <span style="font-size: 14px; color: var(--text-muted);">Sin archivos seleccionados</span>
+                </div>
+            </div>
+
+            <button class="btn-primary" style="width: 100%; padding: 16px; font-size: 15px; margin-top: 12px;">Registrar salida de dinero</button>
+        </div>
+
+    </div>
+</main>
+
+
+<!-- Modal Proveedor -->
+<div class="modal-overlay" id="modalProveedor" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.6); z-index: 100; justify-content: center; align-items: center;">
+    <div class="modal-content" style="background: white; border-radius: 12px; width: 100%; max-width: 500px; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <div>
+                <h2 style="font-family: 'Montserrat'; font-size: 20px; font-weight: 700; color: var(--text-main);">Agregar nuevo proveedor</h2>
+                <p style="font-size: 13px; color: var(--text-muted);">Completá los datos mínimos del proveedor.</p>
+            </div>
+            <button onclick="closeModal('modalProveedor')" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted);">&times;</button>
+        </div>
+        
+        <div class="form-group">
+            <label>Nombre comercial *</label>
+            <input type="text" class="form-input" placeholder="Nombre con el que lo verás">
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label>Razón social</label>
+                <input type="text" class="form-input" placeholder="">
+            </div>
+            <div class="form-group">
+                <label>CUIT</label>
+                <input type="text" class="form-input" placeholder="20-12345678-6">
+            </div>
+        </div>
+        
+        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 16px;">
+            <button class="btn-secondary" onclick="closeModal('modalProveedor')">Cancelar</button>
+            <button class="btn-primary" onclick="closeModal('modalProveedor')">Guardar proveedor</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Categoría -->
+<div class="modal-overlay" id="modalCategoria" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.6); z-index: 100; justify-content: center; align-items: center;">
+    <div class="modal-content" style="background: white; border-radius: 12px; width: 100%; max-width: 400px; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <div>
+                <h2 style="font-family: 'Montserrat'; font-size: 20px; font-weight: 700; color: var(--text-main);">Nueva categoría</h2>
+            </div>
+            <button onclick="closeModal('modalCategoria')" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted);">&times;</button>
+        </div>
+        
+        <div class="form-group">
+            <label>Nombre de la categoría</label>
+            <input type="text" class="form-input" placeholder="Ej. Honorarios">
+        </div>
+        
+        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 16px;">
+            <button class="btn-secondary" onclick="closeModal('modalCategoria')">Cancelar</button>
+            <button class="btn-primary" onclick="closeModal('modalCategoria')">Crear categoría</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function openModal(id) {
+    document.getElementById(id).style.display = 'flex';
+}
+function closeModal(id) {
+    document.getElementById(id).style.display = 'none';
+    // Reset selects so they don't stay on "+ Crear nuevo"
+    document.querySelectorAll('select.form-input').forEach(select => {
+        if(select.value === 'new_provider' || select.value === 'new_category') {
+            select.selectedIndex = 0;
+        }
+    });
+}
+
+document.querySelectorAll('select.form-input').forEach(select => {
+    select.addEventListener('change', (e) => {
+        if(e.target.value === 'new_provider') {
+            openModal('modalProveedor');
+        } else if(e.target.value === 'new_category') {
+            openModal('modalCategoria');
+        }
+    });
+});
+</script>
+</body>
+
+</html>

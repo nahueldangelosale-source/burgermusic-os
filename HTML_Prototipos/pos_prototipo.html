@@ -1,0 +1,1777 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Burger Music - POS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Montserrat:wght@500;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :root {
+            --brand-primary: #EA580C;
+            --brand-primary-hover: #C2410C;
+            --brand-primary-disabled: #FDBA74;
+            --brand-secondary: #0F172A;
+            --brand-success: #22C55E;
+            --brand-danger: #EF4444;
+            
+            --bg-body: #F1F5F9;
+            --bg-surface: #FFFFFF;
+            
+            --text-main: #0F172A;
+            --text-muted: #64748B;
+            --text-disabled: #94A3B8;
+            
+            --border-light: #E2E8F0;
+            
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            
+            --transition-fast: 0.15s ease;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Lato', sans-serif;
+            background: var(--bg-body);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        h1, h2, h3, h4, .montserrat { font-family: 'Montserrat', sans-serif; }
+
+        /* --- CONCEPTOA: LOCK SCREEN --- */
+        .lock-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        
+        .lock-screen.unlocked { opacity: 0; visibility: hidden; pointer-events: none; }
+
+        .lock-header { text-align: center; color: white; margin-bottom: 32px; }
+        .lock-header h1 { font-size: 28px; margin-bottom: 8px; font-weight: 800; }
+        .lock-header p { color: #94A3B8; font-size: 15px; }
+        .lock-header i { color: var(--brand-primary); margin-right: 8px; }
+
+        .pin-dots { display: flex; gap: 16px; margin-bottom: 40px; }
+        .pin-dot {
+            width: 16px; height: 16px;
+            border-radius: 50%;
+            border: 2px solid #CBD5E1;
+            transition: all 0.2s;
+        }
+        .pin-dot.filled { background: var(--brand-primary); border-color: var(--brand-primary); transform: scale(1.1); }
+
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        .keypad-btn {
+            width: 72px; height: 72px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            font-size: 24px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.1s, transform 0.1s;
+        }
+        .keypad-btn:active { background: rgba(255,255,255,0.25); transform: scale(0.95); }
+
+        /* --- SIDEBAR MINIMALISTA --- */
+        .sidebar-min {
+            width: 72px;
+            background: var(--brand-secondary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 24px;
+            gap: 24px;
+            z-index: 10;
+        }
+
+        .nav-icon {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 24px;
+            border-radius: 12px;
+            transition: var(--transition-fast);
+            text-decoration: none;
+        }
+
+        .nav-icon:hover { color: white; background: rgba(255,255,255,0.1); }
+        .nav-icon.active { background: var(--brand-primary); color: white; box-shadow: var(--shadow-md); }
+
+        /* --- BARRA DE CATEGORÍAS --- */
+        .categories-panel {
+            width: 140px;
+            background: var(--bg-surface);
+            border-right: 1px solid var(--border-light);
+            display: flex;
+            flex-direction: column;
+            padding: 20px 12px;
+            gap: 8px;
+            overflow-y: auto;
+        }
+
+        .category-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            padding: 12px 8px;
+            text-align: center;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--text-muted);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .category-btn:hover { background: var(--bg-body); }
+        .category-btn.active {
+            background: #FFF7ED;
+            color: var(--brand-primary);
+            border-color: #FFEDD5;
+        }
+
+        /* --- MAIN PANEL (PRODUCTOS) --- */
+        .products-panel {
+            flex: 1;
+            padding: 24px 32px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--bg-surface);
+        }
+
+        .products-header { margin-bottom: 20px; }
+        .products-header h2 { font-size: 22px; color: var(--text-main); }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 16px;
+            overflow-y: auto;
+            align-content: start;
+            padding-bottom: 24px;
+        }
+
+        .product-card {
+            background: var(--bg-surface);
+            border: 2px solid #94A3B8; /* Borde gris oscuro bien visible */
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); /* Sombra más fuerte */
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 120px;
+        }
+
+        .product-card:hover {
+            border-color: #CBD5E1; /* Borde más oscuro al hacer hover */
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.06);
+        }
+
+        .product-card:active { 
+            transform: scale(0.96) translateY(0); 
+            background-color: #FFF7ED; 
+            border-color: var(--brand-primary); 
+        }
+
+        .product-name {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800; 
+            font-size: 16px;
+            color: var(--text-main);
+            line-height: 1.1;
+            margin-bottom: 6px;
+            letter-spacing: -0.02em; 
+        }
+
+        .product-price {
+            font-family: 'Lato', sans-serif;
+            font-weight: 700;
+            font-size: 18px; 
+            color: var(--brand-primary);
+        }
+
+        /* --- TICKET / COMANDA --- */
+        .ticket-panel {
+            width: 380px;
+            background: var(--bg-surface);
+            border-left: 1px solid var(--border-light);
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow-lg);
+            z-index: 5;
+        }
+
+        .ticket-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ticket-header h2 { font-size: 18px; }
+
+        .order-type-switch {
+            display: flex;
+            background: var(--bg-body);
+            border-radius: 8px;
+            padding: 4px;
+        }
+
+        .type-btn {
+            background: transparent;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 12px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .type-btn.active {
+            background: var(--bg-surface);
+            color: var(--brand-primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .ticket-items {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 20px;
+            background: var(--bg-body);
+        }
+
+        .empty-state {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-disabled);
+            text-align: center;
+        }
+
+        .empty-state i { font-size: 48px; margin-bottom: 16px; color: #CBD5E1; }
+
+        .ticket-item {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            box-shadow: var(--shadow-sm);
+            animation: slideIn 0.2s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .item-qty {
+            background: var(--bg-body);
+            border: 1px solid var(--border-light);
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .item-details { flex: 1; }
+        .item-name {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--text-main);
+            margin-bottom: 4px;
+        }
+        
+        /* Render de modificadores (Ej: Sin Cebolla) */
+        .item-modifiers {
+            font-size: 12px;
+            color: #F87171;
+            font-weight: 700;
+            line-height: 1.4;
+        }
+
+        .item-price {
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+        }
+
+        .btn-delete-item {
+            background: transparent;
+            border: none;
+            color: var(--brand-danger);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: background 0.1s;
+            font-size: 16px;
+        }
+        .btn-delete-item:hover { background: #FEF2F2; }
+        .btn-delete-item:active { transform: scale(0.9); }
+
+        .ticket-footer {
+            background: var(--bg-surface);
+            padding: 20px;
+            border-top: 1px solid var(--border-light);
+        }
+
+        .totals-row {
+            display: flex;
+            justify-content: space-between;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+
+        /* --- CONCEPTOB: MEDIOS DE PAGO Y CTA CORRIENTE --- */
+        .payment-methods {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .pay-btn {
+            background: var(--bg-body);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 10px 4px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: var(--transition-fast);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .pay-btn i { font-size: 18px; }
+        .pay-btn.active {
+            background: #EFF6FF;
+            border-color: #3B82F6;
+            color: #2563EB;
+        }
+
+        /* Modal Cta Corriente */
+        .cta-corriente-panel {
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+            display: none; 
+        }
+        .cta-corriente-panel.active { display: block; }
+        .cta-select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid var(--border-light);
+            font-family: 'Lato', sans-serif;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .cta-limit {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .cta-limit.ok { color: var(--brand-success); }
+        .cta-limit.error { color: var(--brand-danger); }
+
+        .btn-checkout {
+            width: 100%;
+            background-color: var(--brand-primary);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: background-color var(--transition-fast), transform 0.1s;
+        }
+        .btn-checkout:active:not(:disabled) { transform: scale(0.98); }
+        .btn-checkout: disabled {
+            background-color: var(--brand-primary-disabled);
+            color: rgba(255,255,255,0.7);
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* --- MODAL DE MODIFICADORES (SIN TEXTO LIBRE) --- */
+        .modifier-modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0; visibility: hidden;
+            transition: 0.2s ease;
+        }
+        .modifier-modal-overlay.active { opacity: 1; visibility: visible; }
+        
+        .modifier-modal {
+            background: white;
+            border-radius: 16px;
+            width: 500px;
+            padding: 24px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2);
+            transform: scale(0.95);
+            transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .modifier-modal-overlay.active .modifier-modal { transform: scale(1); }
+
+        .modifier-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; border-bottom: 1px solid var(--border-light); padding-bottom: 16px; }
+        .modifier-header h2 { font-size: 20px; color: var(--text-main); margin-bottom: 4px;}
+        .modifier-header p { font-size: 14px; color: var(--text-muted); }
+        .close-btn { background: none; border: none; font-size: 28px; cursor: pointer; color: var(--text-muted); transition: 0.1s;}
+        .close-btn:hover { color: var(--text-main); }
+
+        .mod-section { margin-bottom: 24px; }
+        .mod-section-title { font-size: 13px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.5px; }
+        .mod-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        
+        .mod-btn {
+            background: var(--bg-body);
+            border: 2px solid transparent;
+            padding: 14px 12px;
+            border-radius: 8px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: 0.1s;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .mod-btn.selected { background: #FFF7ED; border-color: var(--brand-primary); color: var(--brand-primary); }
+        .mod-price { font-size: 12px; opacity: 0.8; }
+        
+        .btn-confirm-mod {
+            width: 100%;
+            background: var(--brand-primary);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        .btn-confirm-mod:active { transform: scale(0.98); }
+
+        /* --- EDGE CASES CSS --- */
+        .btn-anular-emergencia {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--brand-danger);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            font-family: 'Montserrat';
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .btn-anular-emergencia:active {
+            background: var(--brand-danger);
+            color: white;
+            transform: scale(0.95);
+        }
+
+        .split-payment-panel {
+            background: #F8FAFC;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
+            transition: 0.2s;
+        }
+        .cash-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
+            font-family: 'Montserrat';
+            font-weight: 700;
+            font-size: 16px;
+            text-align: right;
+            outline: none;
+        }
+        .cash-input:focus { border-color: var(--brand-primary); }
+        .split-alert {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            background: #FEF2F2;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #FECACA;
+        }
+        .split-resta {
+            color: var(--brand-danger);
+            font-weight: 800;
+            font-size: 14px;
+        }
+        .btn-split-mp {
+            background: var(--brand-danger);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .special-actions {
+            position: relative;
+            margin-top: 12px;
+            display: flex;
+            justify-content: flex-end;
+        }
+        .btn-outline-small {
+            background: transparent;
+            border: 1px solid var(--border-light);
+            color: var(--text-muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .discount-menu {
+            position: absolute;
+            bottom: 100%;
+            right: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-light);
+            display: none;
+            flex-direction: column;
+            min-width: 180px;
+            margin-bottom: 8px;
+            overflow: hidden;
+        }
+        .discount-menu.active { display: flex; }
+        .discount-menu button {
+            background: none; border: none; padding: 12px;
+            text-align: left; font-size: 13px; font-weight: 600;
+            color: var(--text-main); cursor: pointer;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .discount-menu button:hover { background: #F8FAFC; }
+        
+        .ticket-item.discount-item { color: var(--brand-danger); background: #FEF2F2; border-color: #FECACA; }
+        .ticket-item.discount-item .item-price { color: var(--brand-danger); }
+    
+/* --- SIDEBAR --- */
+        .sidebar {
+            width: 260px;
+            background-color: var(--bg-sidebar);
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition-smooth);
+            z-index: 10;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: white;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .sidebar-header i {
+            font-size: 24px;
+            color: var(--brand-primary);
+        }
+
+        .sidebar-nav {
+            padding: 16px 12px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            color: var(--text-sidebar);
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            transition: var(--transition-fast);
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .nav-item i {
+            margin-right: 12px;
+            font-size: 20px;
+            transition: var(--transition-fast);
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255,255,255,0.05);
+            color: var(--text-sidebar-active);
+        }
+
+        .nav-item.active {
+            background-color: var(--brand-primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3);
+        }
+
+        
+    
+        /* --- COLLAPSED SIDEBAR (Para POS) --- */
+        .sidebar.collapsed {
+            width: 80px;
+        }
+        .sidebar.collapsed .sidebar-header span,
+        .sidebar.collapsed .nav-text,
+        .sidebar.collapsed .section-title {
+            display: none;
+        }
+        .sidebar.collapsed .nav-item {
+            justify-content: center;
+            padding: 12px;
+        }
+        .sidebar.collapsed .nav-item i {
+            margin-right: 0;
+            font-size: 24px;
+        }
+        .sidebar.collapsed .sidebar-header {
+            justify-content: center;
+            padding: 24px 0;
+        }
+        .sidebar.collapsed .branch-select {
+            display: none;
+        }
+        .sidebar.collapsed .user-profile span {
+            display: none;
+        }
+        .sidebar.collapsed .user-profile {
+            justify-content: center;
+            padding: 0;
+        }
+        .sidebar.collapsed .footer-block {
+            padding: 16px 0 !important;
+            align-items: center;
+        }
+
+    
+        /* --- OCULTAR SIDEBAR EN POS --- */
+        .sidebar {
+            display: none !important;
+        }
+
+    
+        /* --- DARK CATEGORIES PANEL (SIDEBAR EQUIVALENT) --- */
+        .categories-panel {
+            background: #1E293B !important; /* Mismo color que la sidebar unificada */
+            border-right: 1px solid rgba(255,255,255,0.05) !important;
+        }
+        .category-btn {
+            color: #CBD5E1 !important;
+        }
+        .category-btn:hover {
+            background: rgba(255,255,255,0.05) !important;
+            color: white !important;
+        }
+        .category-btn.active {
+            background: #EA580C !important; /* Naranja primary */
+            color: white !important;
+            border-color: transparent !important;
+            box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3) !important;
+        }
+        /* Style for the "Volver" button */
+        .categories-panel a[href="dashboard_prototipo.html"] {
+            background: rgba(255,255,255,0.05) !important;
+            border-color: rgba(255,255,255,0.1) !important;
+            color: white !important;
+        }
+        .categories-panel a[href="dashboard_prototipo.html"]:hover {
+            background: rgba(255,255,255,0.1) !important;
+        }
+
+    
+        /* --- MENU DESPLEGABLE SIDEBAR --- */
+        .nav-dropdown {
+            display: flex;
+            flex-direction: column;
+        }
+        .nav-dropdown .nav-item {
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+        .nav-dropdown .chevron {
+            margin-left: auto;
+            margin-right: 0;
+            transition: transform 0.3s ease;
+        }
+        .nav-dropdown.open .chevron {
+            transform: rotate(180deg);
+        }
+        .nav-submenu {
+            display: none;
+            flex-direction: column;
+            background: rgba(0,0,0,0.2);
+            padding: 8px 0;
+            margin: 4px 16px;
+            border-radius: 8px;
+        }
+        .nav-dropdown.open .nav-submenu {
+            display: flex;
+        }
+        .submenu-item {
+            padding: 10px 16px 10px 42px;
+            color: var(--text-sidebar);
+            text-decoration: none;
+            font-size: 13px;
+            transition: var(--transition-fast);
+            border-radius: 6px;
+            margin: 2px 8px;
+        }
+        .submenu-item:hover {
+            color: white;
+            background-color: rgba(255,255,255,0.05);
+        }
+        .submenu-item.active {
+            color: var(--brand-primary);
+            font-weight: bold;
+            background-color: rgba(234, 88, 12, 0.1);
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- CONCEPTOA: PORTAL NUMÉRICO DE FICHAJE (OVERLAY) -->
+    <div class="lock-screen" id="lockScreen">
+        <div class="lock-header">
+            <h1><i class="ri-fingerprint-line"></i> Fichaje de Acceso</h1>
+            <p>Ingresóa tu PIN de operador para iniciar turno</p>
+        </div>
+        <div class="pin-dots" id="pinDots">
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+        </div>
+        <div class="keypad">
+            <button class="keypad-btn" onclick="addPin()">1</button>
+            <button class="keypad-btn" onclick="addPin()">2</button>
+            <button class="keypad-btn" onclick="addPin()">3</button>
+            <button class="keypad-btn" onclick="addPin()">4</button>
+            <button class="keypad-btn" onclick="addPin()">5</button>
+            <button class="keypad-btn" onclick="addPin()">6</button>
+            <button class="keypad-btn" onclick="addPin()">7</button>
+            <button class="keypad-btn" onclick="addPin()">8</button>
+            <button class="keypad-btn" onclick="addPin()">9</button>
+            <div></div> <!-- Espacio vacío -->
+            <button class="keypad-btn" onclick="addPin()">0</button>
+            <button class="keypad-btn" onclick="clearPin()" style="background: transparent; border: none;"><i class="ri-delete-back-2-line"></i></button>
+        </div>
+    </div>
+
+    <!-- MODAL DE MODIFICADORES (SIN TEXTO LIBRE) -->
+    <div class="modifier-modal-overlay" id="modifierModal">
+        <div class="modifier-modal">
+            <div class="modifier-header">
+                <div>
+                    <h2 class="montserrat" id="modTitle">Opciones de Producto</h2>
+                    <p id="modPrice">Precio base: $0</p>
+                </div>
+                <button class="close-btn" onclick="closeModifierModal()"><i class="ri-close-line"></i></button>
+            </div>
+            
+            <div class="mod-section">
+                <div class="mod-section-title">Exclusiones (Sin cargo)</div>
+                <div class="mod-grid" id="exclusionsGrid">
+                    <!-- Se llena vía JS -->
+                </div>
+            </div>
+
+            <div class="mod-section">
+                <div class="mod-section-title">Agregados (Con cargo)</div>
+                <div class="mod-grid" id="addonsGrid">
+                    <!-- Se llena vía JS -->
+                </div>
+            </div>
+
+            <button class="btn-confirm-mod" onclick="confirmModifiers()">Agregar a Comanda</button>
+        </div>
+    </div>
+
+    <!-- MODAL DE CONSUMO PERSONAL -->
+    <div class="modifier-modal-overlay" id="employeeModal">
+        <div class="modifier-modal" style="max-width: 400px;">
+            <div class="modifier-header">
+                <div>
+                    <h2 class="montserrat">Consumo Personal</h2>
+                    <p>Seleccionar empleado y descuento</p>
+                </div>
+                <button class="close-btn" onclick="closeEmployeeModal()"><i class="ri-close-line"></i></button>
+            </div>
+            
+            <div class="mod-section">
+                <div class="mod-section-title">Empleado</div>
+                <select id="employeeSelect" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #CBD5E1; font-family: 'Lato'; font-size: 14px; outline: none; background: #F8FAFC;">
+                    <option value="">-- Seleccionar Empleado --</option>
+                    <option value="gabriel">Gabriel (Admin)</option>
+                    <option value="martin">Martín (Cajero)</option>
+                    <option value="lucia">Lucía (Cocina)</option>
+                </select>
+            </div>
+
+            <div class="mod-section">
+                <div class="mod-section-title">% de Descuento</div>
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" class="mod-btn" style="flex: 1; justify-content: center; border: 1px solid #CBD5E1;" onclick="setEmployeeDiscount(50)">50%</button>
+                    <button type="button" class="mod-btn" style="flex: 1; justify-content: center; border: 1px solid #CBD5E1;" onclick="setEmployeeDiscount(100)">100%</button>
+                </div>
+                <div style="margin-top: 12px;">
+                    <input type="number" id="employeeDiscountPerc" placeholder="Otro % (ej. 25)" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #CBD5E1; font-family: 'Lato'; font-size: 14px; outline: none; text-align: center; background: #F8FAFC;">
+                </div>
+            </div>
+
+            <button class="btn-confirm-mod" onclick="applyEmployeeDiscount()">Aplicar Descuento</button>
+        </div>
+    </div>
+
+    <!-- APP PRINCIPAL (POS) -->
+    <!-- SIDEBAR UNIFICADA -->
+<aside class="sidebar collapsed">
+    <div class="sidebar-header">
+        <div style="width: 28px;height: 28px;background:#000;border-radius: 4px;display: flex;align-items: center;justify-content: center;color: white;font-weight: 800;font-size: 11px;">BM</div>
+        <span style="font-family: 'Montserrat'; font-weight: 800; font-size: 14px; color: white;">BurgerMusic</span>
+    </div>
+    
+    <nav class="sidebar-nav">
+        <a href="dashboard_prototipo.html" class="nav-item"><i class="ri-home-4-line"></i> Inicio</a>
+        
+        <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #475569; padding: 16px 14px 6px;">Operación</div>
+        <a href="pos_prototipo.html" class="nav-item active"><i class="ri-store-2-line"></i> Punto de Venta</a>
+        <a href="kds_prototipo.html" class="nav-item"><i class="ri-restaurant-line"></i> Cocina</a>
+        <a href="delivery_prototipo.html" class="nav-item"><i class="ri-e-bike-2-line"></i> Delivery</a>
+        
+        <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #475569; padding: 16px 14px 6px;">Abastecimiento</div>
+        
+        <!-- Compras Dropdown -->
+        <div class="nav-dropdown ">
+            <a href="#" class="nav-item nav-dropdown-toggle " onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-shopping-bag-line"></i> Compras
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="compras_inbox_prototipo.html" class="submenu-item ">Facturas</a>
+                <a href="compras_proveedores_prototipo.html" class="submenu-item">Proveedores</a>
+                <a href="compras_ordenes_prototipo.html" class="submenu-item">Órdenes de compra</a>
+                <a href="compras_recepciones_prototipo.html" class="submenu-item">Recepciones</a>
+            </div>
+        </div>
+
+        <a href="inventario_prototipo.html" class="nav-item"><i class="ri-box-3-line"></i> Inventario</a>
+        <a href="produccion_gerencial_prototipo.html" class="nav-item"><i class="ri-hammer-line"></i> Producción</a>
+        
+        <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #475569; padding: 16px 14px 6px;">Administración</div>
+        <a href="cajas_prototipo.html" class="nav-item"><i class="ri-money-dollar-box-line"></i> Cajas</a>
+        <a href="#" class="nav-item"><i class="ri-bar-chart-2-line"></i> Finanzas</a>
+    </nav>
+
+    <!-- Context & User Footer (Movido de la cabecera) -->
+    <div style="margin-top: auto; padding: 20px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 16px;">
+        <select class="branch-select" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px; font-size: 13px; border-radius: 8px;">
+            <option value="all" style="color: black;">🌐 Vista Consolidada</option>
+            <option value="lanus" selected style="color: black;">📍 Burger Music Lanus</option>
+            <option value="avellaneda" style="color: black;">📍 Burger Music Avellaneda</option>
+        </select>
+        <div class="user-profile" style="display: flex; align-items: center; gap: 12px; padding: 0; cursor: pointer; transition: 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+            <div class="avatar" style="width: 32px; height: 32px; font-size: 14px; background: #EA580C; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">G</div>
+            <div style="display: flex; flex-direction: column; overflow: hidden;">
+                <span style="font-size: 12px; font-weight: 600; color: white; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">gabriel@burgermusic.com</span>
+                <span style="font-size: 11px; color: #94A3B8;">Administrador</span>
+            </div>
+        </div>
+    </div>
+</aside>
+
+    <!-- APP PRINCIPAL (POS) -->
+    <main class="main-content" style="display: flex; flex: 1; overflow: hidden; background: var(--bg-body);">
+        <!-- Categorías -->
+        <div class="categories-panel" style="width: 140px; background: var(--bg-surface); padding: 16px; border-right: 1px solid var(--border-light); overflow-y: auto;">
+            
+            <a href="dashboard_prototipo.html" style="display: flex; align-items: center; justify-content: center; gap: 8px; background: var(--bg-body); border: 1px solid var(--border-light); padding: 12px; border-radius: 8px; color: var(--text-main); font-weight: 700; text-decoration: none; margin-bottom: 24px; transition: 0.2s;" onmouseover="this.style.background='var(--border-light)'" onmouseout="this.style.background='var(--bg-body)'">
+                <i class="ri-arrow-left-line"></i> Volver
+            </a>
+
+            <div id="categoriesPanel" style="display: flex; flex-direction: column; gap: 8px;"></div>
+        </div>
+
+        <!-- Productos -->
+        <div class="products-panel" style="flex: 1; padding: 24px; display: flex; flex-direction: column;">
+            <div class="products-header" style="margin-bottom: 20px;">
+                <h2 id="currentCategoryTitle" class="montserrat" style="font-size: 24px; font-weight: 800;">Burgers</h2>
+            </div>
+            <div id="products-grid" class="products-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; overflow-y: auto; align-content: flex-start; flex: 1;">
+                <!-- Renderizado por JS -->
+            </div>
+        </div>
+
+        <!-- Ticket / Comanda -->
+        <div class="ticket-panel" id="ticketPanel" style="width: 380px; background: var(--bg-surface); border-left: 1px solid var(--border-light); display: flex; flex-direction: column; box-shadow: var(--shadow-lg);">
+            <div class="ticket-header" style="padding: 20px; border-bottom: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center;">
+                <h2 class="montserrat">Comanda</h2>
+                <div class="order-type-switch" style="display: flex; background: var(--bg-body); border-radius: 8px; padding: 4px;">
+                    <button class="type-btn active">Salón</button>
+                    <button class="type-btn">Takeaway</button>
+                </div>
+            </div>
+            
+            <div class="ticket-items" id="ticket-items" style="flex: 1; overflow-y: auto; padding: 16px 20px; background: var(--bg-body); display: flex; flex-direction: column;">
+                <div id="empty-state" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); opacity: 0.7;">
+                    <i class="ri-shopping-cart-2-line" style="font-size: 48px; margin-bottom: 12px;"></i>
+                    <p style="font-family: 'Montserrat'; font-weight: 700;">Comanda vacía</p>
+                    <p style="font-size: 13px;">Agregá productos desde el panel izquierdo.</p>
+                </div>
+                <div id="cart-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
+            </div>
+            
+            <div class="ticket-footer" style="background: var(--bg-surface); padding: 20px; border-top: 1px solid var(--border-light);">
+                <div class="special-actions" style="margin-bottom: 16px; position: relative;">
+                    <button class="btn-outline-small" onclick="toggleDiscountMenu()" style="width: 100%; justify-content: space-between; border: 1px solid #CBD5E1; padding: 10px 12px; border-radius: 6px; background: white; font-family: 'Montserrat'; font-weight: 700; cursor: pointer; display: flex; align-items: center; color: var(--text-main);">
+                        <span><i class="ri-gift-line" style="color: var(--brand-primary); margin-right: 6px;"></i> Cortesías / Acciones Especiales</span>
+                        <i class="ri-arrow-up-s-line"></i>
+                    </button>
+                    <div id="discountMenu" style="display: none; position: absolute; bottom: 100%; left: 0; right: 0; background: white; border: 1px solid #CBD5E1; border-radius: 8px; box-shadow: 0 -8px 16px rgba(0,0,0,0.1); padding: 8px; flex-direction: column; gap: 4px; z-index: 10; margin-bottom: 4px;">
+                        <button onclick="applyDiscount('demora')" style="text-align: left; padding: 12px; border: none; background: transparent; cursor: pointer; border-radius: 4px; font-family: 'Lato'; font-weight: 700; color: var(--text-main); transition: 0.2s;" onmouseover="this.style.background='#F1F5F9'" onmouseout="this.style.background='transparent'"><i class="ri-time-line"></i> Cortesía por Demora (10%)</button>
+                        <button onclick="applyDiscount('queja')" style="text-align: left; padding: 12px; border: none; background: transparent; cursor: pointer; border-radius: 4px; font-family: 'Lato'; font-weight: 700; color: #DC2626; transition: 0.2s;" onmouseover="this.style.background='#FEF2F2'" onmouseout="this.style.background='transparent'"><i class="ri-thumb-down-line"></i> Cortesía por Queja (100%)</button>
+                    </div>
+                </div>
+
+                <div class="totals-row">
+                    <span>Total</span>
+                    <span id="ticket-total">$ 0</span>
+                </div>
+                
+                <div id="ctaPanel" style="display: none; padding: 12px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; margin-bottom: 12px;">
+                    <select id="ctaClient" onchange="checkCredit()" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #CBD5E1; outline: none; margin-bottom: 8px; font-family: 'Lato';">
+                        <option value="">-- Seleccionar Cuenta --</option>
+                        <option value="techcorp">TechCorp (Software) - Limite $50.000</option>
+                        <option value="taller">Taller Mecánico Pepe - Límite $5.000</option>
+                    </select>
+                    <div id="ctaStatus" style="font-size: 13px; font-weight: bold; color: var(--text-muted);">Seleccione cliente para validar límite.</div>
+                </div>
+
+                <div id="splitPaymentPanel" style="display: none; padding: 12px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; margin-bottom: 12px;">
+                    <label style="font-size: 12px; font-weight: bold; color: var(--text-muted);">El cliente paga en EFECTIVO la suma de:</label>
+                    <input type="number" id="cashInput" placeholder="$ monto recibido" oninput="calculateSplit()" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #CBD5E1; outline: none; margin-top: 6px; font-family: 'Lato';">
+                    <div id="splitAlert" style="display: none; justify-content: space-between; align-items: center; margin-top: 8px; padding: 10px; background: #FEF2F2; border: 1px solid #FECACA; border-radius: 6px;">
+                        <div>
+                            <div style="font-size: 11px; color: #DC2626; font-weight: 700;">FALTAN COBRAR:</div>
+                            <div id="splitRestaMonto" style="font-weight: 800; color: #DC2626; font-size: 16px;">$0</div>
+                        </div>
+                        <button onclick="completeWithMP()" style="background: #DC2626; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; font-family: 'Montserrat';"><i class="ri-qr-code-line"></i> Cobrar el resto</button>
+                    </div>
+                </div>
+                
+                <div class="payment-methods" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    <button class="pay-btn active" onclick="selectPayment(this, 'efectivo')"><i class="ri-money-dollar-circle-line"></i> Efectivo</button>
+                    <button class="pay-btn" onclick="selectPayment(this, 'tarjeta')"><i class="ri-bank-card-line"></i> Tarjeta</button>
+                    <button class="pay-btn" onclick="selectPayment(this, 'mercadopago')"><i class="ri-qr-code-line"></i> MP</button>
+                    <button class="pay-btn" onclick="selectPayment(this, 'cta')" style="background: #F1F5F9; border-color: #CBD5E1;"><i class="ri-book-read-line"></i> Cta Corriente</button>
+                    <button class="pay-btn" onclick="selectPayment(this, 'personal')" style="background: #FEF2F2; color: #DC2626; border-color: #FECACA;"><i class="ri-user-heart-line"></i> Empleado</button>
+                </div>
+                
+                <button id="btn-checkout" class="btn-checkout" onclick="checkout()" disabled><i class="ri-check-line"></i> Cobrar y Comandar</button>
+            </div>
+        </div>
+    </main>
+
+
+    <script>
+        const formatMoney = (amount) => '$ ' + amount.toLocaleString('es-AR');
+
+        // --- BASE DE DATOS DEL CATÁLOGO REAL ---
+        const catalog = {
+            'Burgers': [
+                { name: 'CLASSIC', price: 12300 },
+                { name: 'DUKO', price: 14100 },
+                { name: 'CHARLY', price: 12300 },
+                { name: 'TECHNO CHICKEN', price: 11600 },
+                { name: 'GORILLAZ', price: 14900 },
+                { name: 'MADONNA Veggie', price: 13300 },
+                { name: 'PATRICIO REY', price: 14600 },
+                { name: 'BIZARRAP #1', price: 11500 },
+                { name: 'BIZARRAP #2', price: 11500 },
+                { name: 'Eminem', price: 19000 }
+            ],
+            'Sanguches': [
+                { name: 'Nirvana 1', price: 16200 },
+                { name: 'Nirvana 2', price: 16200 },
+                { name: 'Mila Rolling', price: 15000 },
+                { name: 'Alma Fuerte', price: 14600 }
+            ],
+            'Para Acompañar': [
+                { name: 'Papas QUEEN', price: 9500 },
+                { name: 'Papas Cheddar', price: 9300 },
+                { name: 'Papas MERCURY', price: 13100 },
+                { name: 'Nuggets + papas', price: 9700 },
+                { name: 'Aros + papas', price: 9200 },
+                { name: 'KIDS ROCK', price: 8100 }
+            ],
+            'Music Pizza': [
+                { name: 'John Lennon', price: 10000 },
+                { name: 'Pink Floyd', price: 12000 },
+                { name: 'Johnny Rivers', price: 11000 },
+                { name: 'Freddie Mercury', price: 13000 },
+                { name: 'Porción Muzza XL', price: 2800 },
+                { name: 'Empanada Carne', price: 2500 }
+            ],
+            'Promos': [
+                { name: '2 Charly Doble', price: 25500 },
+                { name: '4 Classic simples', price: 29200 }
+            ],
+            'Picadas Beat': [
+                { name: 'FREESTYLE', price: 23300 },
+                { name: 'HIP HOP', price: 25000 }
+            ],
+            'Ensaladas': [
+                { name: 'RIHANNA', price: 11100 },
+                { name: 'LADY GAGA', price: 11100 }
+            ],
+            'Postres': [
+                { name: 'Cheesecake Oreo', price: 5500 },
+                { name: 'Cheesecake Frutilla', price: 6200 },
+                { name: 'Chocotorta', price: 5500 },
+                { name: 'Franui', price: 9000 },
+                { name: 'Tiramisú', price: 5500 }
+            ],
+            'Tostados': [
+                { name: 'Tostado americano', price: 6800 },
+                { name: 'Tostado clásico', price: 6800 }
+            ],
+            'Cervezas': [
+                { name: 'HONEY 500ml', price: 4500 },
+                { name: 'IPA 500ml', price: 5000 },
+                { name: 'GOLDEN 500ml', price: 4500 },
+                { name: 'NEIPA 500ml', price: 5500 },
+                { name: 'SCOTTISH 500ml', price: 4500 },
+                { name: 'PORTER 500ml', price: 4500 }
+            ],
+            'Bebidas': [
+                { name: 'Villavicencio', price: 2500 },
+                { name: 'Coca Cola 1.5 lts', price: 6200 },
+                { name: 'Coca Zero 1.5 lts', price: 6200 },
+                { name: 'Lata Coca Zero', price: 3000 },
+                { name: 'Lata Sprite', price: 3000 },
+                { name: 'Levite Naranja', price: 2100 }
+            ]
+        };
+
+        // --- RENDERIZADO DEL CATÁLOGO ---
+        function renderCategories() {
+            const catPanel = document.getElementById('categoriesPanel');
+            catPanel.innerHTML = '';
+            
+            Object.keys(catalog).forEach((cat, index) => {
+                const btn = document.createElement('button');
+                btn.className = `category-btn ${index === 0 ? 'active' : ''}`;
+                btn.innerText = cat;
+                btn.onclick = () => {
+                    document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    renderProducts(cat);
+                };
+                catPanel.appendChild(btn);
+            });
+        }
+
+        function renderProducts(category) {
+            document.getElementById('currentCategoryTitle').innerText = category;
+            const grid = document.getElementById('products-grid');
+            grid.innerHTML = '';
+            
+            catalog[category].forEach(product => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                // LÓGICA DE ? INTERCEPTACIÓN : Mostrar modal si aplica
+                card.onclick = () => handleProductClick(product.name, product.price, category);
+                card.innerHTML = `
+                    <div class="product-name">${product.name}</div>
+                    <div class="product-price">${formatMoney(product.price)}</div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // --- LÓGICA DE MODIFICADORES (SIN TEXTO LIBRE) ---
+        let pendingItem = null;
+
+        const EXCLUSIONES = ['Sin Cebolla', 'Sin Tomate', 'Sin Lechuga', 'Sin Pepino', 'Sin Salsa'];
+        const AGREGADOS = [
+            { name: 'Extra Cheddar', price: 1500 },
+            { name: 'Extra Bacon', price: 1800 },
+            { name: 'Medallón Extra', price: 3000 }
+        ];
+
+        function handleProductClick(name, price, category) {
+            // Solo abrimos el modal de modificadores para Burgers y Sanguches
+            if (category === 'Burgers' || category === 'Sanguches') {
+                openModifierModal(name, price);
+            } else {
+                addItem(name, price, []);
+            }
+        }
+
+        function openModifierModal(name, price) {
+            pendingItem = { name, basePrice: price, extraPrice: 0, mods: [] };
+            
+            document.getElementById('modTitle').innerText = `Opciones para ${name}`;
+            document.getElementById('modPrice').innerText = `Precio base: ${formatMoney(price)}`;
+            
+            // Renderizar exclusiones
+            const excGrid = document.getElementById('exclusionsGrid');
+            excGrid.innerHTML = '';
+            EXCLUSIONES.forEach(exc => {
+                const btn = document.createElement('button');
+                btn.className = 'mod-btn';
+                btn.innerHTML = `<span>${exc}</span>`;
+                btn.onclick = () => toggleModifier(btn, exc, 0);
+                excGrid.appendChild(btn);
+            });
+
+            // Renderizar agregados
+            const addGrid = document.getElementById('addonsGrid');
+            addGrid.innerHTML = '';
+            AGREGADOS.forEach(add => {
+                const btn = document.createElement('button');
+                btn.className = 'mod-btn';
+                btn.innerHTML = `<span>${add.name}</span> <span class="mod-price">+${formatMoney(add.price)}</span>`;
+                btn.onclick = () => toggleModifier(btn, add.name, add.price);
+                addGrid.appendChild(btn);
+            });
+
+            document.getElementById('modifierModal').classList.add('active');
+        }
+
+        function closeModifierModal() {
+            document.getElementById('modifierModal').classList.remove('active');
+            pendingItem = null;
+        }
+
+        function toggleModifier(btnElement, modName, price) {
+            btnElement.classList.toggle('selected');
+            
+            if (btnElement.classList.contains('selected')) {
+                pendingItem.mods.push(modName);
+                pendingItem.extraPrice += price;
+            } else {
+                pendingItem.mods = pendingItem.mods.filter(m => m !== modName);
+                pendingItem.extraPrice -= price;
+            }
+        }
+
+        function confirmModifiers() {
+            if (!pendingItem) return;
+            const finalPrice = pendingItem.basePrice + pendingItem.extraPrice;
+            addItem(pendingItem.name, finalPrice, pendingItem.mods);
+            closeModifierModal();
+        }
+
+        // --- LOGICA CONCEPTOA: FICHAJE ---
+        let pinCount = 0;
+        const pinDots = document.getElementById('pinDots').children;
+
+        function addPin() {
+            if (pinCount < 4) {
+                pinDots[pinCount].classList.add('filled');
+                pinCount++;
+                if (pinCount === 4) {
+                    setTimeout(() => {
+                        document.getElementById('lockScreen').classList.add('unlocked');
+                        document.getElementById('cajeroName').innerText = "Martín (Fichado 22: 15)";
+                    }, 300);
+                }
+            }
+        }
+
+        function clearPin() {
+            pinCount = 0;
+            for(let dot of pinDots) dot.classList.remove('filled');
+        }
+
+
+        // --- LOGICA CARRITO POS ---
+        let total = 0;
+        let cartItems = [];
+        let itemIdCounter = 0;
+        let currentPaymentMethod = 'efectivo';
+        
+        const cartList = document.getElementById('cart-list');
+        const emptyState = document.getElementById('empty-state');
+        const totalDisplay = document.getElementById('ticket-total');
+        const btnCheckout = document.getElementById('btn-checkout');
+
+        function renderCart() {
+            cartList.innerHTML = '';
+            total = 0;
+            
+            if (cartItems.length === 0 ) {
+                emptyState.style.display = 'flex';
+            } else {
+                emptyState.style.display = 'none';
+                
+                cartItems.forEach(item => {
+                    total += item.price;
+                    
+                    let modsHtml = '';
+                    if (item.mods && item.mods.length > 0) {
+                        modsHtml = `<div class="item-modifiers">${item.mods.join('<br>').toUpperCase()}</div>`;
+                    }
+
+                    const itemHtml = document.createElement('div');
+                    itemHtml.className = 'ticket-item';
+                    itemHtml.innerHTML = `
+                        <div class="item-qty">1</div>
+                        <div class="item-details">
+                            <div class="item-name">${item.name}</div>
+                            ${modsHtml}
+                        </div>
+                        <div class="item-price">
+                            ${formatMoney(item.price)}
+                            <button class="btn-delete-item" onclick="removeItem(${item.id})">
+                                <i class="ri-delete-bin-line"></i>
+                            </button>
+                        </div>
+                    `;
+                    cartList.appendChild(itemHtml);
+                });
+            }
+            
+            totalDisplay.innerText = formatMoney(total);
+            validateCheckout();
+        }
+
+        function addItem(name, price, mods = []) {
+            cartItems.push({ id: ++itemIdCounter, name, price, mods });
+            renderCart();
+            const ticketItemsContainer = document.getElementById('ticket-items');
+            ticketItemsContainer.scrollTop = ticketItemsContainer.scrollHeight;
+        }
+
+        function removeItem(id) {
+            cartItems = cartItems.filter(item => item.id !== id);
+            renderCart();
+        }
+
+        // --- LOGICA CONCEPTOB: CTA CORRIENTE Y LIMITES ---
+        function selectPayment(btn, method) {
+            document.querySelectorAll('.pay-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentPaymentMethod = method;
+
+            const ctaPanel = document.getElementById('ctaPanel');
+            const splitPanel = document.getElementById('splitPaymentPanel');
+            
+            if(ctaPanel) {
+                if (method === 'cta') {
+                    ctaPanel.classList.add('active');
+                    if (splitPanel) splitPanel.style.display = 'none';
+                } else if (method === 'efectivo') {
+                    ctaPanel.classList.remove('active');
+                    if (splitPanel) splitPanel.style.display = 'block';
+                } else {
+                    ctaPanel.classList.remove('active');
+                    if (splitPanel) splitPanel.style.display = 'none';
+                }
+            }
+            
+            // Si es Consumo Personal, abrimos el modal
+            if (method === 'personal') {
+                document.getElementById('employeeModal').classList.add('active');
+                // Limpiamos los inputs
+                document.getElementById('employeeSelect').value = '';
+                document.getElementById('employeeDiscountPerc').value = '';
+            } else {
+                if (document.getElementById('ticket-total')) {
+                    document.getElementById('ticket-total').innerText = formatMoney(total);
+                }
+            }
+
+            validateCheckout();
+        }
+
+        function setEmployeeDiscount(val) {
+            document.getElementById('employeeDiscountPerc').value = val;
+        }
+
+        function closeEmployeeModal() {
+            document.getElementById('employeeModal').classList.remove('active');
+            // Revertir a efectivo si cancelan
+            const btnEfectivo = document.querySelector('.pay-btn[onclick*="efectivo"]');
+            if (btnEfectivo) selectPayment(btnEfectivo, 'efectivo');
+        }
+
+        function applyEmployeeDiscount() {
+            const percInput = document.getElementById('employeeDiscountPerc').value;
+            const employeeName = document.getElementById('employeeSelect').value;
+            if(!employeeName) {
+                alert("Por favor, seleccioná un empleado de la lista.");
+                return;
+            }
+            if(!percInput) {
+                alert("Por favor, ingresá o seleccioná un porcentaje de descuento.");
+                return;
+            }
+            let perc = parseInt(percInput);
+            if (isNaN(perc) || perc < 0 || perc > 100) {
+                perc = 0;
+            }
+            
+            document.getElementById('employeeModal').classList.remove('active');
+            
+            const newTotal = total * (1 - (perc/100));
+            if (document.getElementById('ticket-total')) {
+                document.getElementById('ticket-total').innerHTML = `<s style="color: var(--text-disabled); font-size: 14px;">${formatMoney(total)}</s> <span style="color: var(--brand-success)">${formatMoney(newTotal)}</span>`;
+            }
+            validateCheckout();
+        }
+
+        function checkCredit() {
+            validateCheckout();
+        }
+
+        function validateCheckout() {
+            let isValid = cartItems.length > 0;
+
+            if (currentPaymentMethod === 'cta') {
+                const client = document.getElementById('ctaClient') ? document.getElementById('ctaClient').value : null;
+                const statusDiv = document.getElementById('ctaStatus');
+
+                if (client === 'techcorp' && statusDiv) {
+                    if (total <= 50000) {
+                        statusDiv.className = 'cta-limit ok';
+                        statusDiv.innerText = `Crédito OK. Restante: $${(50000 - total).toLocaleString('es-AR')}`;
+                    } else {
+                        statusDiv.className = 'cta-limit error';
+                        statusDiv.innerText = `¡Límite excedido por $${(total - 50000).toLocaleString('es-AR')}!`;
+                        isValid = false;
+                    }
+                } else if (client === 'taller' && statusDiv) {
+                    if (total <= 5000) {
+                        statusDiv.className = 'cta-limit ok';
+                        statusDiv.innerText = `Crédito OK. Restante: $${(5000 - total).toLocaleString('es-AR')}`;
+                    } else {
+                        statusDiv.className = 'cta-limit error';
+                        statusDiv.innerText = `¡Límite excedido por $${(total - 5000).toLocaleString('es-AR')}!`;
+                        isValid = false;
+                    }
+                } else if (statusDiv) {
+                    statusDiv.className = 'cta-limit';
+                    statusDiv.innerText = `Seleccione cliente para validar límite.`;
+                    isValid = false;
+                }
+            } else if (currentPaymentMethod === 'personal') {
+                isValid = cartItems.length > 0;
+            }
+
+            const btnCheckout = document.getElementById('btn-checkout');
+            if (btnCheckout) {
+                btnCheckout.disabled = !isValid;
+                if (!isValid) {
+                    btnCheckout.style.opacity = '0.5';
+                    btnCheckout.style.cursor = 'not-allowed';
+                } else {
+                    btnCheckout.style.opacity = '1';
+                    btnCheckout.style.cursor = 'pointer';
+                }
+            }
+        }
+
+        function checkout() {
+            // Recolectar datos de la orden
+            const activeTypeBtn = document.querySelector('.type-btn.active');
+            const orderType = activeTypeBtn ? activeTypeBtn.innerText.trim() : 'Salón';
+            
+            // Construir la orden
+            const orderData = {
+                id: Math.floor(Math.random() * 1000) + 100, // ID aleatorio
+                type: orderType, // Salón o Takeaway
+                time: new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
+                items: JSON.parse(JSON.stringify(cartItems)), // Clonar items
+                status: 'nueva',
+                timestamp: Date.now()
+            };
+
+            // Guardar en localStorage
+            let orders = JSON.parse(localStorage.getItem('kds_orders') || '[]');
+            orders.push(orderData);
+            localStorage.setItem('kds_orders', JSON.stringify(orders));
+
+            cartItems = [];
+            renderCart();
+            
+            const ctaClient = document.getElementById('ctaClient');
+            if (ctaClient) ctaClient.value = "";
+            const ctaStatus = document.getElementById('ctaStatus');
+            if (ctaStatus) ctaStatus.innerText = "Seleccione cliente para validar límite.";
+            const cashInput = document.getElementById('cashInput');
+            if (cashInput) cashInput.value = "";
+            const splitAlert = document.getElementById('splitAlert');
+            if (splitAlert) splitAlert.style.display = "none";
+            validateCheckout();
+            
+            // Brecha #2: Feedback de stock descontado
+            showStockToast();
+        }
+
+        function showStockToast() {
+            const toast = document.getElementById('stockToast');
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 4000);
+        }
+
+        // --- LÓGICA EDGE CASES ---
+        
+        // 1. Anular Pedido (Hold)
+        let voidTimer;
+        function startVoid() {
+            const btn = document.getElementById('btnAnular');
+            btn.innerHTML = `<i class="ri-loader-4-line ri-spin"></i> Mantén...`;
+            voidTimer = setTimeout(() => {
+                alert("🔴 ACCIÓN REQUERIDA: Ingresóe PIN de Encargado para Anular Comanda (Ticket parpadeando en rojo en KDS).");
+                btn.innerHTML = `<i class="ri-stop-circle-line"></i> Anular`;
+                cartItems = []; renderCart();
+            }, 2000);
+        }
+        function cancelVoid() {
+            clearTimeout(voidTimer);
+            document.getElementById('btnAnular').innerHTML = `<i class="ri-stop-circle-line"></i> Anular`;
+        }
+
+        // 2. Split Payments
+        function calculateSplit() {
+            const input = document.getElementById('cashInput').value.replace(/[^0-9]/g, '');
+            const alertBox = document.getElementById('splitAlert');
+            const restaSpan = document.getElementById('splitRestaMonto');
+            
+            if (input && parseInt(input) < total && parseInt(input) > 0) {
+                const resta = total - parseInt(input);
+                restaSpan.innerText = formatMoney(resta);
+                alertBox.style.display = "flex";
+            } else {
+                alertBox.style.display = "none";
+            }
+        }
+        function completeWithMP() {
+            alert("Pago dividido procesado: Efectivo + MercadoPago.");
+            checkout();
+        }
+
+        // 3. Descuentos Trazables
+        function toggleDiscountMenu() {
+            const menu = document.getElementById('discountMenu');
+            if (menu.style.display === 'none' || menu.style.display === '') {
+                menu.style.display = 'flex';
+            } else {
+                menu.style.display = 'none';
+            }
+        }
+        function applyDiscount(type) {
+            const discountItem = { id: ++itemIdCounter, name: '', price: 0, mods: [] };
+            if (type === 'demora') {
+                const discount = Math.round(total * 0.10);
+                discountItem.name = 'Cortesía: Demora (10%)';
+                discountItem.price = -discount;
+            } else if (type === 'queja') {
+                discountItem.name = 'Cortesía: Queja (100%)';
+                discountItem.price = -total;
+            }
+            cartItems.push(discountItem);
+            renderCart();
+            toggleDiscountMenu();
+        }
+
+        // Inicializar
+        renderCategories();
+        renderProducts(Object.keys(catalog)[0]);
+        
+    </script>
+    
+    <!-- Toast de Stock (Brecha #2) -->
+    <div id="stockToast" style="position: fixed; bottom: 24px; right: 24px; background: #1E293B; color: white; padding: 16px 20px; border-radius: 8px; font-family: 'Lato', sans-serif; font-size: 14px; display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); transform: translateY(100px); opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 9999;">
+        <i class="ri-checkbox-circle-fill" style="color: #10B981; font-size: 20px;"></i>
+        <div>
+            <div style="font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 13px; margin-bottom: 2px;">Stock actualizado</div>
+            <div style="color: #94A3B8; font-size: 13px;">-1 Medallón, -1 Pan TBP, -150g Papas</div>
+        </div>
+    </div>
+    <style>
+        #stockToast.show {
+            transform: translateY(0) !important;
+            opacity: 1 !important;
+        }
+    
+/* --- SIDEBAR --- */
+        .sidebar {
+            width: 260px;
+            background-color: var(--bg-sidebar);
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition-smooth);
+            z-index: 10;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: white;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .sidebar-header i {
+            font-size: 24px;
+            color: var(--brand-primary);
+        }
+
+        .sidebar-nav {
+            padding: 16px 12px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            color: var(--text-sidebar);
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            transition: var(--transition-fast);
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .nav-item i {
+            margin-right: 12px;
+            font-size: 20px;
+            transition: var(--transition-fast);
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255,255,255,0.05);
+            color: var(--text-sidebar-active);
+        }
+
+        .nav-item.active {
+            background-color: var(--brand-primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3);
+        }
+
+        
+    
+        /* --- COLLAPSED SIDEBAR (Para POS) --- */
+        .sidebar.collapsed {
+            width: 80px;
+        }
+        .sidebar.collapsed .sidebar-header span,
+        .sidebar.collapsed .nav-text,
+        .sidebar.collapsed .section-title {
+            display: none;
+        }
+        .sidebar.collapsed .nav-item {
+            justify-content: center;
+            padding: 12px;
+        }
+        .sidebar.collapsed .nav-item i {
+            margin-right: 0;
+            font-size: 24px;
+        }
+        .sidebar.collapsed .sidebar-header {
+            justify-content: center;
+            padding: 24px 0;
+        }
+        .sidebar.collapsed .branch-select {
+            display: none;
+        }
+        .sidebar.collapsed .user-profile span {
+            display: none;
+        }
+        .sidebar.collapsed .user-profile {
+            justify-content: center;
+            padding: 0;
+        }
+        .sidebar.collapsed .footer-block {
+            padding: 16px 0 !important;
+            align-items: center;
+        }
+
+    
+        /* --- OCULTAR SIDEBAR EN POS --- */
+        .sidebar {
+            display: none !important;
+        }
+
+    
+        /* --- DARK CATEGORIES PANEL (SIDEBAR EQUIVALENT) --- */
+        .categories-panel {
+            background: #1E293B !important; /* Mismo color que la sidebar unificada */
+            border-right: 1px solid rgba(255,255,255,0.05) !important;
+        }
+        .category-btn {
+            color: #CBD5E1 !important;
+        }
+        .category-btn:hover {
+            background: rgba(255,255,255,0.05) !important;
+            color: white !important;
+        }
+        .category-btn.active {
+            background: #EA580C !important; /* Naranja primary */
+            color: white !important;
+            border-color: transparent !important;
+            box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3) !important;
+        }
+        /* Style for the "Volver" button */
+        .categories-panel a[href="dashboard_prototipo.html"] {
+            background: rgba(255,255,255,0.05) !important;
+            border-color: rgba(255,255,255,0.1) !important;
+            color: white !important;
+        }
+        .categories-panel a[href="dashboard_prototipo.html"]:hover {
+            background: rgba(255,255,255,0.1) !important;
+        }
+
+    
+        /* --- MENU DESPLEGABLE SIDEBAR --- */
+        .nav-dropdown {
+            display: flex;
+            flex-direction: column;
+        }
+        .nav-dropdown .nav-item {
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+        .nav-dropdown .chevron {
+            margin-left: auto;
+            margin-right: 0;
+            transition: transform 0.3s ease;
+        }
+        .nav-dropdown.open .chevron {
+            transform: rotate(180deg);
+        }
+        .nav-submenu {
+            display: none;
+            flex-direction: column;
+            background: rgba(0,0,0,0.2);
+            padding: 8px 0;
+            margin: 4px 16px;
+            border-radius: 8px;
+        }
+        .nav-dropdown.open .nav-submenu {
+            display: flex;
+        }
+        .submenu-item {
+            padding: 10px 16px 10px 42px;
+            color: var(--text-sidebar);
+            text-decoration: none;
+            font-size: 13px;
+            transition: var(--transition-fast);
+            border-radius: 6px;
+            margin: 2px 8px;
+        }
+        .submenu-item:hover {
+            color: white;
+            background-color: rgba(255,255,255,0.05);
+        }
+        .submenu-item.active {
+            color: var(--brand-primary);
+            font-weight: bold;
+            background-color: rgba(234, 88, 12, 0.1);
+        }
+
+    </style>
+</body>
+</html>

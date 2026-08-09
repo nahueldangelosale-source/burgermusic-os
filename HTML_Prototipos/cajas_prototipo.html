@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Burger Music - Gestión de Cajas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-body: #F8F9FA;
+            --bg-surface: #FFFFFF;
+            --bg-sidebar: #1E293B;
+            --brand-primary: #EA580C;
+            --brand-primary-hover: #C2410C;
+            --brand-success: #10B981;
+            --brand-danger: #EF4444;
+            --text-main: #0F172A;
+            --text-muted: #64748B;
+            --text-disabled: #94A3B8;
+            --border-light: #E2E8F0;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        h1, h2, h3, .montserrat { font-family: 'Montserrat', sans-serif; }
+
+        /* Sidebar Navigation */
+        .sidebar-min {
+            width: 80px;
+            background-color: var(--bg-sidebar);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 24px;
+            z-index: 10;
+        }
+
+        .nav-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #CBD5E1;
+            font-size: 24px;
+            margin-bottom: 16px;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+        
+        .nav-icon.active {
+            background-color: var(--brand-primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(234, 88, 12, 0.4);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+            display: flex;
+            justify-content: center;
+        }
+
+        .cash-container {
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .header-section {
+            margin-bottom: 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .header-section h1 {
+            font-size: 28px;
+            color: var(--text-main);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: #D1FAE5;
+            color: #065F46;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        /* Card Panels */
+        .panel {
+            background: var(--bg-surface);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+            margin-bottom: 24px;
+        }
+
+        .panel-title {
+            font-size: 18px;
+            margin-bottom: 24px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        /* Apertura Section */
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .currency-input {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .currency-input span {
+            position: absolute;
+            left: 16px;
+            font-weight: 700;
+            color: var(--text-muted);
+            font-size: 24px;
+        }
+
+        .currency-input input {
+            width: 100%;
+            padding: 16px 16px 16px 40px;
+            font-size: 24px;
+            font-family: 'Lato', sans-serif;
+            font-weight: 700;
+            border: 2px solid var(--border-light);
+            border-radius: 12px;
+            outline: none;
+            color: var(--text-main);
+            transition: 0.2s;
+        }
+
+        .currency-input input:focus {
+            border-color: var(--brand-primary);
+        }
+
+        .hint-text {
+            font-size: 14px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .hint-text i { color: var(--brand-primary); }
+
+        .btn-primary {
+            background: var(--brand-primary);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.2s;
+            width: 100%;
+        }
+
+        .btn-primary:active { transform: scale(0.98); }
+
+        /* Operaciones de Turno */
+        .actions-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .action-card {
+            border: 2px solid var(--border-light);
+            border-radius: 12px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            background: transparent;
+        }
+
+        .action-card:hover {
+            border-color: var(--brand-primary);
+            background: #FFF7ED;
+        }
+
+        .action-card:active { transform: scale(0.98); }
+
+        .action-card i {
+            font-size: 32px;
+        }
+
+        .action-card.withdraw i { color: var(--brand-danger); }
+        .action-card.deposit i { color: var(--brand-success); }
+
+        .action-card span {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--text-main);
+        }
+
+        /* MODAL PIN */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: 0.2s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .pin-modal {
+            background: var(--bg-surface);
+            border-radius: 20px;
+            padding: 40px;
+            width: 380px;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+            transform: translateY(20px);
+            transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .modal-overlay.active .pin-modal {
+            transform: translateY(0);
+        }
+
+        .pin-modal h3 {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .pin-modal p {
+            color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+
+        .pin-display {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .pin-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border-light);
+            transition: 0.2s;
+        }
+
+        .pin-dot.filled {
+            background: var(--brand-primary);
+        }
+
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .keypad-btn {
+            background: #F1F5F9;
+            border: none;
+            border-radius: 12px;
+            height: 60px;
+            font-size: 24px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: 0.1s;
+        }
+
+        .keypad-btn:active {
+            background: #E2E8F0;
+            transform: scale(0.95);
+        }
+
+        .keypad-btn.action {
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 20px;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        /* TABS CAJAS */
+        .cajas-tabs { display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 2px solid var(--border-light); padding-bottom: 12px; }
+        .caja-tab { background: none; border: none; padding: 8px 16px; font-family: 'Montserrat'; font-weight: 700; font-size: 16px; color: var(--text-muted); cursor: pointer; transition: 0.2s; border-radius: 8px; }
+        .caja-tab:hover { background: rgba(0,0,0,0.03); }
+        .caja-tab.active { background: var(--bg-surface); color: var(--brand-primary); box-shadow: var(--shadow-sm); }
+        
+        /* RENDICION DELIVERY */
+        .rendicion-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .rendicion-list { background: white; border: 1px solid var(--border-light); border-radius: 12px; padding: 16px; height: 100%; }
+        .rendicion-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border-light); }
+        .rendicion-item:last-child { border-bottom: none; }
+        .rendicion-method { font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+        .method-cash { color: var(--brand-success); }
+        .method-mp { color: #009EE3; } 
+        
+        .rendicion-action { background: #F8FAFC; border: 1px solid var(--border-light); border-radius: 12px; padding: 24px; text-align: center; display: flex; flex-direction: column; gap: 16px; }
+        .rendicion-total { font-family: 'Montserrat'; font-size: 32px; font-weight: 900; color: var(--brand-success); }
+        .match-input { width: 100%; font-size: 32px; font-weight: 900; font-family: 'Montserrat'; text-align: center; padding: 16px; border: 2px solid var(--border-light); border-radius: 12px; outline: none; }
+        .match-input.success { border-color: var(--brand-success); background: #F0FDF4; color: var(--brand-success); }
+        .btn-liquidar { background: var(--brand-success); color: white; border: none; padding: 16px; border-radius: 12px; font-size: 18px; font-family: 'Montserrat'; font-weight: 800; cursor: pointer; transition: 0.2s; width: 100%; opacity: 0.5; pointer-events: none; }
+        .btn-liquidar.active { opacity: 1; pointer-events: all; }
+
+        /* Ocultar secciones dinámicamente */
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar-min">
+        <a href="dashboard_prototipo.html" class="nav-icon" title="Dashboard"><i class="ri-dashboard-line"></i></a>
+        <a href="pos_prototipo.html" class="nav-icon" title="POS"><i class="ri-store-2-fill"></i></a>
+        <a href="kds_prototipo.html" class="nav-icon" title="Cocina"><i class="ri-restaurant-line"></i></a>
+        <a href="delivery_prototipo.html" class="nav-icon" title="Delivery"><i class="ri-motorbike-fill"></i></a>
+        <a href="produccion_prototipo.html" class="nav-icon" title="Producción"><i class="ri-hammer-line"></i></a>
+        <a href="conteo_stock_prototipo.html" class="nav-icon" title="Inventario"><i class="ri-box-3-line"></i></a>
+        <a href="compras_inbox_prototipo.html" class="nav-icon" title="Compras"><i class="ri-shopping-bag-line"></i></a>
+        <a href="cajas_prototipo.html" class="nav-icon active" title="Cajas"><i class="ri-safe-2-fill"></i></a>
+
+        <!-- Context & User Footer -->
+        <div style="margin-top: auto; padding: 20px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; gap: 16px;">
+            <select class="branch-select" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px; font-size: 13px;">
+                <option value="all" style="color: black;">🌐 Vista Consolidada</option>
+                <option value="lanus" selected style="color: black;">📍 Burger Music Lanus</option>
+                <option value="avellaneda" style="color: black;">📍 Burger Music Avellaneda</option>
+            </select>
+            <div class="user-profile" style="display: flex; align-items: center; gap: 12px; padding: 0; cursor: pointer; transition: 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                <div class="avatar" style="width: 32px; height: 32px; font-size: 14px; background: #EA580C; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">G</div>
+                <div style="display: flex; flex-direction: column; overflow: hidden;">
+                    <span style="font-size: 12px; font-weight: 600; color: white; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">gabriel@burgermusic.com</span>
+                    <span style="font-size: 11px; color: #94A3B8;">Administrador</span>
+                </div>
+            </div>
+        </div>
+    
+        </aside>
+
+    <main class="main-content">
+        <div class="cash-container">
+            
+            <div class="header-section">
+                <div>
+                    <h1 class="montserrat">Caja Principal</h1>
+                    <p style="color: var(--text-muted); margin-top: 4px;">Turno Noche • Cajero: Flor</p>
+                </div>
+                <div class="status-badge" id="statusBadge" style="background: #FEF3C7; color: #92400E;">
+                    <i class="ri-lock-2-line"></i> Caja Cerrada
+                </div>
+            </div>
+
+            <div class="cajas-tabs">
+                <button class="caja-tab active" onclick="switchTab('operaciones')">Turno Actual</button>
+                <button class="caja-tab" onclick="switchTab('rendicion')">Rendición Delivery</button>
+            </div>
+
+            <div id="tabOperaciones">
+                <!-- Paso1: Apertura -->
+                <div class="panel" id="panelApertura">
+                    <div class="panel-title">Apertura de Turno</div>
+                    <div class="input-group">
+                        <label>Fondo de Caja (Monto Inicial)</label>
+                        <div class="currency-input">
+                            <span>$</span>
+                            <!-- El sistema pre-carga el cierre anterior automáticamente -->
+                            <input type="number" value="15000" id="montoApertura">
+                        </div>
+                    </div>
+                    <div class="hint-text mb-4" style="margin-bottom: 24px;">
+                        <i class="ri-magic-line"></i> 
+                        Sugerido automático basado en el arqueo de cierre del turno mediodía.
+                    </div>
+                    <button class="btn-primary" onclick="abrirCaja()">Abrir Caja e Iniciar Turno</button>
+                </div>
+
+                <!-- Paso2: Operaciones (Oculto al inicio) -->
+                <div class="panel hidden" id="panelOperaciones">
+                    <div class="panel-title" style="display: flex; justify-content: space-between;">
+                        <span>Operaciones Rápidas</span>
+                        <span style="color: var(--brand-primary); font-weight: 700;" id="saldoActual">$ 15.000</span>
+                    </div>
+                    
+                    <div class="actions-grid">
+                        <button class="action-card deposit">
+                            <i class="ri-arrow-down-circle-fill"></i>
+                            <span>Ingresóo de Efectivo</span>
+                        </button>
+                        <!-- Al hacer click acá, se pide PIN -->
+                        <button class="action-card withdraw" onclick="solicitarPin()">
+                            <i class="ri-arrow-up-circle-fill"></i>
+                            <span>Retiro de Efectivo</span>
+                        </button>
+                    </div>
+
+                    <div style="margin-top: 32px; border-top: 1px solid var(--border-light); padding-top: 24px;">
+                        <button class="btn-primary" style="background: var(--bg-body); color: var(--text-main); border: 2px solid var(--border-light);">
+                            Cerrar Turno y Arquear Caja
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB RENDICIÓN -->
+            <div id="tabRendicion" class="hidden">
+                <div class="rendicion-grid">
+                    <div class="rendicion-list">
+                        <h3 class="montserrat" style="margin-bottom: 16px; font-size: 16px;">Pedidos Entregados (Cadete: Nico)</h3>
+                        <div class="rendicion-item">
+                            <div><span style="font-weight: 700;">#140</span> - Av. Cabildo 2040</div>
+                            <div class="rendicion-method method-cash"><i class="ri-money-dollar-circle-fill"></i> $12.500</div>
+                        </div>
+                        <div class="rendicion-item">
+                            <div><span style="font-weight: 700;">#143</span> - Juramento 1500</div>
+                            <div class="rendicion-method method-mp"><i class="ri-qr-code-line"></i> MP ($9.200)</div>
+                        </div>
+                        <div class="rendicion-item">
+                            <div><span style="font-weight: 700;">#145</span> - Mendoza 2311</div>
+                            <div class="rendicion-method method-cash"><i class="ri-money-dollar-circle-fill"></i> $20.000</div>
+                        </div>
+                    </div>
+                    
+                    <div class="rendicion-action">
+                        <h3 class="montserrat" style="color: var(--text-muted);">Efectivo a Rendir</h3>
+                        <div class="rendicion-total">$ 32.500</div>
+                        <div style="margin-top: 16px;">
+                            <label style="font-size: 14px; font-weight: 700; color: var(--text-muted);">¿Cuánto efectivo contó la cajaÍ</label>
+                            <input type="text" id="matchInput" class="match-input" placeholder="$ 0" onkeyup="checkMatch()">
+                        </div>
+                        <button class="btn-liquidar" id="btnLiquidar" onclick="liquidarCadete()">
+                            <i class="ri-check-double-line"></i> LIQUIDAR CADETE
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Modal PIN -->
+    <div class="modal-overlay" id="pinModal">
+        <div class="pin-modal">
+            <button class="close-modal" onclick="cerrarPin()"><i class="ri-close-line"></i></button>
+            <div style="font-size: 48px; color: var(--brand-primary); margin-bottom: 12px;">
+                <i class="ri-shield-keyhole-fill"></i>
+            </div>
+            <h3 class="montserrat">Autorización Requerida</h3>
+            <p>Ingresóe PIN de Supervisor/Gerente para autorizar el retiro de efectivo.</p>
+            
+            <div class="pin-display" id="pinDisplay">
+                <div class="pin-dot"></div>
+                <div class="pin-dot"></div>
+                <div class="pin-dot"></div>
+                <div class="pin-dot"></div>
+            </div>
+
+            <div class="keypad">
+                <button class="keypad-btn" onclick="addPin(1)">1</button>
+                <button class="keypad-btn" onclick="addPin(2)">2</button>
+                <button class="keypad-btn" onclick="addPin(3)">3</button>
+                <button class="keypad-btn" onclick="addPin(4)">4</button>
+                <button class="keypad-btn" onclick="addPin(5)">5</button>
+                <button class="keypad-btn" onclick="addPin(6)">6</button>
+                <button class="keypad-btn" onclick="addPin(7)">7</button>
+                <button class="keypad-btn" onclick="addPin(8)">8</button>
+                <button class="keypad-btn" onclick="addPin(9)">9</button>
+                <button class="keypad-btn action" onclick="cerrarPin()">Cancelar</button>
+                <button class="keypad-btn" onclick="addPin(0)">0</button>
+                <button class="keypad-btn action" onclick="clearPin()"><i class="ri-delete-back-2-line"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPin = "";
+
+        function abrirCaja() {
+            document.getElementById('panelApertura').classList.add('hidden');
+            document.getElementById('panelOperaciones').classList.remove('hidden');
+            
+            const badge = document.getElementById('statusBadge');
+            badge.style.background = '#D1FAE5';
+            badge.style.color = '#065F46';
+            badge.innerHTML = '<i class="ri-lock-unlock-line"></i> Caja Abierta';
+            
+            // Tomamos el monto ingresado
+            const monto = document.getElementById('montoApertura').value;
+            document.getElementById('saldoActual').innerText = `$ ${Number(monto).toLocaleString('es-AR')}`;
+        }
+
+        function solicitarPin() {
+            document.getElementById('pinModal').classList.add('active');
+            clearPin();
+        }
+
+        function cerrarPin() {
+            document.getElementById('pinModal').classList.remove('active');
+        }
+
+        function updatePinDisplay() {
+            const dots = document.querySelectorAll('.pin-dot');
+            dots.forEach((dot, index) => {
+                if (index < currentPin.length) {
+                    dot.classList.add('filled');
+                } else {
+                    dot.classList.remove('filled');
+                }
+            });
+        }
+
+        function addPin(num) {
+            if (currentPin.length < 4) {
+                currentPin += num;
+                updatePinDisplay();
+                
+                // Simular validación cuando llega a 4
+                if (currentPin.length === 4 ) {
+                    setTimeout(() => {
+                        alert("✅ Autorización Exitosa. Abriendo ventana de retiro de efectivo...");
+                        cerrarPin();
+                    }, 300);
+                }
+            }
+        }
+
+        function clearPin() {
+            currentPin = "";
+            updatePinDisplay();
+        }
+
+        // --- EDGE CASES: RENDICION DELIVERY ---
+        function switchTab(tab) {
+            document.querySelectorAll('.caja-tab').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.getElementById('tabOperaciones').classList.add('hidden');
+            document.getElementById('tabRendicion').classList.add('hidden');
+            
+            if (tab === 'operaciones') {
+                document.getElementById('tabOperaciones').classList.remove('hidden');
+            } else {
+                document.getElementById('tabRendicion').classList.remove('hidden');
+            }
+        }
+
+        function checkMatch() {
+            const input = document.getElementById('matchInput');
+            const btn = document.getElementById('btnLiquidar');
+            const val = input.value.replace(/[^0-9]/g, '');
+            if (val === "32500") {
+                input.classList.add('success');
+                btn.classList.add('active');
+            } else {
+                input.classList.remove('success');
+                btn.classList.remove('active');
+            }
+        }
+
+        function liquidarCadete() {
+            alert("¡Match Perfecto! $32.500 transferidos de [Tránsito] a [Efectivo en Caja].");
+            document.getElementById('matchInput').value = "";
+            checkMatch();
+        }
+    </script>
+</body>
+</html>

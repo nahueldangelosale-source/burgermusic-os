@@ -1,0 +1,11 @@
+- [x] **Concepto A: Portal Numérico de Fichaje (POS)**
+  - [x] Añadir capa Overlay/Lock Screen inicial.
+  - [x] Diseñar teclado numérico (HIG) con microinteracciones de feedback.
+  - [x] Implementar lógica de destrabe del POS.
+- [x] **Concepto B: Cuentas Corrientes (POS)**
+  - [x] Agregar botón "Cta. Corriente" en métodos de pago.
+  - [x] Maquetar modal/desplegable con lista de clientes corporativos y saldo en tiempo real.
+  - [x] Implementar bloqueo preventivo si excede límite.
+- [x] **Concepto C: Arquitectura Multi-Sucursal (Dashboard)**
+  - [x] Modificar Header para incluir Selector de Sucursal.
+  - [x] Implementar menú desplegable contextual (Lanús, Franquicia, Todas).

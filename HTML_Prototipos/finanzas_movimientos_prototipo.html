@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Libro de Movimientos — BurgerMusic OS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Lato:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :root {
+            /* Paleta de Colores Minimalista */
+            --bg-body: #F8FAFC;
+            --bg-surface: #FFFFFF;
+            --bg-sidebar: #1E293B;
+            --brand-primary: #EA580C;
+            --brand-primary-hover: #C2410C;
+            --brand-surface: #FFF7ED;
+            
+            --text-main: #0F172A;
+            --text-muted: #64748B;
+            --text-sidebar: #CBD5E1;
+            --text-sidebar-active: #FFFFFF;
+            
+            /* Colores Semánticos */
+            --color-in: #10B981; /* Verde Ingreso */
+            --color-out: #EF4444; /* Rojo Egreso */
+            
+            /* Elevación */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+            
+            /* Transiciones */
+            --transition-fast: 0.15s ease-in-out;
+            --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Lato', sans-serif; background-color: var(--bg-body); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+        h1, h2, h3, h4, h5, h6, .montserrat { font-family: 'Montserrat', sans-serif; }
+
+        /* --- UNIFIED SIDEBAR CSS --- */
+        .sidebar { width: 260px; background-color: var(--bg-sidebar); display: flex; flex-direction: column; transition: var(--transition-smooth); z-index: 10; box-shadow: var(--shadow-lg); }
+        .sidebar-nav { padding: 16px 12px; flex: 1; overflow-y: auto; }
+        .nav-item { display: flex; align-items: center; padding: 12px 16px; color: var(--text-sidebar); text-decoration: none; border-radius: 8px; margin-bottom: 4px; transition: var(--transition-fast); font-size: 15px; font-weight: 500; }
+        .nav-item i { margin-right: 12px; font-size: 20px; transition: var(--transition-fast); }
+        .nav-item:hover { background-color: rgba(255,255,255,0.05); color: var(--text-sidebar-active); }
+        .nav-item.active { background-color: var(--brand-primary, #EA580C); color: white; box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3); }
+        .nav-dropdown { display: flex; flex-direction: column; }
+        .nav-dropdown .nav-item { width: 100%; }
+        .nav-dropdown .chevron { margin-left: auto; margin-right: 0; transition: transform 0.3s ease; }
+        .nav-dropdown.open .chevron { transform: rotate(180deg); }
+        .nav-submenu { display: none; flex-direction: column; background: rgba(0,0,0,0.2); padding: 8px 0; margin: 4px 16px; border-radius: 8px; }
+        .nav-dropdown.open .nav-submenu { display: flex; }
+        .submenu-item { padding: 10px 16px 10px 42px; color: var(--text-sidebar); text-decoration: none; font-size: 13px; transition: var(--transition-fast); border-radius: 6px; margin: 2px 8px; }
+        .submenu-item:hover { color: white; background-color: rgba(255,255,255,0.05); }
+        .submenu-item.active { color: var(--brand-primary); font-weight: bold; background-color: rgba(234, 88, 12, 0.1); }
+        .sidebar-nav::-webkit-scrollbar { width: 6px; }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .sidebar-nav::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+        /* --- MAIN CONTENT --- */
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
+        
+        .page-header { padding: 32px 40px; display: flex; justify-content: space-between; align-items: flex-end; background: white; border-bottom: 1px solid #E2E8F0;}
+        .page-header h1 { font-family: 'Montserrat'; font-weight: 800; font-size: 28px; color: var(--text-main); margin-bottom: 4px; }
+        .page-header p { font-size: 14px; color: var(--text-muted); }
+
+        .btn-primary { background: var(--brand-primary); color: white; padding: 10px 20px; border-radius: 8px; font-family: 'Montserrat'; font-weight: 700; font-size: 13px; border: none; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(234,88,12,0.3); display: flex; align-items: center; gap: 8px;}
+        .btn-primary:hover { background: var(--brand-primary-hover); transform: translateY(-2px); }
+
+        .content-area { padding: 32px 40px; max-width: 1400px; margin: 0 auto; width: 100%; }
+
+        .filters-bar { display: flex; gap: 12px; align-items: center; margin-bottom: 24px; background: white; padding: 16px 24px; border-radius: 12px; border: 1px solid #E2E8F0; box-shadow: var(--shadow-sm); }
+        .filter-group { display: flex; flex-direction: column; gap: 4px; }
+        .filter-group label { font-family: 'Montserrat'; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .filter-input { padding: 10px 14px; border: 1px solid #CBD5E1; border-radius: 8px; font-family: 'Lato'; font-size: 13px; outline: none; background: #F8FAFC; min-width: 140px;}
+        .filter-input:focus { border-color: var(--brand-primary); background: white; }
+        
+        .btn-secondary { background: white; border: 1px solid #CBD5E1; color: var(--text-main); font-family: 'Montserrat'; font-weight: 700; font-size: 13px; padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        .btn-secondary:hover { border-color: var(--text-main); }
+
+        /* TABLA DENSA (GRILLA FINANCIERA) */
+        .card-table { background: white; border-radius: 12px; border: 1px solid #E2E8F0; box-shadow: var(--shadow-sm); overflow: hidden; }
+        
+        .data-table { width: 100%; border-collapse: collapse; text-align: left; }
+        .data-table th { padding: 16px 24px; background: #F8FAFC; font-family: 'Montserrat'; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #E2E8F0; }
+        
+        /* Uso de Negative Space: Padding generoso y hover en lugar de bordes marcados */
+        .data-table td { padding: 14px 24px; font-size: 14px; vertical-align: middle; transition: 0.15s; }
+        .data-table tr { border-bottom: 1px solid transparent; /* Sin línea dura */ }
+        .data-table tr:hover { background-color: #F8FAFC; border-bottom-color: #F1F5F9; }
+        
+        /* Tipografías específicas para finanzas */
+        .td-date { color: var(--text-muted); font-size: 13px; }
+        .td-concept { font-weight: 700; color: var(--text-main); display: flex; flex-direction: column; gap: 2px;}
+        .td-concept small { font-weight: 400; font-size: 12px; color: var(--text-muted); }
+        .td-type { font-size: 13px; color: var(--text-muted); }
+        
+        .td-amount { font-family: 'Montserrat', sans-serif; font-variant-numeric: tabular-nums; font-size: 15px; font-weight: 700; text-align: right; letter-spacing: -0.5px;}
+        .amount-in { color: var(--color-in); }
+        .amount-out { color: var(--color-out); }
+        
+        .td-balance { font-family: 'Montserrat', sans-serif; font-variant-numeric: tabular-nums; font-size: 15px; font-weight: 600; text-align: right; color: var(--text-muted); }
+
+        .type-badge { padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; font-family: 'Montserrat'; letter-spacing: 0.5px;}
+        .type-badge.venta { background: #E0F2FE; color: #0369A1; }
+        .type-badge.pago { background: #FEF2F2; color: #B91C1C; }
+        .type-badge.gasto { background: #FFEDD5; color: #C2410C; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.3); }
+
+    </style>
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="sidebar-header" style="padding: 24px; display: flex; align-items: center; gap: 12px; color: white; border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <div style="width: 28px;height: 28px;background:#000;border-radius: 4px;display: flex;align-items: center;justify-content: center;color: white;font-weight: 800;font-size: 11px;">BM</div>
+        <span style="font-family: 'Montserrat'; font-weight: 800; font-size: 14px; color: white;">BurgerMusic</span>
+    </div>
+    
+    <nav class="sidebar-nav">
+        <a href="dashboard_prototipo.html" class="nav-item"><i class="ri-home-4-line"></i> Inicio</a>
+        
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-shopping-bag-line"></i> Compras
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="compras_inbox_prototipo.html" class="submenu-item">Facturas</a>
+                <a href="compras_proveedores_prototipo.html" class="submenu-item">Proveedores</a>
+                <a href="compras_ordenes_prototipo.html" class="submenu-item">Órdenes de compra</a>
+                <a href="compras_recepciones_prototipo.html" class="submenu-item">Recepciones</a>
+            </div>
+        </div>
+
+        <a href="produccion_gerencial_prototipo.html" class="nav-item"><i class="ri-hammer-line"></i> Producción</a>
+        <a href="inventario_prototipo.html" class="nav-item"><i class="ri-box-3-line"></i> Inventario</a>
+
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-line-chart-line"></i> Ventas
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="ventas_dashboard_prototipo.html" class="submenu-item">Dashboard</a>
+                <a href="pos_prototipo.html" class="submenu-item">Nueva venta</a>
+                <a href="ventas_historial_prototipo.html" class="submenu-item">Historial de Tickets</a>
+                <a href="ventas_sincronizacion_prototipo.html" class="submenu-item">Sincronización</a>
+                <a href="ventas_cierre_z_prototipo.html" class="submenu-item">Cierre Z</a>
+            </div>
+        </div>
+
+        <div class="nav-dropdown open">
+            <a href="#" class="nav-item nav-dropdown-toggle active" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-bank-card-line"></i> Finanzas
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="finanzas_dashboard_prototipo.html" class="submenu-item">Dashboard</a>
+                <a href="finanzas_movimientos_prototipo.html" class="submenu-item active">Mov. caja</a>
+                <a href="finanzas_cuentas_pagar_prototipo.html" class="submenu-item">Cuentas por pagar</a>
+                <a href="finanzas_categorias_prototipo.html" class="submenu-item">Categorías financieras</a>
+            </div>
+        </div>
+        
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-safe-line"></i> Caja
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="caja_gastos_eventuales_prototipo.html" class="submenu-item">Gastos eventuales</a>
+                <a href="caja_gastos_fijos_prototipo.html" class="submenu-item">Gastos fijos</a>
+                <a href="caja_ingresos_extra_prototipo.html" class="submenu-item">Ingresos extra</a>
+            </div>
+        </div>
+
+        <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #475569; padding: 16px 14px 6px;">Operación</div>
+        <a href="pos_prototipo.html" class="nav-item"><i class="ri-store-2-line"></i> Punto de Venta</a>
+        <a href="kds_prototipo.html" class="nav-item"><i class="ri-restaurant-line"></i> Cocina</a>
+        <a href="delivery_prototipo.html" class="nav-item"><i class="ri-e-bike-2-line"></i> Delivery</a>
+        <a href="cajas_prototipo.html" class="nav-item"><i class="ri-money-dollar-box-line"></i> Caja POS</a>
+        <a href="produccion_prototipo.html" class="nav-item"><i class="ri-smartphone-line"></i> Producción (Móvil)</a>
+        <a href="auditoria_deposito_prototipo.html" class="nav-item"><i class="ri-clipboard-line"></i> Auditoría (Móvil)</a>
+    </nav>
+
+    <div style="margin-top: auto; padding: 20px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 16px;">
+        <select class="branch-select" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px; font-size: 13px; border-radius: 8px;">
+            <option value="lanus" selected style="color: black;">📍 Burger Music Lanus</option>
+        </select>
+        <div class="user-profile" style="display: flex; align-items: center; gap: 12px; padding: 0; cursor: pointer;">
+            <div class="avatar" style="width: 32px; height: 32px; font-size: 14px; background: #EA580C; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">G</div>
+            <div style="display: flex; flex-direction: column; overflow: hidden;">
+                <span style="font-size: 12px; font-weight: 600; color: white; white-space: nowrap;">gabriel@burgermusic.com</span>
+                <span style="font-size: 11px; color: #94A3B8;">Administrador</span>
+            </div>
+        </div>
+    </div>
+</aside>
+
+<main class="main-content">
+    <div class="page-header">
+        <div>
+            <h1>Libro de Movimientos</h1>
+            <p>Auditoría estricta de ingresos y egresos. Trazabilidad inmutable.</p>
+        </div>
+        <div style="display: flex; gap: 12px;">
+            <button class="btn-secondary"><i class="ri-download-2-line"></i> Exportar Excel</button>
+            <button class="btn-primary"><i class="ri-add-line"></i> Nuevo Movimiento</button>
+        </div>
+    </div>
+
+    <div class="content-area">
+        
+        <div class="filters-bar">
+            <div class="filter-group">
+                <label>Periodo</label>
+                <select class="filter-input">
+                    <option>Hoy</option>
+                    <option>Últimos 7 días</option>
+                    <option>Este mes</option>
+                </select>
+            </div>
+            <div class="filter-group" style="flex: 1;">
+                <label>Concepto / Comprobante</label>
+                <input type="text" class="filter-input" placeholder="Buscar por concepto o # comprobante...">
+            </div>
+            <div class="filter-group">
+                <label>Medio de Pago</label>
+                <select class="filter-input">
+                    <option>Todos</option>
+                    <option>Efectivo (Caja Chica)</option>
+                    <option>MercadoPago</option>
+                    <option>Banco Galicia</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Tipo</label>
+                <select class="filter-input">
+                    <option>Todos</option>
+                    <option>Ingresos</option>
+                    <option>Egresos</option>
+                </select>
+            </div>
+            <div class="filter-group" style="justify-content: flex-end;">
+                <button class="btn-secondary" style="height: 38px;">Filtrar</button>
+            </div>
+        </div>
+
+        <div class="card-table">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Fecha y Hora</th>
+                        <th>Concepto / Detalle</th>
+                        <th>Tipo</th>
+                        <th>Medio de Pago</th>
+                        <th style="text-align: right;">Importe</th>
+                        <th style="text-align: right;">Saldo Resultante</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="td-date">07/08/2026<br><small>14:32</small></td>
+                        <td class="td-concept">Venta #T-8820<small>Consumidor Final</small></td>
+                        <td><span class="type-badge venta">Ingreso Venta</span></td>
+                        <td class="td-type">MercadoPago QR</td>
+                        <td class="td-amount amount-in">+ $ 12.500,00</td>
+                        <td class="td-balance">$ 452.120,00</td>
+                    </tr>
+                    <tr>
+                        <td class="td-date">07/08/2026<br><small>11:15</small></td>
+                        <td class="td-concept">Pago Proveedor: Carnes Frigomeat<small>Factura #0001-0000455</small></td>
+                        <td><span class="type-badge pago">Pago a Proveedor</span></td>
+                        <td class="td-type">Transferencia (Galicia)</td>
+                        <td class="td-amount amount-out">- $ 185.000,00</td>
+                        <td class="td-balance">$ 439.620,00</td>
+                    </tr>
+                    <tr>
+                        <td class="td-date">07/08/2026<br><small>09:10</small></td>
+                        <td class="td-concept">Compra Art. Limpieza<small>Ticket Coto - Caja Chica</small></td>
+                        <td><span class="type-badge gasto">Gasto Operativo</span></td>
+                        <td class="td-type">Efectivo</td>
+                        <td class="td-amount amount-out">- $ 12.350,00</td>
+                        <td class="td-balance">$ 624.620,00</td>
+                    </tr>
+                    <tr>
+                        <td class="td-date">06/08/2026<br><small>23:45</small></td>
+                        <td class="td-concept">Cierre de Caja Lote #44<small>Arqueo Turno Noche</small></td>
+                        <td><span class="type-badge venta">Ingreso Venta</span></td>
+                        <td class="td-type">Efectivo</td>
+                        <td class="td-amount amount-in">+ $ 320.000,00</td>
+                        <td class="td-balance">$ 636.970,00</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</main>
+
+</body>
+</html>

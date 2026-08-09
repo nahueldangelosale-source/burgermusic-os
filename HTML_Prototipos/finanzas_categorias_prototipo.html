@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Categorías Financieras — BurgerMusic OS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Lato:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :root {
+            /* Paleta de Colores Minimalista */
+            --bg-body: #F8FAFC;
+            --bg-surface: #FFFFFF;
+            --bg-sidebar: #1E293B;
+            --brand-primary: #EA580C;
+            --brand-primary-hover: #C2410C;
+            --brand-surface: #FFF7ED;
+            
+            --text-main: #0F172A;
+            --text-muted: #64748B;
+            --text-sidebar: #CBD5E1;
+            --text-sidebar-active: #FFFFFF;
+            
+            /* Colores Semánticos */
+            --color-in: #10B981; /* Verde Ingreso */
+            --color-out: #EF4444; /* Rojo Egreso */
+            --border-light: #E2E8F0;
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            
+            /* Elevación */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+            
+            /* Transiciones */
+            --transition-fast: 0.15s ease-in-out;
+            --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Lato', sans-serif; background-color: var(--bg-body); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+        h1, h2, h3, h4, h5, h6, .montserrat { font-family: 'Montserrat', sans-serif; }
+
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
+        
+        .page-header { padding: 32px 40px; display: flex; justify-content: space-between; align-items: flex-end; background: white; border-bottom: 1px solid #E2E8F0; z-index: 5;}
+        .page-header h1 { font-family: 'Montserrat'; font-weight: 800; font-size: 28px; color: var(--text-main); margin-bottom: 16px; }
+
+        .btn-primary { background: var(--brand-primary); color: white; border: none; font-family: 'Montserrat'; font-weight: 700; font-size: 13px; padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(234,88,12,0.3); display: inline-flex; align-items: center; gap: 8px;}
+        .btn-primary:hover { background: var(--brand-primary-hover); transform: translateY(-2px); }
+        
+        .btn-secondary {
+            background: #E2E8F0;
+            color: var(--text-main);
+            border: none;
+            font-family: 'Montserrat';
+            font-weight: 700;
+            font-size: 13px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-secondary:hover { background: #CBD5E1; }
+        
+        .topbar {
+            background-color: var(--bg-surface);
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-light);
+            z-index: 5;
+        }
+        
+        .content-area { padding: 32px 40px; max-width: 1200px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; gap: 24px;}
+
+        /* Tabs */
+        .tabs-container { display: flex; gap: 8px; margin-bottom: -8px;}
+        .tab-btn { padding: 10px 20px; background: transparent; border: none; font-family: 'Montserrat'; font-weight: 600; font-size: 14px; color: var(--text-muted); cursor: pointer; border-radius: 8px; transition: 0.2s; }
+        .tab-btn.active { background: white; color: var(--text-main); box-shadow: var(--shadow-sm); }
+        .tab-btn:hover:not(.active) { background: rgba(0,0,0,0.05); }
+
+        /* Card / Table */
+        .card { background: white; border-radius: 12px; padding: 0; box-shadow: var(--shadow-sm); border: 1px solid #E2E8F0; overflow: hidden; }
+        
+        .data-table { width: 100%; border-collapse: collapse; text-align: left; }
+        .data-table th { padding: 16px 24px; background: #F8FAFC; font-family: 'Montserrat'; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; border-bottom: 1px solid #E2E8F0; }
+        .data-table td { padding: 16px 24px; font-size: 14px; border-bottom: 1px solid #F1F5F9; vertical-align: middle; }
+        .data-table tr:hover { background-color: #F8FAFC; }
+
+        .td-code { font-family: 'Montserrat', sans-serif; font-weight: 600; color: var(--text-muted); font-size: 13px; }
+        .td-label { font-weight: 600; color: var(--text-main); }
+        
+        .badge-active { display: inline-block; padding: 4px 10px; background: var(--brand-primary); color: white; font-size: 11px; font-weight: 700; border-radius: 12px; font-family: 'Montserrat'; }
+        
+        .action-links { display: flex; gap: 16px; justify-content: flex-end; }
+        .action-links a { color: var(--text-muted); font-size: 13px; text-decoration: none; font-weight: 600; transition: 0.2s;}
+        .action-links a:hover { color: var(--text-main); }
+
+            /* --- UNIFIED SIDEBAR CSS --- */
+.sidebar { width: 260px; background-color: var(--bg-sidebar); display: flex; flex-direction: column; transition: var(--transition-smooth); z-index: 10; box-shadow: var(--shadow-lg); }
+        .sidebar-nav { padding: 16px 12px; flex: 1; overflow-y: auto; }
+        .nav-item { display: flex; align-items: center; padding: 12px 16px; color: var(--text-sidebar); text-decoration: none; border-radius: 8px; margin-bottom: 4px; transition: var(--transition-fast); font-size: 15px; font-weight: 500; }
+        .nav-item i { margin-right: 12px; font-size: 20px; transition: var(--transition-fast); }
+        .nav-item:hover { background-color: rgba(255,255,255,0.05); color: var(--text-sidebar-active); }
+        .nav-item.active { background-color: var(--brand-primary, #EA580C); color: white; box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3); }
+        .nav-dropdown { display: flex; flex-direction: column; }
+        .nav-dropdown .nav-item { width: 100%; }
+        .nav-dropdown .chevron { margin-left: auto; margin-right: 0; transition: transform 0.3s ease; }
+        .nav-dropdown.open .chevron { transform: rotate(180deg); }
+        .nav-submenu { display: none; flex-direction: column; background: rgba(0,0,0,0.2); padding: 8px 0; margin: 4px 16px; border-radius: 8px; }
+        .nav-dropdown.open .nav-submenu { display: flex; }
+        .submenu-item { padding: 10px 16px 10px 42px; color: var(--text-sidebar); text-decoration: none; font-size: 13px; transition: var(--transition-fast); border-radius: 6px; margin: 2px 8px; }
+        .submenu-item:hover { color: white; background-color: rgba(255,255,255,0.05); }
+        .submenu-item.active { color: var(--brand-primary); font-weight: bold; background-color: rgba(234, 88, 12, 0.1); }
+        .sidebar-nav::-webkit-scrollbar { width: 6px; }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .sidebar-nav::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+        /* --- MAIN CONTENT --- */
+        
+        /* --- CENTRAL MODAL CSS --- */
+        .central-modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);
+            z-index: 1000; display: none; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .central-modal-overlay.open { display: flex; opacity: 1; }
+        .central-modal-panel {
+            background: white; width: 100%; max-width: 500px;
+            border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);
+            transform: scale(0.95); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex; flex-direction: column; overflow: hidden;
+        }
+        .central-modal-overlay.open .central-modal-panel { transform: scale(1); }
+        .central-modal-header {
+            padding: 24px 32px; border-bottom: 1px solid var(--border-light);
+            display: flex; justify-content: space-between; align-items: center; background: #F8FAFC;
+        }
+        .central-modal-body { padding: 32px; max-height: 70vh; overflow-y: auto; flex: 1;}
+        .central-modal-footer {
+            padding: 24px 32px; border-top: 1px solid var(--border-light);
+            display: flex; justify-content: flex-end; gap: 12px; background: #F8FAFC;
+        }
+
+    </style>
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="sidebar-header" style="padding: 24px; display: flex; align-items: center; gap: 12px; color: white; border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <div style="width: 28px;height: 28px;background:#000;border-radius: 4px;display: flex;align-items: center;justify-content: center;color: white;font-weight: 800;font-size: 11px;">BM</div>
+        <span style="font-family: 'Montserrat'; font-weight: 800; font-size: 14px; color: white;">BurgerMusic</span>
+    </div>
+    
+    <nav class="sidebar-nav">
+        <a href="dashboard_prototipo.html" class="nav-item"><i class="ri-home-4-line"></i> Inicio</a>
+        
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-shopping-bag-line"></i> Compras
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="compras_inbox_prototipo.html" class="submenu-item">Facturas</a>
+                <a href="compras_proveedores_prototipo.html" class="submenu-item">Proveedores</a>
+                <a href="compras_ordenes_prototipo.html" class="submenu-item">Órdenes de compra</a>
+                <a href="compras_recepciones_prototipo.html" class="submenu-item">Recepciones</a>
+            </div>
+        </div>
+
+        <a href="produccion_gerencial_prototipo.html" class="nav-item"><i class="ri-hammer-line"></i> Producción</a>
+        <a href="inventario_prototipo.html" class="nav-item"><i class="ri-box-3-line"></i> Inventario</a>
+
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-line-chart-line"></i> Ventas
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="ventas_dashboard_prototipo.html" class="submenu-item">Dashboard</a>
+                <a href="pos_prototipo.html" class="submenu-item">Nueva venta</a>
+                <a href="ventas_historial_prototipo.html" class="submenu-item">Historial de Tickets</a>
+                <a href="ventas_sincronizacion_prototipo.html" class="submenu-item">Sincronización</a>
+                <a href="ventas_cierre_z_prototipo.html" class="submenu-item">Cierre Z</a>
+            </div>
+        </div>
+
+        <div class="nav-dropdown open">
+            <a href="#" class="nav-item nav-dropdown-toggle active" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-bank-card-line"></i> Finanzas
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="finanzas_dashboard_prototipo.html" class="submenu-item">Dashboard</a>
+                <a href="finanzas_movimientos_prototipo.html" class="submenu-item">Mov. caja</a>
+                <a href="finanzas_cuentas_pagar_prototipo.html" class="submenu-item">Cuentas por pagar</a>
+                <a href="finanzas_categorias_prototipo.html" class="submenu-item active">Categorías financieras</a>
+            </div>
+        </div>
+        
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-safe-line"></i> Caja
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="caja_gastos_eventuales_prototipo.html" class="submenu-item">Gastos eventuales</a>
+                <a href="caja_gastos_fijos_prototipo.html" class="submenu-item">Gastos fijos</a>
+                <a href="caja_ingresos_extra_prototipo.html" class="submenu-item">Ingresos extra</a>
+            </div>
+        </div>
+
+        <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #475569; padding: 16px 14px 6px;">Operación</div>
+        <a href="pos_prototipo.html" class="nav-item"><i class="ri-store-2-line"></i> Punto de Venta</a>
+        <a href="kds_prototipo.html" class="nav-item"><i class="ri-restaurant-line"></i> Cocina</a>
+        <a href="delivery_prototipo.html" class="nav-item"><i class="ri-e-bike-2-line"></i> Delivery</a>
+        <a href="cajas_prototipo.html" class="nav-item"><i class="ri-money-dollar-box-line"></i> Caja POS</a>
+        <a href="produccion_prototipo.html" class="nav-item"><i class="ri-smartphone-line"></i> Producción (Móvil)</a>
+        <a href="auditoria_deposito_prototipo.html" class="nav-item"><i class="ri-clipboard-line"></i> Auditoría (Móvil)</a>
+    </nav>
+
+    <div style="margin-top: auto; padding: 20px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 16px;">
+        <select class="branch-select" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px; font-size: 13px; border-radius: 8px;">
+            <option value="lanus" selected style="color: black;">📍 Burger Music Lanus</option>
+        </select>
+        <div class="user-profile" style="display: flex; align-items: center; gap: 12px; padding: 0; cursor: pointer;">
+            <div class="avatar" style="width: 32px; height: 32px; font-size: 14px; background: #EA580C; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">G</div>
+            <div style="display: flex; flex-direction: column; overflow: hidden;">
+                <span style="font-size: 12px; font-weight: 600; color: white; white-space: nowrap;">gabriel@burgermusic.com</span>
+                <span style="font-size: 11px; color: #94A3B8;">Administrador</span>
+            </div>
+        </div>
+    </div>
+</aside>
+
+<main class="main-content">
+    <header class="topbar">
+        <h2 class="montserrat" style="font-size: 20px; font-weight: 700; color: var(--text-main);">BurgerMusic <span style="color: var(--text-muted); font-weight: 500;">/ Finanzas / Categorías</span></h2>
+        <div style="display: flex; gap: 12px;">
+            <button class="btn btn-secondary" style="background: white; border: 1px solid var(--border-light);"><i class="ri-download-2-line"></i> Exportar</button>
+            <button class="btn btn-primary" onclick="openModal('panel-category')"><i class="ri-add-line"></i> Nueva Categoría</button>
+        </div>
+    </header>
+
+    <div class="content-area">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px;">
+            <div>
+                <h1 class="montserrat" style="font-size: 32px; font-weight: 800; margin-bottom: 8px;">Categorías Financieras</h1>
+                <p style="color: var(--text-muted); font-size: 16px;">Clasificación de movimientos para reportes y cierres de caja.</p>
+            </div>
+        </div>
+
+        <div class="tabs-container" style="border-bottom: 1px solid var(--border-light); margin-bottom: 24px; padding-bottom: 0;">
+            <div style="display: flex; gap: 24px;">
+                <button class="tab-btn active" style="padding: 12px 0; border: none; background: transparent; font-family: 'Montserrat'; font-weight: 700; color: var(--brand-primary); border-bottom: 3px solid var(--brand-primary); cursor: pointer; font-size: 15px;">Gastos (Egresos)</button>
+                <button class="tab-btn" style="padding: 12px 0; border: none; background: transparent; font-family: 'Montserrat'; font-weight: 600; color: var(--text-muted); cursor: pointer; font-size: 15px;">Ingresos</button>
+            </div>
+        </div>
+
+        <div class="card" style="padding: 0;">
+            <div class="card-header" style="padding: 20px 24px; border-bottom: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center; background: #F8FAFC; border-radius: var(--radius-lg) var(--radius-lg) 0 0;">
+                <div style="position: relative; width: 300px;">
+                    <i class="ri-search-line" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+                    <input type="text" placeholder="Buscar categoría..." style="width: 100%; padding: 10px 10px 10px 36px; border: 1px solid var(--border-light); border-radius: 6px; font-size: 13px; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--brand-primary)'" onblur="this.style.borderColor='var(--border-light)'">
+                </div>
+                <div style="font-size: 13px; color: var(--text-muted); font-weight: 600;">Mostrando 6 categorías</div>
+            </div>
+
+            <table class="data-table" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: white; border-bottom: 1px solid var(--border-light);">
+                        <th style="text-align: left; padding: 16px 24px; color: var(--text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Categoría</th>
+                        <th style="text-align: left; padding: 16px 24px; color: var(--text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Código (Tag)</th>
+                        <th style="text-align: left; padding: 16px 24px; color: var(--text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Uso este mes</th>
+                        <th style="text-align: center; padding: 16px 24px; color: var(--text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Estado</th>
+                        <th style="text-align: right; padding: 16px 24px;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- ITEM 1 -->
+                    <tr style="border-bottom: 1px solid var(--border-light); transition: background 0.2s;" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='white'">
+                        <td style="padding: 16px 24px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 36px; height: 36px; border-radius: 8px; background: #FEF2F2; color: #DC2626; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                                    <i class="ri-team-line"></i>
+                                </div>
+                                <div>
+                                    <div style="font-weight: 700; font-size: 15px; color: var(--text-main);">Sueldos y Jornales</div>
+                                    <div style="font-size: 12px; color: var(--text-muted);">Sueldos</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="padding: 16px 24px;">
+                            <span style="background: #F1F5F9; color: #475569; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 12px; font-weight: 600;">sueldos</span>
+                        </td>
+                        <td style="padding: 16px 24px;">
+                            <div style="font-weight: 600; font-size: 14px;">12 movimientos</div>
+                            <div style="font-size: 12px; color: var(--text-muted);">$850.000 acumulado</div>
+                        </td>
+                        <td style="padding: 16px 24px; text-align: center;">
+                            <span style="background: #D1FAE5; color: #059669; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"><span style="width: 6px; height: 6px; background: #059669; border-radius: 50%;"></span> Activa</span>
+                        </td>
+                        <td style="padding: 16px 24px; text-align: right;">
+                            <div class="action-links">
+                                <button style="background: none; border: none; color: var(--text-main); font-weight: 700; font-size: 13px; cursor: pointer;" onclick="openModal('panel-category')">Editar</button>
+                                <button style="background: none; border: none; color: var(--text-muted); font-weight: 600; font-size: 13px; cursor: pointer;">Desactivar</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <!-- ITEM 2 -->
+                    <tr style="border-bottom: 1px solid var(--border-light); transition: background 0.2s;" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='white'">
+                        <td style="padding: 16px 24px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 36px; height: 36px; border-radius: 8px; background: #FFF7ED; color: #EA580C; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                                    <i class="ri-home-8-line"></i>
+                                </div>
+                                <div>
+                                    <div style="font-weight: 700; font-size: 15px; color: var(--text-main);">Alquiler de Local</div>
+                                    <div style="font-size: 12px; color: var(--text-muted);">Alquiler</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="padding: 16px 24px;">
+                            <span style="background: #F1F5F9; color: #475569; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 12px; font-weight: 600;">alquiler</span>
+                        </td>
+                        <td style="padding: 16px 24px;">
+                            <div style="font-weight: 600; font-size: 14px;">1 movimiento</div>
+                            <div style="font-size: 12px; color: var(--text-muted);">$350.000 acumulado</div>
+                        </td>
+                        <td style="padding: 16px 24px; text-align: center;">
+                            <span style="background: #D1FAE5; color: #059669; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"><span style="width: 6px; height: 6px; background: #059669; border-radius: 50%;"></span> Activa</span>
+                        </td>
+                        <td style="padding: 16px 24px; text-align: right;">
+                            <div class="action-links">
+                                <button style="background: none; border: none; color: var(--text-main); font-weight: 700; font-size: 13px; cursor: pointer;" onclick="openModal('panel-category')">Editar</button>
+                                <button style="background: none; border: none; color: var(--text-muted); font-weight: 600; font-size: 13px; cursor: pointer;">Desactivar</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <!-- ITEM 3 -->
+                    <tr style="border-bottom: 1px solid var(--border-light); transition: background 0.2s;" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='white'">
+                        <td style="padding: 16px 24px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 36px; height: 36px; border-radius: 8px; background: #EFF6FF; color: #2563EB; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                                    <i class="ri-lightbulb-flash-line"></i>
+                                </div>
+                                <div>
+                                    <div style="font-weight: 700; font-size: 15px; color: var(--text-main);">Servicios (Luz, Agua, Gas)</div>
+                                    <div style="font-size: 12px; color: var(--text-muted);">Servicios</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="padding: 16px 24px;">
+                            <span style="background: #F1F5F9; color: #475569; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 12px; font-weight: 600;">servicios</span>
+                        </td>
+                        <td style="padding: 16px 24px;">
+                            <div style="font-weight: 600; font-size: 14px;">3 movimientos</div>
+                            <div style="font-size: 12px; color: var(--text-muted);">$85.200 acumulado</div>
+                        </td>
+                        <td style="padding: 16px 24px; text-align: center;">
+                            <span style="background: #D1FAE5; color: #059669; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"><span style="width: 6px; height: 6px; background: #059669; border-radius: 50%;"></span> Activa</span>
+                        </td>
+                        <td style="padding: 16px 24px; text-align: right;">
+                            <div class="action-links">
+                                <button style="background: none; border: none; color: var(--text-main); font-weight: 700; font-size: 13px; cursor: pointer;" onclick="openModal('panel-category')">Editar</button>
+                                <button style="background: none; border: none; color: var(--text-muted); font-weight: 600; font-size: 13px; cursor: pointer;">Desactivar</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <!-- ITEM 4 -->
+                    <tr style="border-bottom: 1px solid var(--border-light); transition: background 0.2s;" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='white'">
+                        <td style="padding: 16px 24px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 36px; height: 36px; border-radius: 8px; background: #F3E8FF; color: #9333EA; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                                    <i class="ri-file-paper-2-line"></i>
+                                </div>
+                                <div>
+                                    <div style="font-weight: 700; font-size: 15px; color: var(--text-main);">Impuestos</div>
+                                    <div style="font-size: 12px; color: var(--text-muted);">Impuestos</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="padding: 16px 24px;">
+                            <span style="background: #F1F5F9; color: #475569; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 12px; font-weight: 600;">impuestos</span>
+                        </td>
+                        <td style="padding: 16px 24px;">
+                            <div style="font-weight: 600; font-size: 14px;">2 movimientos</div>
+                            <div style="font-size: 12px; color: var(--text-muted);">$120.000 acumulado</div>
+                        </td>
+                        <td style="padding: 16px 24px; text-align: center;">
+                            <span style="background: #D1FAE5; color: #059669; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"><span style="width: 6px; height: 6px; background: #059669; border-radius: 50%;"></span> Activa</span>
+                        </td>
+                        <td style="padding: 16px 24px; text-align: right;">
+                            <div class="action-links">
+                                <button style="background: none; border: none; color: var(--text-main); font-weight: 700; font-size: 13px; cursor: pointer;" onclick="openModal('panel-category')">Editar</button>
+                                <button style="background: none; border: none; color: var(--text-muted); font-weight: 600; font-size: 13px; cursor: pointer;">Desactivar</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <!-- ITEM 5 -->
+                    <tr style="border-bottom: 1px solid var(--border-light); transition: background 0.2s;" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='white'">
+                        <td style="padding: 16px 24px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 36px; height: 36px; border-radius: 8px; background: #ECFEFF; color: #0891B2; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                                    <i class="ri-megaphone-line"></i>
+                                </div>
+                                <div>
+                                    <div style="font-weight: 700; font-size: 15px; color: var(--text-main);">Marketing</div>
+                                    <div style="font-size: 12px; color: var(--text-muted);">Marketing</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="padding: 16px 24px;">
+                            <span style="background: #F1F5F9; color: #475569; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 12px; font-weight: 600;">marketing</span>
+                        </td>
+                        <td style="padding: 16px 24px;">
+                            <div style="font-weight: 600; font-size: 14px;">5 movimientos</div>
+                            <div style="font-size: 12px; color: var(--text-muted);">$45.000 acumulado</div>
+                        </td>
+                        <td style="padding: 16px 24px; text-align: center;">
+                            <span style="background: #D1FAE5; color: #059669; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"><span style="width: 6px; height: 6px; background: #059669; border-radius: 50%;"></span> Activa</span>
+                        </td>
+                        <td style="padding: 16px 24px; text-align: right;">
+                            <div class="action-links">
+                                <button style="background: none; border: none; color: var(--text-main); font-weight: 700; font-size: 13px; cursor: pointer;" onclick="openModal('panel-category')">Editar</button>
+                                <button style="background: none; border: none; color: var(--text-muted); font-weight: 600; font-size: 13px; cursor: pointer;">Desactivar</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <!-- ITEM 6 -->
+                    <tr style="border-bottom: 1px solid var(--border-light); transition: background 0.2s;" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='white'">
+                        <td style="padding: 16px 24px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 36px; height: 36px; border-radius: 8px; background: #F1F5F9; color: #475569; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                                    <i class="ri-tools-line"></i>
+                                </div>
+                                <div>
+                                    <div style="font-weight: 700; font-size: 15px; color: var(--text-main);">Mantenimiento</div>
+                                    <div style="font-size: 12px; color: var(--text-muted);">Mantenimiento</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="padding: 16px 24px;">
+                            <span style="background: #F1F5F9; color: #475569; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 12px; font-weight: 600;">mantenimiento</span>
+                        </td>
+                        <td style="padding: 16px 24px;">
+                            <div style="font-weight: 600; font-size: 14px;">1 movimiento</div>
+                            <div style="font-size: 12px; color: var(--text-muted);">$15.000 acumulado</div>
+                        </td>
+                        <td style="padding: 16px 24px; text-align: center;">
+                            <span style="background: #D1FAE5; color: #059669; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"><span style="width: 6px; height: 6px; background: #059669; border-radius: 50%;"></span> Activa</span>
+                        </td>
+                        <td style="padding: 16px 24px; text-align: right;">
+                            <div class="action-links">
+                                <button style="background: none; border: none; color: var(--text-main); font-weight: 700; font-size: 13px; cursor: pointer;" onclick="openModal('panel-category')">Editar</button>
+                                <button style="background: none; border: none; color: var(--text-muted); font-weight: 600; font-size: 13px; cursor: pointer;">Desactivar</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <!-- ITEM 7 -->
+                    <tr style="border-bottom: 1px solid var(--border-light); transition: background 0.2s;" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='white'">
+                        <td style="padding: 16px 24px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 36px; height: 36px; border-radius: 8px; background: #FDF4FF; color: #C026D3; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                                    <i class="ri-briefcase-4-line"></i>
+                                </div>
+                                <div>
+                                    <div style="font-weight: 700; font-size: 15px; color: var(--text-main);">Honorarios</div>
+                                    <div style="font-size: 12px; color: var(--text-muted);">Honorarios profesionales</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="padding: 16px 24px;">
+                            <span style="background: #F1F5F9; color: #475569; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 12px; font-weight: 600;">honorarios</span>
+                        </td>
+                        <td style="padding: 16px 24px;">
+                            <div style="font-weight: 600; font-size: 14px;">2 movimientos</div>
+                            <div style="font-size: 12px; color: var(--text-muted);">$95.000 acumulado</div>
+                        </td>
+                        <td style="padding: 16px 24px; text-align: center;">
+                            <span style="background: #D1FAE5; color: #059669; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"><span style="width: 6px; height: 6px; background: #059669; border-radius: 50%;"></span> Activa</span>
+                        </td>
+                        <td style="padding: 16px 24px; text-align: right;">
+                            <div class="action-links">
+                                <button style="background: none; border: none; color: var(--text-main); font-weight: 700; font-size: 13px; cursor: pointer;" onclick="openModal('panel-category')">Editar</button>
+                                <button style="background: none; border: none; color: var(--text-muted); font-weight: 600; font-size: 13px; cursor: pointer;">Desactivar</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <!-- ITEM 8 -->
+                    <tr style="border-bottom: 1px solid var(--border-light); transition: background 0.2s;" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='white'">
+                        <td style="padding: 16px 24px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 36px; height: 36px; border-radius: 8px; background: #F1F5F9; color: #0F172A; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                                    <i class="ri-list-check"></i>
+                                </div>
+                                <div>
+                                    <div style="font-weight: 700; font-size: 15px; color: var(--text-main);">Otros gastos</div>
+                                    <div style="font-size: 12px; color: var(--text-muted);">Otros gastos</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="padding: 16px 24px;">
+                            <span style="background: #F1F5F9; color: #475569; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 12px; font-weight: 600;">otros_gastos</span>
+                        </td>
+                        <td style="padding: 16px 24px;">
+                            <div style="font-weight: 600; font-size: 14px;">8 movimientos</div>
+                            <div style="font-size: 12px; color: var(--text-muted);">$23.500 acumulado</div>
+                        </td>
+                        <td style="padding: 16px 24px; text-align: center;">
+                            <span style="background: #D1FAE5; color: #059669; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"><span style="width: 6px; height: 6px; background: #059669; border-radius: 50%;"></span> Activa</span>
+                        </td>
+                        <td style="padding: 16px 24px; text-align: right;">
+                            <div class="action-links">
+                                <button style="background: none; border: none; color: var(--text-main); font-weight: 700; font-size: 13px; cursor: pointer;" onclick="openModal('panel-category')">Editar</button>
+                                <button style="background: none; border: none; color: var(--text-muted); font-weight: 600; font-size: 13px; cursor: pointer;">Desactivar</button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<!-- PANEL CENTRAL: NUEVA / EDITAR CATEGORÍA -->
+<div class="central-modal-overlay" id="panel-category" onclick="closeModal('panel-category')">
+    <div class="central-modal-panel" onclick="event.stopPropagation()">
+        <div class="central-modal-header">
+            <div>
+                <h2 class="montserrat" style="font-size: 20px; font-weight: 700; color: var(--text-main);">Configurar Categoría</h2>
+                <p style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">Modificá cómo se agruparán estos gastos.</p>
+            </div>
+            <button onclick="closeModal('panel-category')" style="background: none; border: none; font-size: 24px; color: var(--text-muted); cursor: pointer;"><i class="ri-close-line"></i></button>
+        </div>
+        
+        <div class="central-modal-body">
+            
+            <div style="display: flex; gap: 16px; margin-bottom: 24px;">
+                <div style="width: 64px; height: 64px; border-radius: 12px; background: #FEF2F2; color: #DC2626; border: 2px solid #FCA5A5; display: flex; align-items: center; justify-content: center; font-size: 28px; cursor: pointer;">
+                    <i class="ri-team-line"></i>
+                </div>
+                <div style="flex: 1;">
+                    <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;">Color e Ícono</label>
+                    <button class="btn btn-secondary" style="font-size: 13px; padding: 8px 16px;"><i class="ri-palette-line"></i> Personalizar apariencia</button>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 24px;">
+                <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;">Nombre de la Categoría</label>
+                <input type="text" value="Sueldos y Jornales" style="width: 100%; padding: 12px; border: 1px solid var(--border-light); border-radius: 8px; font-size: 15px; font-family: 'Montserrat'; font-weight: 600; outline: none;">
+            </div>
+
+            <div style="margin-bottom: 24px;">
+                <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;">Código Identificador (Tag)</label>
+                <div style="position: relative;">
+                    <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-family: monospace;">#</span>
+                    <input type="text" value="sueldos" style="width: 100%; padding: 12px 12px 12px 28px; border: 1px solid var(--border-light); border-radius: 8px; font-size: 14px; font-family: monospace; outline: none; background: #F8FAFC;">
+                </div>
+                <p style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">Se usará para importar reglas automáticamente desde el banco.</p>
+            </div>
+
+            <div style="margin-bottom: 24px;">
+                <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;">Descripción (Opcional)</label>
+                <textarea rows="3" style="width: 100%; padding: 12px; border: 1px solid var(--border-light); border-radius: 8px; font-size: 14px; outline: none; resize: none;">Costos laborales fijos</textarea>
+            </div>
+
+            <div style="background: #F8FAFC; border: 1px solid var(--border-light); border-radius: 8px; padding: 16px;">
+                <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+                    <div>
+                        <div style="font-weight: 700; font-size: 14px; color: var(--text-main);">Estado de Categoría</div>
+                        <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Si está inactiva no aparecerá al cargar un nuevo gasto.</div>
+                    </div>
+                    <!-- Toggle Switch Mock -->
+                    <div style="width: 44px; height: 24px; background: var(--brand-primary); border-radius: 12px; position: relative;">
+                        <div style="width: 20px; height: 20px; background: white; border-radius: 50%; position: absolute; top: 2px; right: 2px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"></div>
+                    </div>
+                </label>
+            </div>
+            
+        </div>
+        
+        <div class="central-modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('panel-category')">Cancelar</button>
+            <button class="btn btn-primary" onclick="closeModal('panel-category')">Guardar Categoría</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openModal(id) {
+        const overlay = document.getElementById(id);
+        overlay.style.display = 'flex';
+        setTimeout(() => {
+            overlay.classList.add('open');
+        }, 10);
+    }
+
+    function closeModal(id) {
+        const overlay = document.getElementById(id);
+        overlay.classList.remove('open');
+        setTimeout(() => {
+            overlay.style.display = 'none';
+        }, 300);
+    }
+</script>
+
+</body>
+</html>

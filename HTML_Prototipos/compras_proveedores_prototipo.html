@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proveedores — BurgerMusic OS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Lato:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-body: #F4F7F9;
+            --bg-surface: #FFFFFF;
+            --border-light: #E2E8F0;
+            --text-main: #0F172A;
+            --text-muted: #64748B;
+            --brand-primary: #EA580C;
+            --brand-primary-hover: #C2410C;
+            --brand-surface: #FFF7ED;
+
+            --bg-sidebar: #1E293B; /* Tono oscuro elegante para el sidebar */
+            --text-sidebar: #CBD5E1;
+            --text-sidebar-active: #FFFFFF;
+
+            
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+            
+            --radius-md: 12px;
+            --transition-fast: 0.15s ease-in-out;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        h1, h2, h3, h4, h5, h6, .montserrat { font-family: 'Montserrat', sans-serif; }
+        
+        
+        /* Hide scrollbar for sidebar */
+        .sidebar-nav::-webkit-scrollbar {
+            display: none;
+        }
+        .sidebar-nav {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            width: 260px;
+            background-color: var(--bg-sidebar);
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition-smooth);
+            z-index: 10;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: white;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .sidebar-header i {
+            font-size: 24px;
+            color: var(--brand-primary);
+        }
+
+        .sidebar-nav {
+            padding: 16px 12px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            color: var(--text-sidebar);
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            transition: var(--transition-fast);
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .nav-item i {
+            margin-right: 12px;
+            font-size: 20px;
+            transition: var(--transition-fast);
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255,255,255,0.05);
+            color: var(--text-sidebar-active);
+        }
+
+        .nav-item.active {
+            background-color: var(--brand-primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3);
+        }
+        /* --- MENU DESPLEGABLE SIDEBAR --- */
+        .nav-dropdown {
+            display: flex;
+            flex-direction: column;
+        }
+        .nav-dropdown .nav-item {
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+        .nav-dropdown .chevron {
+            margin-left: auto;
+            margin-right: 0;
+            transition: transform 0.3s ease;
+        }
+        .nav-dropdown.open .chevron {
+            transform: rotate(180deg);
+        }
+        .nav-submenu {
+            display: none;
+            flex-direction: column;
+            background: rgba(0,0,0,0.2);
+            padding: 8px 0;
+            margin: 4px 16px;
+            border-radius: 8px;
+        }
+        .nav-dropdown.open .nav-submenu {
+            display: flex;
+        }
+        .submenu-item {
+            padding: 10px 16px 10px 42px;
+            color: var(--text-sidebar);
+            text-decoration: none;
+            font-size: 13px;
+            transition: var(--transition-fast);
+            border-radius: 6px;
+            margin: 2px 8px;
+        }
+        .submenu-item:hover {
+            color: white;
+            background-color: rgba(255,255,255,0.05);
+        }
+        .submenu-item.active {
+            color: var(--brand-primary);
+            font-weight: bold;
+            background-color: rgba(234, 88, 12, 0.1);
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        
+        .topbar {
+            background-color: var(--bg-surface);
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-light);
+            z-index: 5;
+        }
+        
+        .content-area {
+            padding: 32px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-family: 'Montserrat';
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary {
+            background: var(--brand-primary);
+            color: white;
+        }
+        .btn-primary:hover { background: var(--brand-primary-hover); }
+        
+        .btn-secondary {
+            background: #E2E8F0;
+            color: var(--text-main);
+        }
+        .btn-secondary:hover { background: #CBD5E1; }
+
+    
+        /* --- SLIDE OVERS --- */
+        .slideover-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .slideover-overlay.open {
+            display: block;
+            opacity: 1;
+        }
+        .slideover-panel {
+            position: fixed;
+            top: 0; right: 0; bottom: 0;
+            width: 500px;
+            background: white;
+            box-shadow: -4px 0 24px rgba(0,0,0,0.1);
+            transform: translateX(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1001;
+            display: flex;
+            flex-direction: column;
+        }
+        .slideover-overlay.open .slideover-panel {
+            transform: translateX(0);
+        }
+        .slideover-header {
+            padding: 24px 32px;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .slideover-body {
+            padding: 32px;
+            flex: 1;
+            overflow-y: auto;
+        }
+        .slideover-footer {
+            padding: 24px 32px;
+            border-top: 1px solid var(--border-light);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            background: var(--bg-body);
+        }
+        .form-group {
+            margin-bottom: 24px;
+        }
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 8px;
+        }
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            font-family: 'Lato';
+            font-size: 15px;
+            outline: none;
+            transition: var(--transition-fast);
+        }
+        .form-input:focus {
+            border-color: var(--brand-primary);
+            box-shadow: 0 0 0 3px rgba(234,88,12,0.1);
+        }
+
+    
+        /* --- CENTRAL MODAL --- */
+        .section-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 16px;
+            margin-bottom: 8px;
+            grid-column: 1 / -1;
+        }
+        .central-modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            align-items: center;
+            justify-content: center;
+        }
+        .central-modal-overlay.open {
+            display: flex;
+            opacity: 1;
+        }
+
+        .central-modal-panel {
+            background: white;
+            border-radius: var(--radius-lg);
+            width: 700px;
+            max-width: 95%;
+            max-height: 90vh;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            flex-direction: column;
+            transform: scale(0.95);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .central-modal-overlay.open .central-modal-panel {
+            transform: scale(1);
+        }
+
+        
+        .central-modal-overlay.open 
+        .central-modal-header {
+            padding: 24px 32px;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .central-modal-body {
+            padding: 32px;
+            overflow-y: auto;
+        }
+        .central-modal-footer {
+            padding: 24px 32px;
+            border-top: 1px solid var(--border-light);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            background: var(--bg-body);
+            border-bottom-left-radius: var(--radius-lg);
+            border-bottom-right-radius: var(--radius-lg);
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .form-grid .full-width {
+            grid-column: 1 / -1;
+        }
+        
+    
+        /* --- UNIFIED SIDEBAR CSS --- */
+        .sidebar { width: 260px; background-color: var(--bg-sidebar); display: flex; flex-direction: column; transition: var(--transition-smooth); z-index: 10; box-shadow: var(--shadow-lg); }
+        .sidebar-nav { padding: 16px 12px; flex: 1; overflow-y: auto; }
+        .nav-item { display: flex; align-items: center; padding: 12px 16px; color: var(--text-sidebar); text-decoration: none; border-radius: 8px; margin-bottom: 4px; transition: var(--transition-fast); font-size: 15px; font-weight: 500; }
+        .nav-item i { margin-right: 12px; font-size: 20px; transition: var(--transition-fast); }
+        .nav-item:hover { background-color: rgba(255,255,255,0.05); color: var(--text-sidebar-active); }
+        .nav-item.active { background-color: var(--brand-primary, #EA580C); color: white; box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3); }
+        .nav-dropdown { display: flex; flex-direction: column; }
+        .nav-dropdown .nav-item { width: 100%; }
+        .nav-dropdown .chevron { margin-left: auto; margin-right: 0; transition: transform 0.3s ease; }
+        .nav-dropdown.open .chevron { transform: rotate(180deg); }
+        .nav-submenu { display: none; flex-direction: column; background: rgba(0,0,0,0.2); padding: 8px 0; margin: 4px 16px; border-radius: 8px; }
+        .nav-dropdown.open .nav-submenu { display: flex; }
+        .submenu-item { padding: 10px 16px 10px 42px; color: var(--text-sidebar); text-decoration: none; font-size: 13px; transition: var(--transition-fast); border-radius: 6px; margin: 2px 8px; }
+        .submenu-item:hover { color: white; background-color: rgba(255,255,255,0.05); }
+        .sidebar-nav::-webkit-scrollbar { width: 6px; }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .sidebar-nav::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+</style>
+</head>
+<body>
+
+    <!-- SIDEBAR UNIFICADA -->
+<aside class="sidebar">
+    <div class="sidebar-header" style="padding: 24px; display: flex; align-items: center; gap: 12px; color: white; border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <div style="width: 28px;height: 28px;background:#000;border-radius: 4px;display: flex;align-items: center;justify-content: center;color: white;font-weight: 800;font-size: 11px;">BM</div>
+        <span style="font-family: 'Montserrat'; font-weight: 800; font-size: 14px; color: white;">BurgerMusic</span>
+    </div>
+    
+    <nav class="sidebar-nav">
+        <a href="dashboard_prototipo.html" class="nav-item"><i class="ri-home-4-line"></i> Inicio</a>
+        
+        <div class="nav-dropdown open">
+            <a href="#" class="nav-item nav-dropdown-toggle active" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-shopping-bag-line"></i> Compras
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="compras_inbox_prototipo.html" class="submenu-item">Facturas</a>
+                <a href="compras_proveedores_prototipo.html" class="submenu-item active">Proveedores</a>
+                <a href="compras_ordenes_prototipo.html" class="submenu-item">Órdenes de compra</a>
+                <a href="compras_recepciones_prototipo.html" class="submenu-item">Recepciones</a>
+            </div>
+        </div>
+
+        <a href="produccion_gerencial_prototipo.html" class="nav-item"><i class="ri-hammer-line"></i> Producción</a>
+        <a href="inventario_prototipo.html" class="nav-item"><i class="ri-box-3-line"></i> Inventario</a>
+
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-line-chart-line"></i> Ventas
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="ventas_dashboard_prototipo.html" class="submenu-item">Dashboard</a>
+                <a href="pos_prototipo.html" class="submenu-item">Nueva venta</a>
+                <a href="ventas_historial_prototipo.html" class="submenu-item">Historial de Tickets</a>
+                <a href="ventas_sincronizacion_prototipo.html" class="submenu-item">Sincronización</a>
+                <a href="ventas_cierre_z_prototipo.html" class="submenu-item">Cierre Z</a>
+            </div>
+        </div>
+
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-bank-card-line"></i> Finanzas
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="finanzas_dashboard_prototipo.html" class="submenu-item">Dashboard</a>
+                <a href="finanzas_movimientos_prototipo.html" class="submenu-item">Mov. caja</a>
+                <a href="finanzas_cuentas_pagar_prototipo.html" class="submenu-item">Cuentas por pagar</a>
+                <a href="finanzas_categorias_prototipo.html" class="submenu-item">Categorías financieras</a>
+            </div>
+        </div>
+        
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-safe-line"></i> Caja
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="caja_gastos_eventuales_prototipo.html" class="submenu-item">Gastos eventuales</a>
+                <a href="caja_gastos_fijos_prototipo.html" class="submenu-item">Gastos fijos</a>
+                <a href="caja_ingresos_extra_prototipo.html" class="submenu-item">Ingresos extra</a>
+            </div>
+        </div>
+
+        <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #475569; padding: 16px 14px 6px;">Operación</div>
+        <a href="pos_prototipo.html" class="nav-item"><i class="ri-store-2-line"></i> Punto de Venta</a>
+        <a href="kds_prototipo.html" class="nav-item"><i class="ri-restaurant-line"></i> Cocina</a>
+        <a href="delivery_prototipo.html" class="nav-item"><i class="ri-e-bike-2-line"></i> Delivery</a>
+        <a href="cajas_prototipo.html" class="nav-item"><i class="ri-money-dollar-box-line"></i> Caja POS</a>
+        <a href="produccion_prototipo.html" class="nav-item"><i class="ri-smartphone-line"></i> Producción (Móvil)</a>
+        <a href="auditoria_deposito_prototipo.html" class="nav-item"><i class="ri-clipboard-line"></i> Auditoría (Móvil)</a>
+    </nav>
+
+    <div style="margin-top: auto; padding: 20px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 16px;">
+        <select class="branch-select" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px; font-size: 13px; border-radius: 8px;">
+            <option value="lanus" selected style="color: black;">📍 Burger Music Lanus</option>
+        </select>
+        <div class="user-profile" style="display: flex; align-items: center; gap: 12px; padding: 0; cursor: pointer;">
+            <div class="avatar" style="width: 32px; height: 32px; font-size: 14px; background: #EA580C; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">G</div>
+            <div style="display: flex; flex-direction: column; overflow: hidden;">
+                <span style="font-size: 12px; font-weight: 600; color: white; white-space: nowrap;">gabriel@burgermusic.com</span>
+                <span style="font-size: 11px; color: #94A3B8;">Administrador</span>
+            </div>
+        </div>
+    </div>
+</aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <h2 class="montserrat" style="font-size: 20px; font-weight: 700; color: var(--text-main);">BurgerMusic <span style="color: var(--text-muted); font-weight: 500;">/ Proveedores</span></h2>
+            <div style="display: flex; gap: 12px;">
+                <button class="btn btn-secondary" onclick="openSlideover('panel-pay')">Realizar nuevo pago</button>
+                <button class="btn btn-primary" onclick="openSlideover('panel-new-provider')">Agregar nuevo proveedor</button>
+            </div>
+        </header>
+        
+        <div class="content-area">
+            <div style="margin-bottom: 32px;">
+                <h1 class="montserrat" style="font-size: 32px; font-weight: 800; margin-bottom: 8px;">Proveedores</h1>
+                <p style="color: var(--text-muted); font-size: 16px;">Administrá proveedores, sus datos de contacto y registrá pagos contra facturas pendientes.</p>
+            </div>
+            
+            <div style="background: white; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); border: 1px solid var(--border-light); padding: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px;">
+                    <div>
+                        <h3 class="montserrat" style="margin-bottom: 4px;">Listado</h3>
+                        <p style="color: var(--text-muted); font-size: 14px;">Buscá por nombre, razón social, CUIT o contacto.</p>
+                    </div>
+                    <div style="width: 350px; position: relative;">
+                        <i class="ri-search-line" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+                        <input type="text" placeholder="Nombre, CUIT, email..." style="width: 100%; padding: 12px 16px 12px 40px; border: 1px solid var(--border-light); border-radius: 8px; font-family: 'Lato'; font-size: 14px; outline: none;">
+                    </div>
+                </div>
+                
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border-light); color: var(--text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
+                            <th style="text-align: left; padding: 16px 8px; font-weight: 700;">Proveedor</th>
+                            <th style="text-align: left; padding: 16px 8px; font-weight: 700;">CUIT</th>
+                            <th style="text-align: left; padding: 16px 8px; font-weight: 700;">Condición / rubro</th>
+                            <th style="text-align: left; padding: 16px 8px; font-weight: 700;">Contacto</th>
+                            <th style="text-align: left; padding: 16px 8px; font-weight: 700;">Estado</th>
+                            <th style="text-align: center; padding: 16px 8px; font-weight: 700;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody style="font-size: 14px;">
+                        <!-- Fila 1 -->
+                        <tr style="border-bottom: 1px solid var(--border-light); transition: 0.2s;" onmouseover="this.style.backgroundColor='#F8FAFC'" onmouseout="this.style.backgroundColor='transparent'">
+                            <td style="padding: 16px 8px;">
+                                <div style="font-weight: 700; color: var(--text-main);">Carnes Frigomeat</div>
+                                <div style="font-size: 12px; color: var(--text-muted);">FrigoMeat SRL</div>
+                            </td>
+                            <td style="padding: 16px 8px; color: var(--text-muted);">20-12345678-6</td>
+                            <td style="padding: 16px 8px;">
+                                <div style="color: var(--text-main);">Responsable inscripto</div>
+                                <div style="font-size: 12px; color: var(--text-muted);">Carnes</div>
+                            </td>
+                            <td style="padding: 16px 8px; color: var(--text-muted);">frigomeat@email.com</td>
+                            <td style="padding: 16px 8px;">
+                                <span style="background: #ECFDF5; color: #059669; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 700;">Activo</span>
+                            </td>
+                            <td style="padding: 16px 8px; text-align: center; position: relative;">
+                                <button onclick="toggleActionMenu('menu-1')" style="background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 20px; padding: 4px; border-radius: 4px; transition: 0.2s;" onmouseover="this.style.backgroundColor='var(--border-light)'" onmouseout="this.style.backgroundColor='transparent'"><i class="ri-more-2-fill"></i></button>
+                                <!-- Action Menu -->
+                                <div id="menu-1" class="action-dropdown" style="display: none; position: absolute; right: 32px; top: 32px; background: white; border: 1px solid var(--border-light); border-radius: 8px; box-shadow: var(--shadow-md); z-index: 100; min-width: 180px; text-align: left; overflow: hidden;">
+                                    <a href="#" onclick="openSlideover(\'panel-new-provider\'); return false;" style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; color: var(--text-main); text-decoration: none; font-size: 14px; transition: 0.2s;" onmouseover="this.style.backgroundColor='var(--bg-body)'" onmouseout="this.style.backgroundColor='transparent'"><i class="ri-pencil-line"></i> Editar</a>
+                                    <a href="compras_proveedor_cuenta_prototipo.html" style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; color: var(--text-main); text-decoration: none; font-size: 14px; transition: 0.2s;" onmouseover="this.style.backgroundColor='var(--bg-body)'" onmouseout="this.style.backgroundColor='transparent'"><i class="ri-file-list-3-line"></i> Cuenta Corriente</a>
+                                    <a href="#" onclick="openSlideover(\'panel-pay\'); return false;" style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; color: var(--brand-primary); text-decoration: none; font-size: 14px; font-weight: 700; border-top: 1px solid var(--border-light); transition: 0.2s;" onmouseover="this.style.backgroundColor='var(--brand-surface)'" onmouseout="this.style.backgroundColor='transparent'"><i class="ri-money-dollar-circle-line"></i> Pagar</a>
+                                </div>
+                            </td>
+                        </tr>
+                        <!-- Fila 2 -->
+                        <tr style="border-bottom: 1px solid var(--border-light); transition: 0.2s;" onmouseover="this.style.backgroundColor='#F8FAFC'" onmouseout="this.style.backgroundColor='transparent'">
+                            <td style="padding: 16px 8px;">
+                                <div style="font-weight: 700; color: var(--text-main);">nahuel srl</div>
+                                <div style="font-size: 12px; color: var(--text-muted);">Nahuelito srl</div>
+                            </td>
+                            <td style="padding: 16px 8px; color: var(--text-muted);">20-37334251-4</td>
+                            <td style="padding: 16px 8px;">
+                                <div style="color: var(--text-main);">Responsable inscripto</div>
+                                <div style="font-size: 12px; color: var(--text-muted);">Papas</div>
+                            </td>
+                            <td style="padding: 16px 8px; color: var(--text-muted);">asd@nahueldangelosale.com</td>
+                            <td style="padding: 16px 8px;">
+                                <span style="background: #ECFDF5; color: #059669; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 700;">Activo</span>
+                            </td>
+                            <td style="padding: 16px 8px; text-align: center; position: relative;">
+                                <button onclick="toggleActionMenu('menu-2')" style="background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 20px; padding: 4px; border-radius: 4px; transition: 0.2s;" onmouseover="this.style.backgroundColor='var(--border-light)'" onmouseout="this.style.backgroundColor='transparent'"><i class="ri-more-2-fill"></i></button>
+                                <div id="menu-2" class="action-dropdown" style="display: none; position: absolute; right: 32px; top: 32px; background: white; border: 1px solid var(--border-light); border-radius: 8px; box-shadow: var(--shadow-md); z-index: 100; min-width: 180px; text-align: left; overflow: hidden;">
+                                    <a href="#" onclick="openSlideover(\'panel-new-provider\'); return false;" style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; color: var(--text-main); text-decoration: none; font-size: 14px; transition: 0.2s;" onmouseover="this.style.backgroundColor='var(--bg-body)'" onmouseout="this.style.backgroundColor='transparent'"><i class="ri-pencil-line"></i> Editar</a>
+                                    <a href="compras_proveedor_cuenta_prototipo.html" style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; color: var(--text-main); text-decoration: none; font-size: 14px; transition: 0.2s;" onmouseover="this.style.backgroundColor='var(--bg-body)'" onmouseout="this.style.backgroundColor='transparent'"><i class="ri-file-list-3-line"></i> Cuenta Corriente</a>
+                                    <a href="#" onclick="openSlideover(\'panel-pay\'); return false;" style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; color: var(--brand-primary); text-decoration: none; font-size: 14px; font-weight: 700; border-top: 1px solid var(--border-light); transition: 0.2s;" onmouseover="this.style.backgroundColor='var(--brand-surface)'" onmouseout="this.style.backgroundColor='transparent'"><i class="ri-money-dollar-circle-line"></i> Pagar</a>
+                                </div>
+                            </td>
+                        </tr>
+                        <!-- Fila 3 -->
+                        <tr style="border-bottom: 1px solid var(--border-light); transition: 0.2s;" onmouseover="this.style.backgroundColor='#F8FAFC'" onmouseout="this.style.backgroundColor='transparent'">
+                            <td style="padding: 16px 8px;">
+                                <div style="font-weight: 700; color: var(--text-main);">Verduras Pepe</div>
+                                <div style="font-size: 12px; color: var(--text-muted);">Verdu SRL</div>
+                            </td>
+                            <td style="padding: 16px 8px; color: var(--text-muted);">30-11111111-8</td>
+                            <td style="padding: 16px 8px;">
+                                <div style="color: var(--text-main);">Responsable inscripto</div>
+                                <div style="font-size: 12px; color: var(--text-muted);">Verduras</div>
+                            </td>
+                            <td style="padding: 16px 8px; color: var(--text-muted);">pepeverdu@email.com</td>
+                            <td style="padding: 16px 8px;">
+                                <span style="background: #ECFDF5; color: #059669; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 700;">Activo</span>
+                            </td>
+                            <td style="padding: 16px 8px; text-align: center; position: relative;">
+                                <button onclick="toggleActionMenu('menu-3')" style="background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 20px; padding: 4px; border-radius: 4px; transition: 0.2s;" onmouseover="this.style.backgroundColor='var(--border-light)'" onmouseout="this.style.backgroundColor='transparent'"><i class="ri-more-2-fill"></i></button>
+                                <div id="menu-3" class="action-dropdown" style="display: none; position: absolute; right: 32px; top: 32px; background: white; border: 1px solid var(--border-light); border-radius: 8px; box-shadow: var(--shadow-md); z-index: 100; min-width: 180px; text-align: left; overflow: hidden;">
+                                    <a href="#" onclick="openSlideover(\'panel-new-provider\'); return false;" style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; color: var(--text-main); text-decoration: none; font-size: 14px; transition: 0.2s;" onmouseover="this.style.backgroundColor='var(--bg-body)'" onmouseout="this.style.backgroundColor='transparent'"><i class="ri-pencil-line"></i> Editar</a>
+                                    <a href="compras_proveedor_cuenta_prototipo.html" style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; color: var(--text-main); text-decoration: none; font-size: 14px; transition: 0.2s;" onmouseover="this.style.backgroundColor='var(--bg-body)'" onmouseout="this.style.backgroundColor='transparent'"><i class="ri-file-list-3-line"></i> Cuenta Corriente</a>
+                                    <a href="#" onclick="openSlideover(\'panel-pay\'); return false;" style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; color: var(--brand-primary); text-decoration: none; font-size: 14px; font-weight: 700; border-top: 1px solid var(--border-light); transition: 0.2s;" onmouseover="this.style.backgroundColor='var(--brand-surface)'" onmouseout="this.style.backgroundColor='transparent'"><i class="ri-money-dollar-circle-line"></i> Pagar</a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+    
+    
+    <script>
+        function openSlideover(id) {
+            document.getElementById(id).classList.add('open');
+        }
+        function closeSlideover(id) {
+            document.getElementById(id).classList.remove('open');
+        }
+        // Cerrar haciendo clic afuera
+        document.querySelectorAll('.slideover-overlay').forEach(el => {
+            el.addEventListener('click', function(e) {
+                if (e.target === this) this.classList.remove('open');
+            });
+        });
+
+        function toggleActionMenu(id) {
+            const menu = document.getElementById(id);
+            const isVisible = menu.style.display === 'block';
+            
+            // Cerrar todos los menus abiertos primero
+            document.querySelectorAll('.action-dropdown').forEach(el => {
+                el.style.display = 'none';
+            });
+            
+            // Si no estaba visible, lo abrimos
+            if (!isVisible) {
+                menu.style.display = 'block';
+            }
+        }
+
+        // Cerrar al hacer click afuera
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('td')) {
+                document.querySelectorAll('.action-dropdown').forEach(el => el.style.display = 'none');
+            }
+        });
+    </script>
+
+    <!-- MODAL CENTRAL: AGREGAR PROVEEDOR -->
+    <div class="central-modal-overlay" id="panel-new-provider">
+        <div class="central-modal-panel" onclick="event.stopPropagation()">
+            <div class="central-modal-header">
+                <div>
+                    <h2 class="montserrat" style="font-size: 20px; color: var(--text-main);">Agregar nuevo proveedor</h2>
+                    <p style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">Completá los datos mínimos del proveedor (razón social, CUIT, condición fiscal, rubro y contacto).</p>
+                </div>
+                <button onclick="closeSlideover('panel-new-provider')" style="background: none; border: none; font-size: 24px; color: var(--text-muted); cursor: pointer;"><i class="ri-close-line"></i></button>
+            </div>
+            <div class="central-modal-body form-grid" style="padding-bottom: 16px;">
+                
+                <div class="section-title" style="margin-top: 0;">Datos básicos</div>
+                
+                <div class="form-group full-width">
+                    <label class="form-label">Nombre comercial *</label>
+                    <input type="text" class="form-input" placeholder="Nombre con el que lo verás en compras">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Razón social *</label>
+                    <input type="text" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">CUIT *</label>
+                    <input type="text" class="form-input" placeholder="20-12345678-6">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Condición fiscal *</label>
+                    <select class="form-input">
+                        <option>Elegí condición</option>
+                        <option>Responsable Inscripto</option>
+                        <option>Monotributo</option>
+                        <option>Exento</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Rubro *</label>
+                    <input type="text" class="form-input" placeholder="Ej. Bebidas, Carnes, Limpieza">
+                </div>
+                <div class="form-group full-width">
+                    <label class="form-label">Estado *</label>
+                    <select class="form-input">
+                        <option>Activo</option>
+                        <option>Inactivo</option>
+                    </select>
+                </div>
+
+                <div class="section-title">Contacto (Email o Teléfono *)</div>
+
+                <div class="form-group">
+                    <label class="form-label">Nombre</label>
+                    <input type="text" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Apellido</label>
+                    <input type="text" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Teléfono</label>
+                    <input type="text" class="form-input">
+                </div>
+
+                <div class="section-title">Dirección</div>
+
+                <div class="form-group full-width">
+                    <label class="form-label">Dirección</label>
+                    <input type="text" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Ciudad / localidad</label>
+                    <input type="text" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Provincia</label>
+                    <input type="text" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Código postal</label>
+                    <input type="text" class="form-input">
+                </div>
+                <div class="form-group"></div>
+
+                <div class="section-title">Condiciones Comerciales</div>
+                
+                <div class="form-group">
+                    <label class="form-label">Plazo de pago (días)</label>
+                    <input type="text" class="form-input" placeholder="Ej. 30">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Medio de pago preferido</label>
+                    <select class="form-input">
+                        <option>Sin preferencia</option>
+                        <option>Efectivo</option>
+                        <option>Transferencia</option>
+                    </select>
+                </div>
+                <div class="form-group full-width">
+                    <label class="form-label">Notas comerciales</label>
+                    <input type="text" class="form-input" placeholder="Descuentos, entregas, acuerdos...">
+                </div>
+                <div class="form-group full-width" style="margin-bottom: 0;">
+                    <label class="form-label">Observaciones</label>
+                    <input type="text" class="form-input">
+                </div>
+            </div>
+            <div class="central-modal-footer">
+                <button class="btn btn-secondary" onclick="closeSlideover('panel-new-provider')" style="background: white; border: 1px solid var(--border-light); color: var(--text-main);">Cancelar</button>
+                <button class="btn btn-primary" onclick="alert('Proveedor guardado'); closeSlideover('panel-new-provider')" style="opacity: 0.7;">Guardar proveedor</button>
+            </div>
+        </div>
+    </div>
+            
+
+    <!-- MODAL CENTRAL: REALIZAR PAGO -->
+    <div class="central-modal-overlay" id="panel-pay">
+        <div class="central-modal-panel" onclick="event.stopPropagation()">
+            <div class="central-modal-header">
+                <div>
+                    <h2 class="montserrat">Registrar nuevo pago</h2>
+                    <p style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">Imputá pagos a las facturas pendientes.</p>
+                </div>
+                <button onclick="closeSlideover('panel-pay')" style="background: none; border: none; font-size: 24px; color: var(--text-muted); cursor: pointer;"><i class="ri-close-line"></i></button>
+            </div>
+            
+            <div class="central-modal-body" style="padding-bottom: 0;">
+                <!-- Proveedor & Saldo -->
+                <div style="background: #F8FAFC; border: 1px solid var(--border-light); border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="font-weight: 600; color: var(--text-muted); font-size: 12px; text-transform: uppercase;">Seleccionar Proveedor</span>
+                        <span style="font-weight: 600; color: var(--text-muted); font-size: 12px; text-transform: uppercase;">Saldo Actual</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px;">
+                        <select class="form-input" style="flex: 1; font-weight: 700; font-size: 15px; color: var(--brand-primary); border-color: var(--brand-primary); background-color: var(--brand-surface);">
+                            <option>Carnes Frigomeat</option>
+                            <option>nahuel srl</option>
+                            <option>Verduras Pepe</option>
+                        </select>
+                        <span style="font-weight: 800; font-size: 18px; color: #DC2626;">-$450.000</span>
+                    </div>
+                    <div style="margin-top: 8px; font-size: 12px; color: var(--text-muted);">
+                        <i class="ri-information-line"></i> Seleccioná el proveedor para cargar automáticamente sus facturas adeudadas.
+                    </div>
+                </div>
+                <!-- Facturas pendientes -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3 style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 0;">Facturas pendientes</h3>
+                    <button class="btn btn-secondary" style="padding: 4px 12px; font-size: 12px; height: auto;" onclick="openSlideover('modal-quick-invoice')"><i class="ri-add-line"></i> Nueva Factura / Remito</button>
+                </div>
+                
+                <div id="invoices-list-container" style="border: 1px solid var(--border-light); border-radius: 8px; padding: 12px; margin-bottom: 24px;">
+                    <div style="margin-bottom: 12px; font-size: 13px; color: var(--text-muted); background: #FFFBEB; padding: 8px; border-radius: 4px; border: 1px solid #FEF3C7;">
+                        <i class="ri-lightbulb-flash-line" style="color: #D97706;"></i> <strong>Tip:</strong> Tildá las facturas que vas a cancelar con este pago para conciliar automáticamente. Si la factura no existe, podés crearla arriba.
+                    </div>
+                    
+                    <label style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px; cursor: pointer; padding: 8px; border-radius: 8px; transition: background 0.2s;" onmouseover="this.style.background='#F1F5F9'" onmouseout="this.style.background='transparent'">
+                        <input type="checkbox" style="width: 18px; height: 18px; margin-top: 2px; accent-color: var(--brand-primary);">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 700; font-size: 14px;">Factura A-0001-00238</div>
+                            <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+                                Emitida: 04/08/2026 &bull; <span style="color: #DC2626; font-weight: 600; background: #FEE2E2; padding: 2px 6px; border-radius: 12px;"><i class="ri-alert-line"></i> Vencida hace 12 días</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+                            <div class="invoice-total" style="font-weight: 700; font-size: 15px;">$264.600</div>
+                            <div class="partial-input-container" style="display: none; align-items: center; background: white; border: 1px solid var(--brand-primary); border-radius: 6px; overflow: hidden; height: 26px;">
+                                <span style="padding: 0 8px; background: #FFF7ED; color: var(--brand-primary); font-weight: 700; border-right: 1px solid var(--brand-primary); font-size: 13px; height: 100%; display: flex; align-items: center;">$</span>
+                                <input type="number" value="264600" style="width: 80px; border: none; outline: none; padding: 0 8px; font-family: 'Montserrat'; font-weight: 700; font-size: 14px; text-align: right; height: 100%;">
+                            </div>
+                            <button type="button" class="btn-partial-toggle" style="background: none; border: none; color: var(--brand-primary); font-size: 11px; font-weight: 700; text-decoration: underline; cursor: pointer; padding: 0;" onclick="togglePartial(this, event)">Pago parcial</button>
+                        </div>
+                    </label>
+                    
+                    <label style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 8px; cursor: pointer; padding: 8px; border-radius: 8px; transition: background 0.2s;" onmouseover="this.style.background='#F1F5F9'" onmouseout="this.style.background='transparent'">
+                        <input type="checkbox" style="width: 18px; height: 18px; margin-top: 2px; accent-color: var(--brand-primary);">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 700; font-size: 14px;">Factura A-0001-00234</div>
+                            <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+                                Emitida: 02/08/2026 &bull; <span style="color: #059669; font-weight: 600; background: #D1FAE5; padding: 2px 6px; border-radius: 12px;"><i class="ri-check-line"></i> Vence en 5 días</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+                            <div class="invoice-total" style="font-weight: 700; font-size: 15px;">$185.400</div>
+                            <div class="partial-input-container" style="display: none; align-items: center; background: white; border: 1px solid var(--brand-primary); border-radius: 6px; overflow: hidden; height: 26px;">
+                                <span style="padding: 0 8px; background: #FFF7ED; color: var(--brand-primary); font-weight: 700; border-right: 1px solid var(--brand-primary); font-size: 13px; height: 100%; display: flex; align-items: center;">$</span>
+                                <input type="number" value="185400" style="width: 80px; border: none; outline: none; padding: 0 8px; font-family: 'Montserrat'; font-weight: 700; font-size: 14px; text-align: right; height: 100%;">
+                            </div>
+                            <button type="button" class="btn-partial-toggle" style="background: none; border: none; color: var(--brand-primary); font-size: 11px; font-weight: 700; text-decoration: underline; cursor: pointer; padding: 0;" onclick="togglePartial(this, event)">Pago parcial</button>
+                        </div>
+                    </label>
+                    
+                    <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 600; font-size: 13px;">Total seleccionado:</span>
+                        <span style="font-weight: 800; font-size: 16px; color: var(--brand-primary);">$0.00</span>
+                    </div>
+                </div>
+
+                <!-- Detalle del pago -->
+                <h3 style="font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px;">Detalle del pago</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                    <div class="form-group">
+                        <label class="form-label" style="font-size: 14px; font-weight: 600; color: var(--text-main); text-transform: none;">Monto a pagar</label>
+                        <div style="position: relative;">
+                            <span style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-weight: 700; color: var(--text-muted);">$</span>
+                            <input type="number" class="form-input" placeholder="0.00" style="padding-left: 32px; font-weight: 700;">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="font-size: 14px; font-weight: 600; color: var(--text-main); text-transform: none;">Fecha de pago</label>
+                        <input type="date" class="form-input" id="qi-date" oninput="validateQuickInvoice()">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="font-size: 14px; font-weight: 600; color: var(--text-main); text-transform: none;">Medio de pago</label>
+                        <select class="form-input">
+                            <option>Efectivo</option>
+                            <option>Transferencia</option>
+                            <option>Cheque</option>
+                            <option>MercadoPago</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="font-size: 14px; font-weight: 600; color: var(--text-main); text-transform: none;">Comprobante / Referencia</label>
+                        <input type="text" class="form-input" placeholder="Opcional">
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label class="form-label" style="font-size: 14px; font-weight: 600; color: var(--text-main); text-transform: none;">Observaciones</label>
+                        <input type="text" class="form-input" placeholder="Opcional">
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Resumen y footer -->
+            <div style="background: #F8FAFC; padding: 16px 32px; border-top: 1px solid var(--border-light);">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span style="font-weight: 600; color: var(--text-muted);">Total a pagar:</span>
+                    <span style="font-weight: 800; font-size: 16px;">$0.00</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="font-weight: 600; color: var(--text-muted);">Saldo restante:</span>
+                    <span style="font-weight: 700; color: #DC2626;">-$450.000</span>
+                </div>
+            </div>
+            
+            <div class="central-modal-footer" style="padding: 24px 32px; border-top: none;">
+                <button class="btn btn-secondary" onclick="closeSlideover('panel-pay')" style="background: white; border: 1px solid var(--border-light); color: var(--text-main);">Cancelar</button>
+                <button class="btn btn-primary" onclick="alert('Pago registrado e imputado'); closeSlideover('panel-pay')">Registrar Pago</button>
+            </div>
+        </div>
+    </div>
+            
+
+
+<script>
+    function togglePartial(btn, e) {
+        if(e) { e.preventDefault(); e.stopPropagation(); }
+        const container = btn.closest('div');
+        const totalDiv = container.querySelector('.invoice-total');
+        const inputContainer = container.querySelector('.partial-input-container');
+        const checkbox = btn.closest('label').querySelector('input[type="checkbox"]');
+        
+        if (inputContainer.style.display === 'none') {
+            inputContainer.style.display = 'flex';
+            totalDiv.style.display = 'none';
+            btn.innerText = 'Pago total';
+            if (checkbox) checkbox.checked = true;
+        } else {
+            inputContainer.style.display = 'none';
+            totalDiv.style.display = 'block';
+            btn.innerText = 'Pago parcial';
+        }
+    }
+</script>
+
+</body>
+</html>

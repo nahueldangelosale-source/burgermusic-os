@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ventas Dashboard — BurgerMusic OS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Lato:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            /* Paleta de Colores Minimalista */
+            --bg-body: #F8FAFC;
+            --bg-surface: #FFFFFF;
+            --bg-sidebar: #1E293B;
+            --brand-primary: #EA580C;
+            --brand-primary-hover: #C2410C;
+            --brand-surface: #FFF7ED;
+            
+            --text-main: #0F172A;
+            --text-muted: #64748B;
+            --text-sidebar: #CBD5E1;
+            --text-sidebar-active: #FFFFFF;
+            
+            /* Colores Semánticos */
+            --color-in: #10B981; /* Verde Ingreso */
+            --color-out: #EF4444; /* Rojo Egreso */
+            
+            /* Elevación */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+            
+            /* Transiciones */
+            --transition-fast: 0.15s ease-in-out;
+            --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Lato', sans-serif; background-color: var(--bg-body); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+        h1, h2, h3, h4, h5, h6, .montserrat { font-family: 'Montserrat', sans-serif; }
+
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
+        
+        .page-header { padding: 32px 40px; display: flex; justify-content: space-between; align-items: flex-end; background: white; border-bottom: 1px solid #E2E8F0; z-index: 5;}
+        .page-header h1 { font-family: 'Montserrat'; font-weight: 800; font-size: 28px; color: var(--text-main); margin-bottom: 4px; }
+        .page-header p { font-size: 14px; color: var(--text-muted); }
+
+        .btn-primary { background: var(--brand-primary); color: white; border: none; font-family: 'Montserrat'; font-weight: 700; font-size: 13px; padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(234,88,12,0.3);}
+        .btn-primary:hover { background: var(--brand-primary-hover); transform: translateY(-2px); }
+        .btn-primary:active { transform: scale(0.98); }
+        
+        .btn-outline { background: white; color: var(--text-main); border: 1px solid #CBD5E1; font-family: 'Montserrat'; font-weight: 700; font-size: 13px; padding: 8px 16px; border-radius: 6px; cursor: pointer; transition: 0.2s; }
+        .btn-outline:hover { background: #F8FAFC; border-color: #94A3B8; }
+        
+        .content-area { padding: 32px 40px; max-width: 1200px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; gap: 24px;}
+
+        .card { background: white; border-radius: 12px; padding: 24px; box-shadow: var(--shadow-sm); border: 1px solid #E2E8F0; }
+        
+        /* Formularios y Filtros */
+        .filter-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+        .form-group label { display: block; font-family: 'Montserrat'; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px; }
+        .form-input { width: 100%; height: 42px; padding: 0 16px; border: 1px solid #E2E8F0; border-radius: 8px; font-family: 'Lato'; font-size: 14px; background: #F8FAFC; outline: none; transition: 0.2s; }
+        .form-input:focus { border-color: var(--brand-primary); background: white; box-shadow: 0 0 0 3px rgba(234,88,12,0.1); }
+        
+        /* Grilla KPI 5 Columnas */
+        .grid-kpi-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+        .kpi-card { background: white; border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); border: 1px solid #E2E8F0; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+        .kpi-title { font-size: 11px; font-weight: 700; font-family: 'Montserrat'; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+        .kpi-icon { font-size: 18px; color: #94A3B8; opacity: 0.5; }
+        .kpi-value { font-family: 'Montserrat', sans-serif; font-variant-numeric: tabular-nums; font-size: 26px; font-weight: 800; color: var(--text-main); }
+        
+        /* Alerta de Desviación */
+        .kpi-deviation { margin-top: 12px; font-size: 12px; font-weight: 600; padding: 6px 10px; border-radius: 6px; display: inline-block; align-self: flex-start; }
+        .dev-negative { background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; }
+        .dev-positive { background: #F0FDF4; color: #16A34A; border: 1px solid #BBF7D0; }
+        .kpi-card.alert-active { border: 1px solid #FECACA; box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1); }
+        
+        .kpi-recommendation { font-size: 11px; color: var(--text-muted); margin-top: 8px; line-height: 1.4; border-top: 1px solid #F1F5F9; padding-top: 8px; }
+
+        /* Gráficos y Top Productos */
+        .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
+        
+        .data-table { width: 100%; border-collapse: collapse; text-align: left; }
+        .data-table th { padding: 12px 16px; background: #F8FAFC; font-family: 'Montserrat'; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; border-bottom: 1px solid #E2E8F0; }
+        .data-table td { padding: 12px 16px; font-size: 13px; border-bottom: 1px solid #F1F5F9; vertical-align: middle; }
+        .data-table tr:hover { background-color: #F8FAFC; }
+
+        /* --- UNIFIED SIDEBAR CSS --- */
+        .sidebar { width: 260px; background-color: var(--bg-sidebar); display: flex; flex-direction: column; transition: var(--transition-smooth); z-index: 10; box-shadow: var(--shadow-lg); }
+        .sidebar-nav { padding: 16px 12px; flex: 1; overflow-y: auto; }
+        .nav-item { display: flex; align-items: center; padding: 12px 16px; color: var(--text-sidebar); text-decoration: none; border-radius: 8px; margin-bottom: 4px; transition: var(--transition-fast); font-size: 15px; font-weight: 500; }
+        .nav-item i { margin-right: 12px; font-size: 20px; transition: var(--transition-fast); }
+        .nav-item:hover { background-color: rgba(255,255,255,0.05); color: var(--text-sidebar-active); }
+        .nav-item.active { background-color: var(--brand-primary, #EA580C); color: white; box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3); }
+        .nav-dropdown { display: flex; flex-direction: column; }
+        .nav-dropdown .nav-item { width: 100%; }
+        .nav-dropdown .chevron { margin-left: auto; margin-right: 0; transition: transform 0.3s ease; }
+        .nav-dropdown.open .chevron { transform: rotate(180deg); }
+        .nav-submenu { display: none; flex-direction: column; background: rgba(0,0,0,0.2); padding: 8px 0; margin: 4px 16px; border-radius: 8px; }
+        .nav-dropdown.open .nav-submenu { display: flex; }
+        .submenu-item { padding: 10px 16px 10px 42px; color: var(--text-sidebar); text-decoration: none; font-size: 13px; transition: var(--transition-fast); border-radius: 6px; margin: 2px 8px; }
+        .submenu-item:hover { color: white; background-color: rgba(255,255,255,0.05); }
+        .submenu-item.active { color: var(--brand-primary); font-weight: bold; background-color: rgba(234, 88, 12, 0.1); }
+        .sidebar-nav::-webkit-scrollbar { width: 6px; }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .sidebar-nav::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+    </style>
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="sidebar-header" style="padding: 24px; display: flex; align-items: center; gap: 12px; color: white; border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <div style="width: 28px;height: 28px;background:#000;border-radius: 4px;display: flex;align-items: center;justify-content: center;color: white;font-weight: 800;font-size: 11px;">BM</div>
+        <span style="font-family: 'Montserrat'; font-weight: 800; font-size: 14px; color: white;">BurgerMusic</span>
+    </div>
+    
+    <nav class="sidebar-nav">
+        <a href="dashboard_prototipo.html" class="nav-item"><i class="ri-home-4-line"></i> Inicio</a>
+        
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-shopping-bag-line"></i> Compras
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="compras_inbox_prototipo.html" class="submenu-item">Facturas</a>
+                <a href="compras_proveedores_prototipo.html" class="submenu-item">Proveedores</a>
+                <a href="compras_ordenes_prototipo.html" class="submenu-item">Órdenes de compra</a>
+                <a href="compras_recepciones_prototipo.html" class="submenu-item">Recepciones</a>
+            </div>
+        </div>
+
+        <a href="produccion_gerencial_prototipo.html" class="nav-item"><i class="ri-hammer-line"></i> Producción</a>
+        <a href="inventario_prototipo.html" class="nav-item"><i class="ri-box-3-line"></i> Inventario</a>
+
+        <div class="nav-dropdown open">
+            <a href="#" class="nav-item nav-dropdown-toggle active" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-line-chart-line"></i> Ventas
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="ventas_dashboard_prototipo.html" class="submenu-item active">Dashboard</a>
+                <a href="pos_prototipo.html" class="submenu-item">Nueva venta</a>
+                <a href="ventas_historial_prototipo.html" class="submenu-item">Historial de Tickets</a>
+                <a href="ventas_sincronizacion_prototipo.html" class="submenu-item">Sincronización</a>
+                <a href="ventas_cierre_z_prototipo.html" class="submenu-item">Cierre Z</a>
+            </div>
+        </div>
+
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-bank-card-line"></i> Finanzas
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="finanzas_dashboard_prototipo.html" class="submenu-item">Dashboard</a>
+                <a href="finanzas_movimientos_prototipo.html" class="submenu-item">Mov. caja</a>
+                <a href="finanzas_cuentas_pagar_prototipo.html" class="submenu-item">Cuentas por pagar</a>
+                <a href="finanzas_categorias_prototipo.html" class="submenu-item">Categorías financieras</a>
+            </div>
+        </div>
+        
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-safe-line"></i> Caja
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="caja_gastos_eventuales_prototipo.html" class="submenu-item">Gastos eventuales</a>
+                <a href="caja_gastos_fijos_prototipo.html" class="submenu-item">Gastos fijos</a>
+                <a href="caja_ingresos_extra_prototipo.html" class="submenu-item">Ingresos extra</a>
+            </div>
+        </div>
+
+        <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #475569; padding: 16px 14px 6px;">Operación</div>
+        <a href="pos_prototipo.html" class="nav-item"><i class="ri-store-2-line"></i> Punto de Venta</a>
+        <a href="kds_prototipo.html" class="nav-item"><i class="ri-restaurant-line"></i> Cocina</a>
+        <a href="delivery_prototipo.html" class="nav-item"><i class="ri-e-bike-2-line"></i> Delivery</a>
+        <a href="cajas_prototipo.html" class="nav-item"><i class="ri-money-dollar-box-line"></i> Caja POS</a>
+        <a href="produccion_prototipo.html" class="nav-item"><i class="ri-smartphone-line"></i> Producción (Móvil)</a>
+        <a href="auditoria_deposito_prototipo.html" class="nav-item"><i class="ri-clipboard-line"></i> Auditoría (Móvil)</a>
+    </nav>
+
+    <div style="margin-top: auto; padding: 20px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 16px;">
+        <select class="branch-select" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px; font-size: 13px; border-radius: 8px;">
+            <option value="lanus" selected style="color: black;">📍 Burger Music Lanus</option>
+        </select>
+        <div class="user-profile" style="display: flex; align-items: center; gap: 12px; padding: 0; cursor: pointer;">
+            <div class="avatar" style="width: 32px; height: 32px; font-size: 14px; background: #EA580C; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">G</div>
+            <div style="display: flex; flex-direction: column; overflow: hidden;">
+                <span style="font-size: 12px; font-weight: 600; color: white; white-space: nowrap;">gabriel@burgermusic.com</span>
+                <span style="font-size: 11px; color: #94A3B8;">Administrador</span>
+            </div>
+        </div>
+    </div>
+</aside>
+
+<main class="main-content">
+    <div class="page-header">
+        <div>
+            <h1>Dashboard Operativo</h1>
+            <p>Rendimiento en tiempo real. Analizá el impacto del turno actual y detectá desviaciones tempranas.</p>
+        </div>
+    </div>
+    
+    <div class="content-area">
+        
+        <div class="card" style="padding: 16px 24px;">
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; align-items: flex-start;">
+                    <!-- Rango -->
+                    <div class="form-group">
+                        <label>Rango Analizado</label>
+                        <select class="form-input" id="rangoSelect" style="cursor: pointer;" onchange="document.getElementById('custom-date-range').style.display = this.value === 'personalizado' ? 'grid' : 'none';">
+                            <option value="hoy">Hoy (Turno actual)</option>
+                            <option value="7d">Últimos 7 días</option>
+                            <option value="mes">Mes en curso</option>
+                            <option value="personalizado">Personalizado...</option>
+                        </select>
+                        <div id="custom-date-range" style="display: none; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;">
+                            <input type="date" class="form-input" style="height: 36px; padding: 0 10px; font-size: 13px;" title="Desde">
+                            <input type="date" class="form-input" style="height: 36px; padding: 0 10px; font-size: 13px;" title="Hasta">
+                        </div>
+                    </div>
+                    
+                    <!-- Canal -->
+                    <div class="form-group">
+                        <label>Canal de Venta</label>
+                        <select class="form-input" style="cursor: pointer;">
+                            <option>Todos los canales</option>
+                            <option>Mostrador (POS)</option>
+                            <option>PedidosYa</option>
+                            <option>Rappi</option>
+                        </select>
+                    </div>
+
+                    <!-- Método -->
+                    <div class="form-group">
+                        <label>Método de Cobro</label>
+                        <select class="form-input" style="cursor: pointer;">
+                            <option>Todos los métodos</option>
+                            <option>Efectivo</option>
+                            <option>MercadoPago</option>
+                            <option>Tarjetas</option>
+                        </select>
+                    </div>
+
+                    <!-- Categoría -->
+                    <div class="form-group">
+                        <label>Categoría</label>
+                        <select class="form-input" style="cursor: pointer;">
+                            <option>Todas las categorías</option>
+                            <option>Hamburguesas</option>
+                            <option>Papas Fritas</option>
+                            <option>Bebidas</option>
+                            <option>Postres</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 3fr 1fr; gap: 16px; align-items: flex-end;">
+                    <!-- Buscador -->
+                    <div class="form-group">
+                        <label>Buscar Producto Específico</label>
+                        <div style="position: relative;">
+                            <i class="ri-search-line" style="position: absolute; left: 14px; top: 12px; color: var(--text-muted); font-size: 16px;"></i>
+                            <input type="text" class="form-input" placeholder="Ej. Doble Bacon Cheddar, Coca-Cola..." style="padding-left: 40px;">
+                        </div>
+                    </div>
+                    
+                    <!-- Botón Aplicar -->
+                    <div class="form-group">
+                        <button class="btn-primary" id="btn-aplicar" onclick="simulateLoading(this)" style="width: 100%; height: 42px;">Aplicar Filtros</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPIs Estratégicos -->
+        <div class="grid-kpi-5">
+            <div class="kpi-card">
+                <div class="kpi-title">Ventas Brutas <i class="ri-money-dollar-circle-line kpi-icon"></i></div>
+                <div class="kpi-value">$ 485.200</div>
+                <div class="kpi-deviation dev-positive"><i class="ri-arrow-up-line"></i> 8% vs Ayer</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">Ventas Netas <i class="ri-shopping-bag-3-line kpi-icon" style="color: var(--brand-primary); opacity: 1;"></i></div>
+                <div class="kpi-value">$ 410.500</div>
+                <div class="kpi-recommendation">Márgenes saludables. Estructura de costos cubierta.</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">Tickets Emitidos <i class="ri-receipt-line kpi-icon"></i></div>
+                <div class="kpi-value">42</div>
+                <div class="kpi-deviation dev-positive"><i class="ri-arrow-up-line"></i> 12% vs Ayer</div>
+            </div>
+            <div class="kpi-card alert-active">
+                <div class="kpi-title">Ticket Promedio <i class="ri-bar-chart-box-line kpi-icon"></i></div>
+                <div class="kpi-value">$ 9.773</div>
+                <div class="kpi-deviation dev-negative"><i class="ri-arrow-down-line"></i> 15% vs Histórico</div>
+                <div class="kpi-recommendation"><b style="color: #DC2626;">Alerta:</b> El ticket promedio bajó. Recomendá upsell de papas y bebidas grandes en caja.</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">Items por Ticket <i class="ri-shopping-cart-2-line kpi-icon"></i></div>
+                <div class="kpi-value">2.4</div>
+                <div class="kpi-recommendation">Sin desviaciones operativas críticas.</div>
+            </div>
+        </div>
+
+        <!-- Dashboard Charts and Tables -->
+        <div class="dashboard-grid">
+            
+            <div style="display: flex; flex-direction: column; gap: 24px;">
+                <div class="card" style="padding: 20px;">
+                    <h3 style="font-family: 'Montserrat'; font-size: 16px; font-weight: 700; margin-bottom: 16px; color: var(--text-main);">Tendencia de Ventas (Semana actual)</h3>
+                    <canvas id="ventasChart" height="100"></canvas>
+                </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 24px;">
+                <div class="card" style="padding: 20px; flex: 1; display: flex; flex-direction: column;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h3 style="font-family: 'Montserrat'; font-size: 16px; font-weight: 700; color: var(--text-main);">Top Productos (Mix de Ventas)</h3>
+                        <button class="btn-outline" style="padding: 4px 8px; font-size: 11px;"><i class="ri-download-line"></i> CSV</button>
+                    </div>
+                    
+                    <div style="overflow-y: auto; flex: 1;">
+                        <table class="data-table" style="font-size: 13px;">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th style="text-align: right;">Q</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="font-weight: 600;">Doble Bacon Cheddar</td>
+                                    <td style="text-align: right; font-family: 'Montserrat'; font-weight: 700;">85</td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: 600;">Papas Fritas Medianas</td>
+                                    <td style="text-align: right; font-family: 'Montserrat'; font-weight: 700;">72</td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: 600;">Clásica BurgerMusic</td>
+                                    <td style="text-align: right; font-family: 'Montserrat'; font-weight: 700;">64</td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: 600;">Coca-Cola 500ml</td>
+                                    <td style="text-align: right; font-family: 'Montserrat'; font-weight: 700;">58</td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: 600;">Chicken Crispy</td>
+                                    <td style="text-align: right; font-family: 'Montserrat'; font-weight: 700;">41</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+
+    </div>
+</main>
+
+<script>
+    // Microinteracción para el botón de filtros
+    function simulateLoading(btn) {
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Actualizando...';
+        btn.style.opacity = '0.8';
+        setTimeout(() => {
+            btn.innerHTML = '<i class="ri-check-line"></i> Aplicado';
+            btn.style.background = '#10B981';
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.style.background = 'var(--brand-primary)';
+                btn.style.opacity = '1';
+            }, 1500);
+        }, 800);
+    }
+
+    // Inicialización de Chart.js con paleta del sistema
+    const ctx = document.getElementById('ventasChart').getContext('2d');
+    const ventasChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+            datasets: [{
+                label: 'Ventas Netas ($)',
+                data: [320000, 310000, 390000, 410500, null, null, null],
+                borderColor: '#EA580C',
+                backgroundColor: 'rgba(234, 88, 12, 0.1)',
+                borderWidth: 3,
+                pointBackgroundColor: '#EA580C',
+                pointBorderColor: '#fff',
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#1E293B',
+                    titleFont: { family: 'Montserrat', size: 13 },
+                    bodyFont: { family: 'Lato', size: 14 },
+                    padding: 12,
+                    cornerRadius: 8,
+                    displayColors: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: '#F1F5F9', borderDash: [5, 5] },
+                    ticks: { font: { family: 'Montserrat' }, color: '#64748B' }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { font: { family: 'Montserrat' }, color: '#64748B' }
+                }
+            }
+        }
+    });
+</script>
+
+</body>
+</html>

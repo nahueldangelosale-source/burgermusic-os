@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Burger Music - Producción (Gerencial)</title>
+    <!-- Fuentes: Montserrat para encabezados, Lato para cuerpo -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Montserrat:wght@500;600;700&display=swap" rel="stylesheet">
+    <!-- Iconos -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :root {
+            /* Paleta de Colores Minimalista */
+            --bg-body: #F4F7F9;
+            --bg-surface: #FFFFFF;
+            --bg-sidebar: #1E293B; /* Tono oscuro elegante para el sidebar */
+            --brand-primary: #EA580C; /* Naranja refinado */
+            --brand-primary-hover: #C2410C;
+            --brand-surface: #FFF7ED; /* Fondo tenue para elementos activos */
+            
+            --text-main: #0F172A;
+            --text-muted: #64748B;
+            --text-sidebar: #CBD5E1;
+            --text-sidebar-active: #FFFFFF;
+            
+            /* Alertas */
+            --alert-high-bg: #FEF2F2;
+            --alert-high-text: #DC2626;
+            --alert-low-bg: #FFFBEB;
+            --alert-low-text: #D97706;
+            
+            /* Elevación (Sombras Material) */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+            
+            /* Transiciones (Microinteracciones) */
+            --transition-fast: 0.15s ease-in-out;
+            --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            
+            /* Bordes */
+            --radius-md: 12px;
+            --radius-lg: 16px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        h1, h2, h3, h4, h5, h6, .montserrat {
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        /* --- SIDEBAR --- */
+        /* --- MAIN CONTENT --- */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        /* --- CONCEPTOC: SELECTOR DE CONTEXTO --- */
+        .context-selector {
+            display: flex;
+            align-items: center;
+        }
+
+        .branch-select {
+            background-color: var(--bg-body);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--text-main);
+            outline: none;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            min-width: 250px;
+        }
+
+        .branch-select:focus {
+            border-color: var(--brand-primary);
+            box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1);
+        }
+
+        .topbar {
+            background-color: var(--bg-surface);
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-sm);
+            z-index: 5;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 30px;
+            transition: var(--transition-fast);
+        }
+        
+        .user-profile:hover {
+            background-color: var(--bg-body);
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            background-color: var(--brand-primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .content-area {
+            padding: 32px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .page-header {
+            margin-bottom: 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .page-title h1 {
+            font-size: 28px;
+            color: var(--text-main);
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .page-title p {
+            color: var(--text-muted);
+            font-size: 15px;
+        }
+
+        /* --- DASHBOARD WIDGETS --- */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .metric-card {
+            background: var(--bg-surface);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow-md);
+            transition: var(--transition-smooth);
+            border: 1px solid rgba(0,0,0,0.02);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* Microinteracción visual en hover */
+        .metric-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 4px;
+            background: var(--brand-primary);
+            opacity: 0;
+            transition: var(--transition-fast);
+        }
+        .metric-card:hover::after {
+            opacity: 1;
+        }
+
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .metric-title {
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--brand-surface);
+            color: var(--brand-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .metric-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 8px;
+        }
+
+        .metric-trend {
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .trend-up { color: #16A34A; }
+        .trend-down { color: #DC2626; }
+        .trend-neutral { color: var(--text-muted); }
+
+        /* --- ALERTAS DEL SISTEMA --- */
+        .alerts-section {
+            margin-bottom: 32px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            margin-bottom: 16px;
+            color: var(--text-main);
+        }
+
+        .alert-card {
+            display: flex;
+            align-items: center;
+            padding: 16px 20px;
+            border-radius: var(--radius-md);
+            margin-bottom: 12px;
+            gap: 16px;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition-fast);
+        }
+        
+        .alert-card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .alert-high {
+            background-color: var(--alert-high-bg);
+            border-left: 4px solid var(--alert-high-text);
+        }
+        
+        .alert-low {
+            background-color: var(--alert-low-bg);
+            border-left: 4px solid var(--alert-low-text);
+        }
+
+        .alert-icon-high { color: var(--alert-high-text); font-size: 24px; }
+        .alert-icon-low { color: var(--alert-low-text); font-size: 24px; }
+
+        .alert-content { flex: 1; }
+        .alert-title { font-weight: 700; font-family: 'Montserrat', sans-serif; font-size: 15px; margin-bottom: 4px; }
+        .alert-desc { font-size: 14px; color: var(--text-main); opacity: 0.8;}
+        .alert-high .alert-title { color: var(--alert-high-text); }
+        .alert-low .alert-title { color: var(--alert-low-text); }
+
+        .btn-action {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid currentColor;
+        }
+        
+        .alert-high .btn-outline:hover {
+            background: var(--alert-high-text);
+            color: white;
+        }
+
+        /* --- NUEVOS COMPONENTES DASHBOARD --- */
+        .donut-chart-container { display: flex; align-items: center; gap: 32px; margin-top: 16px; }
+        .donut-chart {
+            width: 140px; height: 140px; border-radius: 50%;
+            background: conic-gradient(var(--brand-primary) 0% 45%, #F59E0B 45% 70%, #10B981 70% 90%, #6366F1 90% 100%);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .donut-hole {
+            width: 100px; height: 100px; background-color: var(--bg-surface); border-radius: 50%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .donut-hole span:first-child { font-size: 12px; color: var(--text-muted); }
+        .donut-hole span:last-child { font-size: 18px; font-weight: 700; font-family: 'Montserrat'; }
+        .donut-legend { display: flex; flex-direction: column; gap: 12px; flex: 1; }
+        .legend-item { display: flex; align-items: center; justify-content: space-between; font-size: 14px; }
+        .legend-color { width: 12px; height: 12px; border-radius: 3px; margin-right: 8px; display: inline-block; }
+
+        .payments-list { display: flex; flex-direction: column; gap: 16px; margin-top: 16px;}
+        .payment-item { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .payment-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .payment-info h4 { font-size: 15px; font-weight: 600; margin-bottom: 2px;}
+        .payment-info p { font-size: 13px; color: var(--text-muted); }
+        .payment-tag { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; font-family: 'Montserrat'; letter-spacing: 0.5px;}
+        .tag-high { background-color: #F1F5F9; color: var(--text-main); border: 1px solid #CBD5E1; }
+        .tag-low { background-color: #F8FAFC; color: var(--text-muted); border: 1px solid #E2E8F0; }
+        
+        .metric-icon-bg { position: absolute; right: -10px; bottom: -20px; font-size: 90px; opacity: 0.04; z-index: 0; pointer-events: none; }
+        .metric-content { position: relative; z-index: 1; }
+        
+        .dashboard-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 32px; }
+        .widget-card { background: var(--bg-surface); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-md); border: 1px solid rgba(0,0,0,0.02); }
+        .widget-title { font-size: 16px; font-weight: 700; font-family: 'Montserrat'; color: var(--text-main); border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 12px; margin-bottom: 16px;}
+        
+        /* Acordeones (Details) */
+        details.widget-card { padding: 0; transition: all var(--transition-smooth); }
+        .widget-summary { padding: 20px 24px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; list-style: none; }
+        .widget-summary::-webkit-details-marker { display: none; }
+        .widget-summary .widget-title { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
+        .chevron-icon { font-size: 20px; color: var(--text-muted); transition: transform 0.2s; }
+        details[open] .chevron-icon { transform: rotate(180deg); }
+        .details-content { padding: 0 24px 24px 24px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 20px; }
+        
+        /* Barra Apilada de Canales */
+        .channels-bar-wrapper { margin-top: 12px; }
+        .channels-bar { display: flex; width: 100%; height: 12px; border-radius: 6px; overflow: hidden; cursor: default; }
+        .channels-bar-segment { height: 100%; transition: var(--transition-fast); }
+        .channels-bar:hover .channels-bar-segment { opacity: 0.5; }
+        .channels-bar-segment:hover { opacity: 1 !important; transform: scaleY(1.1); }
+        
+        .channels-details { display: flex; justify-content: space-between; opacity: 0; max-height: 0; overflow: hidden; transition: all var(--transition-smooth); }
+        .channels-bar-wrapper { cursor: pointer; padding-bottom: 12px; }
+        .channels-bar-wrapper.active .channels-details { opacity: 1; max-height: 100px; margin-top: 24px; }
+        .channel-stat { display: flex; flex-direction: column; align-items: flex-start; }
+        .channel-stat span { font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+        .channel-stat strong { font-family: 'Lato'; font-weight: 700; font-size: 16px; color: var(--text-main); margin-top: 4px; }
+        .channel-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+        
+        /* Inline Filters (Metric Cards) */
+        .inline-filters { display: flex; background: #F1F5F9; border-radius: 6px; padding: 2px; }
+        .filter-pill { font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 4px; cursor: pointer; color: var(--text-muted); transition: var(--transition-fast); }
+        .filter-pill.active { background: var(--bg-surface); color: var(--text-main); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+
+        /* Unified Alerts Bar */
+        .unified-alert-bar { display: flex; gap: 12px; margin-bottom: 24px; }
+        .alert-dropdown-container { position: relative; display: inline-block; }
+        .unified-alert { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 30px; font-size: 13px; font-weight: 600; box-shadow: var(--shadow-sm); cursor: pointer; user-select: none; transition: var(--transition-fast); white-space: nowrap; }
+        .unified-alert:hover { filter: brightness(0.95); }
+        .unified-alert i { font-size: 18px; }
+        
+        .stock-alert { background-color: var(--alert-high-bg); color: var(--alert-high-text); }
+        .payment-alert { background-color: var(--brand-surface); color: var(--brand-primary-hover); border: 1px solid rgba(234, 88, 12, 0.2); }
+        
+        /* Dropdown Estilos */
+        .alert-dropdown-menu { position: absolute; top: calc(100% + 8px); left: 0; background: white; border-radius: 12px; box-shadow: var(--shadow-lg); border: 1px solid #E2E8F0; width: 320px; z-index: 100; opacity: 0; visibility: hidden; transform: translateY(-10px); transition: var(--transition-fast); }
+        .alert-dropdown-menu.show { opacity: 1; visibility: visible; transform: translateY(0); }
+        .alert-dropdown-header { padding: 12px 16px; border-bottom: 1px solid #E2E8F0; font-weight: 700; font-size: 13px; }
+        .alert-dropdown-item { padding: 12px 16px; border-bottom: 1px solid #E2E8F0; font-size: 13px; }
+        .alert-dropdown-item:last-child { border-bottom: none; }
+        .alert-dropdown-action { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px; background: #F8FAFC; color: var(--brand-primary); font-weight: 700; text-decoration: none; border-radius: 0 0 12px 12px; transition: var(--transition-fast); }
+        .alert-dropdown-action:hover { background: #F1F5F9; color: var(--brand-primary-hover); }
+            /* TANGIBILIDAD Y MICROINTERACCIONES */
+        .widget-card { box-shadow: var(--shadow-md); border: 1px solid var(--border-light); transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .widget-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+
+        .btn-action-pulse { position: relative; overflow: hidden; }
+        .btn-action-pulse:active { transform: scale(0.95); transition: transform 0.1s; }
+        .btn-action-pulse::after {
+            content: ''; position: absolute; top: 50%; left: 50%; width: 5px; height: 5px; background: rgba(255, 255, 255, 0.5);
+            opacity: 0; border-radius: 100%; transform: scale(1, 1) translate(-50%); transform-origin: 50% 50%;
+        }
+        @keyframes ripple {
+            0% { transform: scale(0, 0); opacity: 0.5; }
+            20% { transform: scale(25, 25); opacity: 0.3; }
+            100% { opacity: 0; transform: scale(40, 40); }
+        }
+        .btn-action-pulse:focus:not(:active)::after { animation: ripple 0.5s ease-out; }
+
+        /* UX Tabs */
+        .tabs-container {
+            display: flex;
+            gap: 12px;
+            border-bottom: 1px solid var(--border-light);
+            margin-bottom: 24px;
+            overflow-x: auto;
+        }
+        .tab-btn {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: var(--transition-fast);
+            white-space: nowrap;
+        }
+        .tab-btn:hover { color: var(--text-main); }
+        .tab-btn.active { color: var(--brand-primary); border-bottom-color: var(--brand-primary); }
+        .tab-pane { display: none; animation: fadeIn 0.3s ease; }
+        .tab-pane.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Visual Funnel */
+        .funnel-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #F8FAFC;
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid #E2E8F0;
+            margin-bottom: 24px;
+            overflow-x: auto;
+        }
+        .funnel-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            flex: 1;
+            position: relative;
+            min-width: 120px;
+        }
+        .funnel-step::after {
+            content: '➔';
+            position: absolute;
+            right: -20px;
+            top: 15px;
+            color: #CBD5E1;
+            font-size: 24px;
+        }
+        .funnel-step:last-child::after { content: ''; }
+        .funnel-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 12px;
+            background: white;
+            box-shadow: var(--shadow-sm);
+        }
+        .funnel-value { font-family: 'Montserrat'; font-size: 20px; font-weight: 800; color: var(--text-main); }
+        .funnel-label { font-size: 11px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; margin-top: 4px; }
+        
+        .alert-box {
+            background: #FEF2F2;
+            border-left: 4px solid var(--alert-high-text);
+            padding: 16px;
+            border-radius: 4px 8px 8px 4px;
+            color: #991B1B;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+    
+        /* --- UNIFIED SIDEBAR CSS --- */
+        .sidebar { width: 260px; background-color: var(--bg-sidebar); display: flex; flex-direction: column; transition: var(--transition-smooth); z-index: 10; box-shadow: var(--shadow-lg); }
+        .sidebar-nav { padding: 16px 12px; flex: 1; overflow-y: auto; }
+        .nav-item { display: flex; align-items: center; padding: 12px 16px; color: var(--text-sidebar); text-decoration: none; border-radius: 8px; margin-bottom: 4px; transition: var(--transition-fast); font-size: 15px; font-weight: 500; }
+        .nav-item i { margin-right: 12px; font-size: 20px; transition: var(--transition-fast); }
+        .nav-item:hover { background-color: rgba(255,255,255,0.05); color: var(--text-sidebar-active); }
+        .nav-item.active { background-color: var(--brand-primary, #EA580C); color: white; box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3); }
+        .nav-dropdown { display: flex; flex-direction: column; }
+        .nav-dropdown .nav-item { width: 100%; }
+        .nav-dropdown .chevron { margin-left: auto; margin-right: 0; transition: transform 0.3s ease; }
+        .nav-dropdown.open .chevron { transform: rotate(180deg); }
+        .nav-submenu { display: none; flex-direction: column; background: rgba(0,0,0,0.2); padding: 8px 0; margin: 4px 16px; border-radius: 8px; }
+        .nav-dropdown.open .nav-submenu { display: flex; }
+        .submenu-item { padding: 10px 16px 10px 42px; color: var(--text-sidebar); text-decoration: none; font-size: 13px; transition: var(--transition-fast); border-radius: 6px; margin: 2px 8px; }
+        .submenu-item:hover { color: white; background-color: rgba(255,255,255,0.05); }
+        .sidebar-nav::-webkit-scrollbar { width: 6px; }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .sidebar-nav::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+</style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+    <div class="sidebar-header" style="padding: 24px; display: flex; align-items: center; gap: 12px; color: white; border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <div style="width: 28px;height: 28px;background:#000;border-radius: 4px;display: flex;align-items: center;justify-content: center;color: white;font-weight: 800;font-size: 11px;">BM</div>
+        <span style="font-family: 'Montserrat'; font-weight: 800; font-size: 14px; color: white;">BurgerMusic</span>
+    </div>
+    
+    <nav class="sidebar-nav">
+        <a href="dashboard_prototipo.html" class="nav-item"><i class="ri-home-4-line"></i> Inicio</a>
+        
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-shopping-bag-line"></i> Compras
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="compras_inbox_prototipo.html" class="submenu-item">Facturas</a>
+                <a href="compras_proveedores_prototipo.html" class="submenu-item">Proveedores</a>
+                <a href="compras_ordenes_prototipo.html" class="submenu-item">Órdenes de compra</a>
+                <a href="compras_recepciones_prototipo.html" class="submenu-item">Recepciones</a>
+            </div>
+        </div>
+
+        <a href="produccion_gerencial_prototipo.html" class="nav-item active"><i class="ri-hammer-line"></i> Producción</a>
+        <a href="inventario_prototipo.html" class="nav-item"><i class="ri-box-3-line"></i> Inventario</a>
+
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-line-chart-line"></i> Ventas
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="ventas_dashboard_prototipo.html" class="submenu-item">Dashboard</a>
+                <a href="pos_prototipo.html" class="submenu-item">Nueva venta</a>
+                <a href="ventas_historial_prototipo.html" class="submenu-item">Historial de Tickets</a>
+                <a href="ventas_sincronizacion_prototipo.html" class="submenu-item">Sincronización</a>
+                <a href="ventas_cierre_z_prototipo.html" class="submenu-item">Cierre Z</a>
+            </div>
+        </div>
+
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-bank-card-line"></i> Finanzas
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="finanzas_dashboard_prototipo.html" class="submenu-item">Dashboard</a>
+                <a href="finanzas_movimientos_prototipo.html" class="submenu-item">Mov. caja</a>
+                <a href="finanzas_cuentas_pagar_prototipo.html" class="submenu-item">Cuentas por pagar</a>
+                <a href="finanzas_categorias_prototipo.html" class="submenu-item">Categorías financieras</a>
+            </div>
+        </div>
+        
+        <div class="nav-dropdown">
+            <a href="#" class="nav-item nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('open'); return false;">
+                <i class="ri-safe-line"></i> Caja
+                <i class="ri-arrow-down-s-line chevron"></i>
+            </a>
+            <div class="nav-submenu">
+                <a href="caja_gastos_eventuales_prototipo.html" class="submenu-item">Gastos eventuales</a>
+                <a href="caja_gastos_fijos_prototipo.html" class="submenu-item">Gastos fijos</a>
+                <a href="caja_ingresos_extra_prototipo.html" class="submenu-item">Ingresos extra</a>
+            </div>
+        </div>
+
+        <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #475569; padding: 16px 14px 6px;">Operación</div>
+        <a href="pos_prototipo.html" class="nav-item"><i class="ri-store-2-line"></i> Punto de Venta</a>
+        <a href="kds_prototipo.html" class="nav-item"><i class="ri-restaurant-line"></i> Cocina</a>
+        <a href="delivery_prototipo.html" class="nav-item"><i class="ri-e-bike-2-line"></i> Delivery</a>
+        <a href="cajas_prototipo.html" class="nav-item"><i class="ri-money-dollar-box-line"></i> Caja POS</a>
+    </nav>
+
+    <div style="margin-top: auto; padding: 20px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 16px;">
+        <select class="branch-select" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px; font-size: 13px; border-radius: 8px;">
+            <option value="lanus" selected style="color: black;">📍 Burger Music Lanus</option>
+        </select>
+        <div class="user-profile" style="display: flex; align-items: center; gap: 12px; padding: 0; cursor: pointer;">
+            <div class="avatar" style="width: 32px; height: 32px; font-size: 14px; background: #EA580C; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">G</div>
+            <div style="display: flex; flex-direction: column; overflow: hidden;">
+                <span style="font-size: 12px; font-weight: 600; color: white; white-space: nowrap;">gabriel@burgermusic.com</span>
+                <span style="font-size: 11px; color: #94A3B8;">Administrador</span>
+            </div>
+        </div>
+    </div>
+</aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Topbar Removed -->
+
+        <!-- Content Area -->
+        <div class="content-area">
+            <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div class="page-title">
+                    <h1>Producción (Gerencial)</h1>
+                    <p>Auditoría de rinde, eficiencia operativa y seguimiento de lotes.</p>
+                </div>
+                <a href="produccion_prototipo.html" style="background: var(--brand-primary); color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; display: flex; align-items: center; gap: 8px; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); transition: 0.2s;" onmouseover="this.style.background='var(--brand-primary-hover)'" onmouseout="this.style.background='var(--brand-primary)'">
+                    <i class="ri-settings-4-fill"></i> Ver Panel Operativo
+                </a>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs-container">
+                <button class="tab-btn active" onclick="switchTab('tab-dashboard', this)"><i class="ri-dashboard-line"></i> Dashboard General</button>
+                <button class="tab-btn" onclick="switchTab('tab-carnes', this)"><i class="ri-restaurant-line"></i> Auditoría de Carnes</button>
+                <button class="tab-btn" onclick="switchTab('tab-secos', this)"><i class="ri-bread-line"></i> Secos y Líquidos</button>
+                <button class="tab-btn" onclick="switchTab('tab-tecnica', this)"><i class="ri-book-read-line"></i> Guía Técnica</button>
+            </div>
+
+            <!-- TAB: DASHBOARD GENERAL -->
+            <div id="tab-dashboard" class="tab-pane active">
+                <div class="unified-alert-bar">
+                    <div class="alert-dropdown-container">
+                        <div class="unified-alert stock-alert" onclick="toggleAlertDropdown('dropdown-stock')">
+                            <i class="ri-error-warning-fill"></i> 1 Desviación de Rinde (Lote L-2807) <i class="ri-arrow-down-s-line" style="margin-left: 4px; font-size: 16px;"></i>
+                        </div>
+                    </div>
+                    <div class="alert-dropdown-container">
+                        <div class="unified-alert pending-alert" onclick="toggleAlertDropdown('dropdown-pagos')">
+                            <i class="ri-history-line"></i> 2 Recetas sin calibrar <i class="ri-arrow-down-s-line" style="margin-left: 4px; font-size: 16px;"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <section class="metrics-grid">
+                    <!-- Eficiencia Global -->
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <span class="metric-title">EFICIENCIA GLOBAL</span>
+                            <div class="metric-icon" style="background: #E8F5E9; color: #10B981;"><i class="ri-pie-chart-line"></i></div>
+                        </div>
+                        <div class="metric-value montserrat">94%</div>
+                        <div class="metric-trend trend-up"><i class="ri-arrow-up-line"></i> <span>2% vs. semana pasada</span></div>
+                    </div>
+                    <!-- Reaprovechamiento -->
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <span class="metric-title">REAPROVECHAMIENTO</span>
+                            <div class="metric-icon" style="background: #E0F2FE; color: #0EA5E9;"><i class="ri-recycle-line"></i></div>
+                        </div>
+                        <div class="metric-value montserrat">87%</div>
+                        <div class="metric-trend text-muted"><i class="ri-subtract-line"></i> <span>Estable</span></div>
+                    </div>
+                    <!-- Merma -->
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <span class="metric-title">MERMA ECONÓMICA</span>
+                            <div class="metric-icon" style="background: #FEE2E2; color: #EF4444;"><i class="ri-line-chart-down-line"></i></div>
+                        </div>
+                        <div class="metric-value montserrat" style="color: #EF4444;">$ 8.400</div>
+                        <div class="metric-trend trend-down"><i class="ri-arrow-down-line"></i> <span>12% vs. semana pasada</span></div>
+                    </div>
+                    <!-- Lotes Hoy -->
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <span class="metric-title">LOTES HOY</span>
+                            <div class="metric-icon" style="background: #FFF7ED; color: #F97316;"><i class="ri-stack-line"></i></div>
+                        </div>
+                        <div class="metric-value montserrat">7</div>
+                        <div class="metric-trend trend-up"><i class="ri-arrow-up-line"></i> <span>3 Carnes - 2 Panes - 2 Salsas</span></div>
+                    </div>
+                </section>
+
+                <section class="metrics-grid" style="margin-bottom: 24px;">
+                    <div class="metric-card" style="grid-column: span 4;">
+                        <div class="metric-header" style="margin-bottom: 12px;">
+                            <span class="metric-title">Consumo de Materia Prima (Hoy)</span>
+                            <div class="inline-filters">
+                                <span class="filter-pill active">Hoy</span>
+                                <span class="filter-pill">7d</span>
+                                <span class="filter-pill">30d</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span style="width: 160px; font-size: 13px; color: var(--text-muted);">Medallones 110g</span>
+                                <div style="flex: 1; background: #F1F5F9; border-radius: 4px; height: 20px; overflow: hidden;">
+                                    <div style="width: 78%; height: 100%; background: var(--brand-primary); border-radius: 4px; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; color: white; font-size: 11px; font-weight: 700;">156 un</div>
+                                </div>
+                                <span style="font-size: 12px; color: var(--text-muted); width: 60px; text-align: right;">de 200</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span style="width: 160px; font-size: 13px; color: var(--text-muted);">Pan TBP</span>
+                                <div style="flex: 1; background: #F1F5F9; border-radius: 4px; height: 20px; overflow: hidden;">
+                                    <div style="width: 62%; height: 100%; background: #F59E0B; border-radius: 4px; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; color: white; font-size: 11px; font-weight: 700;">124 un</div>
+                                </div>
+                                <span style="font-size: 12px; color: var(--text-muted); width: 60px; text-align: right;">de 200</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span style="width: 160px; font-size: 13px; color: var(--text-muted);">Papas Simplot</span>
+                                <div style="flex: 1; background: #F1F5F9; border-radius: 4px; height: 20px; overflow: hidden;">
+                                    <div style="width: 45%; height: 100%; background: #10B981; border-radius: 4px; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; color: white; font-size: 11px; font-weight: 700;">18.000 g</div>
+                                </div>
+                                <span style="font-size: 12px; color: var(--text-muted); width: 60px; text-align: right;">de 40 kg</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- TAB: CARNES (EMBUDO VISUAL) -->
+            <div id="tab-carnes" class="tab-pane">
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px;">
+                    <div>
+                        <h2 style="font-family: 'Montserrat'; font-size: 20px; font-weight: 700; color: var(--text-main);">Auditoría de Lotes: Medallones</h2>
+                        <p style="font-size: 14px; color: var(--text-muted);">Seguimiento de rendimiento teórico vs real por lote de producción.</p>
+                    </div>
+                    <button class="btn-secondary" style="padding: 8px 16px; background: white; border: 1px solid var(--border-light); border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer;"><i class="ri-filter-3-line"></i> Filtrar Lotes</button>
+                </div>
+
+                <!-- Lista Compacta de Lotes Agrupada por Fecha -->
+                <div style="display: flex; flex-direction: column; gap: 20px;">
+                    
+                    <!-- GRUPO: HOY -->
+                    <div>
+                        <div class="lot-group-header" onclick="
+                            const content = this.nextElementSibling;
+                            const chevron = this.querySelector('.group-chevron');
+                            if(content.style.display === 'none') {
+                                content.style.display = 'flex';
+                                chevron.style.transform = 'rotate(0deg)';
+                            } else {
+                                content.style.display = 'none';
+                                chevron.style.transform = 'rotate(-90deg)';
+                            }
+                        " style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #F8FAFC; border-radius: 8px; cursor: pointer; border: 1px solid var(--border-light); margin-bottom: 12px; transition: 0.2s;" onmouseover="this.style.background='#F1F5F9'" onmouseout="this.style.background='#F8FAFC'">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <i class="ri-calendar-event-line" style="color: var(--brand-primary); font-size: 18px;"></i>
+                                <span style="font-family: 'Montserrat'; font-weight: 700; font-size: 14px; color: var(--text-main);">Hoy - 8 de Agosto</span>
+                                <span style="background: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; color: var(--text-muted); border: 1px solid var(--border-light);">1 Lote</span>
+                            </div>
+                            <i class="ri-arrow-down-s-line group-chevron" style="transition: transform 0.2s; font-size: 20px; color: var(--text-muted);"></i>
+                        </div>
+                        
+                        <div class="lot-group-content" style="display: flex; flex-direction: column; gap: 12px;">
+                            <!-- Lote 2: OK -->
+                            <div style="display: flex; align-items: stretch; background: white; border: 1px solid var(--border-light); border-left: 4px solid var(--color-success); border-radius: 8px; overflow: hidden; box-shadow: var(--shadow-sm);">
+                                <div style="padding: 16px 20px; background: #F8FAFC; border-right: 1px solid var(--border-light); min-width: 220px; display: flex; flex-direction: column; justify-content: center;">
+                                    <div style="font-family: 'Montserrat'; font-weight: 800; color: var(--text-main); font-size: 16px; margin-bottom: 4px;">Lote L-2808</div>
+                                    <div style="font-size: 11px; color: var(--text-muted); font-weight: 700; text-transform: uppercase;"><i class="ri-time-line"></i> Turno Mañana</div>
+                                </div>
+                                
+                                <div style="flex: 1; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+                                    <!-- Flujo Compacto -->
+                                    <div style="display: flex; align-items: center; gap: 20px; font-size: 13px;">
+                                        <div style="text-align: center;">
+                                            <div style="font-weight: 800; color: var(--text-main); font-size: 15px;">11,0 kg</div>
+                                            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Materia Prima</div>
+                                        </div>
+                                        <i class="ri-arrow-right-line" style="color: var(--border-dark); font-size: 18px;"></i>
+                                        <div style="text-align: center;">
+                                            <div style="font-weight: 800; color: var(--text-main); font-size: 15px;">100 un</div>
+                                            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Rinde Teórico</div>
+                                        </div>
+                                        <i class="ri-arrow-right-line" style="color: var(--border-dark); font-size: 18px;"></i>
+                                        <div style="text-align: center; background: var(--bg-success-light); padding: 8px 12px; border-radius: 6px; border: 1px solid #A7F3D0;">
+                                            <div style="font-weight: 800; color: var(--color-success); font-size: 15px;">98 un</div>
+                                            <div style="font-size: 11px; color: var(--color-success); text-transform: uppercase; font-weight: 700;">Real Producido</div>
+                                        </div>
+                                        <i class="ri-add-line" style="color: var(--border-dark); font-size: 18px;"></i>
+                                        <div style="text-align: center; background: var(--bg-warning-light); padding: 8px 12px; border-radius: 6px; border: 1px solid #FDE68A;">
+                                            <div style="font-weight: 800; color: var(--color-warning); font-size: 15px;">2 un</div>
+                                            <div style="font-size: 11px; color: var(--color-warning); text-transform: uppercase; font-weight: 700;">Merma</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Status badge -->
+                                    <div style="background: var(--bg-success-light); color: var(--color-success); padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px; border: 1px solid #A7F3D0;">
+                                        <i class="ri-checkbox-circle-fill" style="font-size: 18px;"></i> Rinde Exacto
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- GRUPO: AYER -->
+                    <div>
+                        <div class="lot-group-header" onclick="
+                            const content = this.nextElementSibling;
+                            const chevron = this.querySelector('.group-chevron');
+                            if(content.style.display === 'none') {
+                                content.style.display = 'flex';
+                                chevron.style.transform = 'rotate(0deg)';
+                            } else {
+                                content.style.display = 'none';
+                                chevron.style.transform = 'rotate(-90deg)';
+                            }
+                        " style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #F8FAFC; border-radius: 8px; cursor: pointer; border: 1px solid var(--border-light); margin-bottom: 12px; transition: 0.2s;" onmouseover="this.style.background='#F1F5F9'" onmouseout="this.style.background='#F8FAFC'">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <i class="ri-calendar-event-line" style="color: var(--brand-primary); font-size: 18px;"></i>
+                                <span style="font-family: 'Montserrat'; font-weight: 700; font-size: 14px; color: var(--text-main);">Ayer - 7 de Agosto</span>
+                                <span style="background: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; color: var(--text-muted); border: 1px solid var(--border-light);">1 Lote (Desviación)</span>
+                            </div>
+                            <i class="ri-arrow-down-s-line group-chevron" style="transition: transform 0.2s; font-size: 20px; color: var(--text-muted);"></i>
+                        </div>
+                        
+                        <div class="lot-group-content" style="display: flex; flex-direction: column; gap: 12px;">
+                            <!-- Lote 1: Con Desviación -->
+                            <div style="display: flex; align-items: stretch; background: white; border: 1px solid var(--border-light); border-left: 4px solid var(--color-danger); border-radius: 8px; overflow: hidden; box-shadow: var(--shadow-sm);">
+                                <div style="padding: 16px 20px; background: #F8FAFC; border-right: 1px solid var(--border-light); min-width: 220px; display: flex; flex-direction: column; justify-content: center;">
+                                    <div style="font-family: 'Montserrat'; font-weight: 800; color: var(--text-main); font-size: 16px; margin-bottom: 4px;">Lote L-2807</div>
+                                    <div style="font-size: 11px; color: var(--text-muted); font-weight: 700; text-transform: uppercase;"><i class="ri-time-line"></i> Turno Noche</div>
+                                </div>
+                                
+                                <div style="flex: 1; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+                                    <!-- Flujo Compacto -->
+                                    <div style="display: flex; align-items: center; gap: 20px; font-size: 13px;">
+                                        <div style="text-align: center;">
+                                            <div style="font-weight: 800; color: var(--text-main); font-size: 15px;">22,0 kg</div>
+                                            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Materia Prima</div>
+                                        </div>
+                                        <i class="ri-arrow-right-line" style="color: var(--border-dark); font-size: 18px;"></i>
+                                        <div style="text-align: center;">
+                                            <div style="font-weight: 800; color: var(--text-main); font-size: 15px;">200 un</div>
+                                            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Rinde Teórico</div>
+                                        </div>
+                                        <i class="ri-arrow-right-line" style="color: var(--border-dark); font-size: 18px;"></i>
+                                        <div style="text-align: center; background: var(--bg-success-light); padding: 8px 12px; border-radius: 6px; border: 1px solid #A7F3D0;">
+                                            <div style="font-weight: 800; color: var(--color-success); font-size: 15px;">112 un</div>
+                                            <div style="font-size: 11px; color: var(--color-success); text-transform: uppercase; font-weight: 700;">Real Producido</div>
+                                        </div>
+                                        <i class="ri-add-line" style="color: var(--border-dark); font-size: 18px;"></i>
+                                        <div style="text-align: center; background: var(--bg-warning-light); padding: 8px 12px; border-radius: 6px; border: 1px solid #FDE68A;">
+                                            <div style="font-weight: 800; color: var(--color-warning); font-size: 15px;">8 un</div>
+                                            <div style="font-size: 11px; color: var(--color-warning); text-transform: uppercase; font-weight: 700;">Merma</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Alert badge -->
+                                    <div style="background: var(--bg-danger-light); color: var(--color-danger); padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px; border: 1px solid #FECACA;">
+                                        <i class="ri-error-warning-fill" style="font-size: 18px;"></i> Faltan 80 un.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- TAB: SECOS Y LÍQUIDOS -->
+            <div id="tab-secos" class="tab-pane">
+                <div style="padding: 40px; text-align: center; color: var(--text-muted);">
+                    <i class="ri-bread-line" style="font-size: 48px; color: #CBD5E1;"></i>
+                    <h3>Auditoría de Panadería y Salsas</h3>
+                    <p>Seleccione un lote para ver el embudo de rinde.</p>
+                </div>
+            </div>
+
+            <!-- TAB: GUÍA TÉCNICA -->
+            <div id="tab-tecnica" class="tab-pane">
+                <div style="max-width: 1000px;">
+                    <div style="margin-bottom: 24px;">
+                        <h2 style="font-family: 'Montserrat'; font-size: 20px; font-weight: 700; color: var(--text-main);">Estándar de Medida en Recetas</h2>
+                        <p style="font-size: 14px; color: var(--text-muted);">Valores teóricos utilizados por el motor del sistema para estandarizar el rendimiento de los lotes y descontar del inventario maestro de manera unificada.</p>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;">
+                        
+                        <!-- SÓLIDOS -->
+                        <div style="background: white; border: 1px solid var(--border-light); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-sm);">
+                            <div style="background: #F0FDF4; padding: 16px 20px; border-bottom: 1px solid #BBF7D0; display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 40px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #16A34A; font-size: 22px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                    <i class="ri-scales-3-line"></i>
+                                </div>
+                                <div>
+                                    <h3 style="font-family: 'Montserrat'; font-size: 15px; font-weight: 700; color: #166534; margin: 0;">Sólidos</h3>
+                                    <div style="font-size: 12px; color: #15803D; font-weight: 600;">Gramos (g) / Kilos (kg)</div>
+                                </div>
+                            </div>
+                            <div style="padding: 20px; display: flex; flex-direction: column; gap: 12px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px dashed var(--border-light);">
+                                    <span style="font-size: 14px; font-weight: 600; color: var(--text-main);">Medallón</span>
+                                    <span style="background: #F1F5F9; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; color: var(--text-muted);">110 g</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px dashed var(--border-light);">
+                                    <span style="font-size: 14px; font-weight: 600; color: var(--text-main);">Cheddar (Feta)</span>
+                                    <span style="background: #F1F5F9; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; color: var(--text-muted);">30 g</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-size: 14px; font-weight: 600; color: var(--text-main);">Panceta (Veta)</span>
+                                    <span style="background: #F1F5F9; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; color: var(--text-muted);">15 g</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- LÍQUIDOS -->
+                        <div style="background: white; border: 1px solid var(--border-light); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-sm);">
+                            <div style="background: #EFF6FF; padding: 16px 20px; border-bottom: 1px solid #BFDBFE; display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 40px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #2563EB; font-size: 22px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                    <i class="ri-drop-line"></i>
+                                </div>
+                                <div>
+                                    <h3 style="font-family: 'Montserrat'; font-size: 15px; font-weight: 700; color: #1E40AF; margin: 0;">Líquidos / Salsas</h3>
+                                    <div style="font-size: 12px; color: #1D4ED8; font-weight: 600;">Mililitros (ml) / Litros (l)</div>
+                                </div>
+                            </div>
+                            <div style="padding: 20px; display: flex; flex-direction: column; gap: 12px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px dashed var(--border-light);">
+                                    <span style="font-size: 14px; font-weight: 600; color: var(--text-main);">Salsa Cuarto</span>
+                                    <span style="background: #F1F5F9; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; color: var(--text-muted);">25 ml</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px dashed var(--border-light);">
+                                    <span style="font-size: 14px; font-weight: 600; color: var(--text-main);">Dip Cheddar</span>
+                                    <span style="background: #F1F5F9; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; color: var(--text-muted);">40 ml</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-size: 14px; font-weight: 600; color: var(--text-main);">Salsa Tasty</span>
+                                    <span style="background: #F1F5F9; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; color: var(--text-muted);">30 ml</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CONTABLES -->
+                        <div style="background: white; border: 1px solid var(--border-light); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-sm);">
+                            <div style="background: #FFFBEB; padding: 16px 20px; border-bottom: 1px solid #FDE68A; display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 40px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #D97706; font-size: 22px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                    <i class="ri-hashtag"></i>
+                                </div>
+                                <div>
+                                    <h3 style="font-family: 'Montserrat'; font-size: 15px; font-weight: 700; color: #92400E; margin: 0;">Contables</h3>
+                                    <div style="font-size: 12px; color: #B45309; font-weight: 600;">Unidades (un)</div>
+                                </div>
+                            </div>
+                            <div style="padding: 20px; display: flex; flex-direction: column; gap: 12px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px dashed var(--border-light);">
+                                    <span style="font-size: 14px; font-weight: 600; color: var(--text-main);">Panes (Cualquiera)</span>
+                                    <span style="background: #F1F5F9; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; color: var(--text-muted);">1 un</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px dashed var(--border-light);">
+                                    <span style="font-size: 14px; font-weight: 600; color: var(--text-main);">Huevos</span>
+                                    <span style="background: #F1F5F9; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; color: var(--text-muted);">1 un</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-size: 14px; font-weight: 600; color: var(--text-main);">Latas / Botellas</span>
+                                    <span style="background: #F1F5F9; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; color: var(--text-muted);">1 un</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+    <script>
+        function toggleAlertDropdown(id) {
+            const el = document.getElementById(id);
+            if(el.classList.contains('show')) {
+                el.classList.remove('show');
+            } else {
+                document.querySelectorAll('.alert-dropdown-menu').forEach(m => m.classList.remove('show'));
+                el.classList.add('show');
+            }
+        }
+        
+        function switchTab(tabId, btnElement) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+            
+            btnElement.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+    </script>
+</body>
+</html>
