@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Music OS - Auditoría Depósito</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Montserrat:wght@500;700;900&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-body: #F8FAFC;
+            --bg-surface: #FFFFFF;
+            --brand-primary: #0F172A; 
+            --brand-success: #10B981;
+            --brand-danger: #EF4444;
+            --brand-warning: #F59E0B;
+            --brand-info: #3B82F6;
+            --text-main: #0F172A;
+            --text-muted: #64748B;
+            --border-light: #E2E8F0;
+            --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            
+            --alert-high-bg: #FEF2F2;
+            --alert-high-text: #DC2626;
+            --alert-med-bg: #FFFBEB;
+            --alert-med-text: #D97706;
+            --alert-ok-bg: #D1FAE5;
+            --alert-ok-text: #059669;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: #1E293B;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .mobile-container {
+            width: 100%;
+            max-width: 400px;
+            height: 100vh;
+            max-height: 850px;
+            background-color: var(--bg-body);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        @media (min-width: 450px) {
+            .mobile-container {
+                height: 85vh;
+                border-radius: 32px;
+                border: 8px solid #0F172A;
+            }
+        }
+
+        .app-bar {
+            background-color: var(--brand-primary);
+            color: white;
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+
+        .app-bar h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .app-bar i {
+            font-size: 24px;
+            cursor: pointer;
+            color: white;
+        }
+        
+        .header-context {
+            background: var(--bg-surface);
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .context-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .context-value {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .user-avatar {
+            width: 36px; height: 36px;
+            background: #F1F5F9;
+            border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            font-family: 'Montserrat'; font-weight: 800; color: var(--brand-primary);
+            border: 2px solid #E2E8F0;
+        }
+
+        .scroll-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 16px 100px 16px;
+        }
+
+        .category-card {
+            background: var(--bg-surface);
+            border-radius: 16px;
+            box-shadow: var(--shadow-card);
+            margin-bottom: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border-light);
+        }
+
+        .category-header {
+            padding: 16px;
+            background: #F8FAFC;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .category-icon {
+            width: 32px; height: 32px;
+            border-radius: 8px;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 18px;
+        }
+
+        .category-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+        
+        .progress-pill {
+            margin-left: auto;
+            background: #E2E8F0;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+        .progress-pill.done {
+            background: var(--alert-ok-bg);
+            color: var(--alert-ok-text);
+        }
+
+        .item-row {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: background 0.2s;
+        }
+        .item-row:last-child {
+            border-bottom: none;
+        }
+
+        .item-info {
+            flex: 1;
+        }
+
+        .item-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 2px;
+        }
+
+        .item-unit {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .item-input-wrapper {
+            position: relative;
+            width: 80px;
+        }
+
+        .item-input {
+            width: 100%;
+            padding: 12px 12px;
+            border: 2px solid var(--border-light);
+            border-radius: 8px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 16px;
+            font-weight: 800;
+            text-align: center;
+            color: var(--text-main);
+            outline: none;
+            transition: all 0.2s;
+            background: #F1F5F9;
+        }
+        .item-input:focus {
+            border-color: var(--brand-info);
+            background: #FFF;
+        }
+        .item-input.filled {
+            border-color: var(--border-light);
+            background: #FFF;
+        }
+
+        .status-indicator {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            background: #F1F5F9;
+            color: #94A3B8;
+            transition: all 0.3s;
+        }
+        .status-ok { background: var(--alert-ok-bg); color: var(--alert-ok-text); }
+        .status-warn { background: var(--alert-med-bg); color: var(--alert-med-text); }
+        .status-crit { background: var(--alert-high-bg); color: var(--alert-high-text); }
+
+        .bottom-action {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            background: var(--bg-surface);
+            padding: 16px 24px 24px;
+            border-top: 1px solid var(--border-light);
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+        }
+
+        .btn-save {
+            width: 100%;
+            padding: 16px;
+            background: var(--brand-primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 16px;
+            font-weight: 800;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .btn-save:disabled {
+            background: #CBD5E1;
+            color: #94A3B8;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn-save:not(:disabled):active {
+            transform: scale(0.98);
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="mobile-container">
+    
+    <!-- App Bar -->
+    <div class="app-bar">
+        <a href="dashboard_prototipo.html" style="color:white; text-decoration: none;"><i class="ri-arrow-left-line"></i></a>
+        <h1>Conteo Depósito</h1>
+        <i class="ri-history-line"></i>
+    </div>
+
+    <!-- Contexto del Turno -->
+    <div class="header-context">
+        <div>
+            <div class="context-label">Turno Actual</div>
+            <div class="context-value">Domingo - Noche</div>
+        </div>
+        <div class="user-avatar">
+            FL
+        </div>
+    </div>
+
+    <!-- Contenido Scrollable -->
+    <div class="scroll-content" id="auditContainer">
+        
+        <!-- Categoría 1 -->
+        <div class="category-card" id="cat-carnes">
+            <div class="category-header">
+                <div class="category-icon" style="background: #FEE2E2; color: #DC2626;"><i class="ri-fire-line"></i></div>
+                <div class="category-title">Carnes</div>
+                <div class="progress-pill" id="prog-carnes">0/3</div>
+            </div>
+            
+            <div class="item-row">
+                <div class="item-info">
+                    <div class="item-name">Medallones de Carne</div>
+                    <div class="item-unit">unidades</div>
+                </div>
+                <div class="item-input-wrapper">
+                    <input type="number" inputmode="numeric" class="item-input audit-input" data-min="50" data-cat="carnes" oninput="checkStatus(this)">
+                </div>
+                <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
+            </div>
+            <div class="item-row">
+                <div class="item-info">
+                    <div class="item-name">Nirvana de Carne</div>
+                    <div class="item-unit">unidades</div>
+                </div>
+                <div class="item-input-wrapper">
+                    <input type="number" inputmode="numeric" class="item-input audit-input" data-min="4" data-cat="carnes" oninput="checkStatus(this)">
+                </div>
+                <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
+            </div>
+            <div class="item-row">
+                <div class="item-info">
+                    <div class="item-name">Nirvana de Pollo</div>
+                    <div class="item-unit">unidades</div>
+                </div>
+                <div class="item-input-wrapper">
+                    <input type="number" inputmode="numeric" class="item-input audit-input" data-min="2" data-cat="carnes" oninput="checkStatus(this)">
+                </div>
+                <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
+            </div>
+        </div>
+
+        <!-- Categoría 2 -->
+        <div class="category-card" id="cat-panes">
+            <div class="category-header">
+                <div class="category-icon" style="background: #FEF3C7; color: #D97706;"><i class="ri-bread-line"></i></div>
+                <div class="category-title">Panes</div>
+                <div class="progress-pill" id="prog-panes">0/4</div>
+            </div>
+            
+            <div class="item-row">
+                <div class="item-info">
+                    <div class="item-name">Pan TBP</div>
+                    <div class="item-unit">unidades</div>
+                </div>
+                <div class="item-input-wrapper">
+                    <input type="number" inputmode="numeric" class="item-input audit-input" data-min="200" data-cat="panes" oninput="checkStatus(this)">
+                </div>
+                <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
+            </div>
+            <div class="item-row">
+                <div class="item-info">
+                    <div class="item-name">Pan Lunático</div>
+                    <div class="item-unit">unidades</div>
+                </div>
+                <div class="item-input-wrapper">
+                    <input type="number" inputmode="numeric" class="item-input audit-input" data-min="10" data-cat="panes" oninput="checkStatus(this)">
+                </div>
+                <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
+            </div>
+            <div class="item-row">
+                <div class="item-info">
+                    <div class="item-name">Pan Queso Gratinado</div>
+                    <div class="item-unit">unidades</div>
+                </div>
+                <div class="item-input-wrapper">
+                    <input type="number" inputmode="numeric" class="item-input audit-input" data-min="20" data-cat="panes" oninput="checkStatus(this)">
+                </div>
+                <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
+            </div>
+            <div class="item-row">
+                <div class="item-info">
+                    <div class="item-name">Pan Nirvana</div>
+                    <div class="item-unit">unidades</div>
+                </div>
+                <div class="item-input-wrapper">
+                    <input type="number" inputmode="numeric" class="item-input audit-input" data-min="5" data-cat="panes" oninput="checkStatus(this)">
+                </div>
+                <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
+            </div>
+        </div>
+
+        <!-- Categoría 3 -->
+        <div class="category-card" id="cat-congelados">
+            <div class="category-header">
+                <div class="category-icon" style="background: #E0F2FE; color: #0284C7;"><i class="ri-snowflake-line"></i></div>
+                <div class="category-title">Congelados</div>
+                <div class="progress-pill" id="prog-congelados">0/2</div>
+            </div>
+            
+            <div class="item-row">
+                <div class="item-info">
+                    <div class="item-name">Papas Simplot Crunch</div>
+                    <div class="item-unit">bolsas</div>
+                </div>
+                <div class="item-input-wrapper">
+                    <input type="number" inputmode="numeric" class="item-input audit-input" data-min="10" data-cat="congelados" oninput="checkStatus(this)">
+                </div>
+                <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
+            </div>
+            <div class="item-row">
+                <div class="item-info">
+                    <div class="item-name">Salchichas Unión G.</div>
+                    <div class="item-unit">paquetes</div>
+                </div>
+                <div class="item-input-wrapper">
+                    <input type="number" inputmode="numeric" class="item-input audit-input" data-min="5" data-cat="congelados" oninput="checkStatus(this)">
+                </div>
+                <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
+            </div>
+        </div>
+        
+    </div>
+
+    <!-- Botón Inferior -->
+    <div class="bottom-action">
+        <button class="btn-save" id="btnSave" disabled onclick="saveAudit()">
+            <i class="ri-save-3-line"></i> Registrar Stock (<span id="totalCount">0/9</span>)
+        </button>
+    </div>
+
+</div>
+
+<script>
+    const totalItems = document.querySelectorAll('.audit-input').length;
+    let completedItems = 0;
+
+    function checkStatus(inputElement) {
+        const row = inputElement.closest('.item-row');
+        const indicator = row.querySelector('.status-indicator');
+        const icon = indicator.querySelector('i');
+        const minStock = parseFloat(inputElement.getAttribute('data-min'));
+        const val = parseFloat(inputElement.value);
+
+        // Reset classes
+        indicator.className = 'status-indicator';
+        inputElement.classList.add('filled');
+
+        if (isNaN(val) || inputElement.value === '') {
+            inputElement.classList.remove('filled');
+            icon.className = 'ri-checkbox-blank-circle-line';
+        } else if (val === 0) {
+            indicator.classList.add('status-crit');
+            icon.className = 'ri-error-warning-fill';
+        } else if (val <= minStock) {
+            indicator.classList.add('status-warn');
+            icon.className = 'ri-alert-fill';
+        } else {
+            indicator.classList.add('status-ok');
+            icon.className = 'ri-check-fill';
+        }
+
+        updateProgress();
+    }
+
+    function updateProgress() {
+        const allInputs = document.querySelectorAll('.audit-input');
+        completedItems = 0;
+        
+        let cats = { carnes: {c:0, t:3}, panes: {c:0, t:4}, congelados: {c:0, t:2} };
+
+        allInputs.forEach(input => {
+            if (input.value !== '') {
+                completedItems++;
+                cats[input.getAttribute('data-cat')].c++;
+            }
+        });
+
+        // Update pills
+        for (let cat in cats) {
+            const pill = document.getElementById(`prog-${cat}`);
+            pill.textContent = `${cats[cat].c}/${cats[cat].t}`;
+            if (cats[cat].c === cats[cat].t) {
+                pill.classList.add('done');
+            } else {
+                pill.classList.remove('done');
+            }
+        }
+
+        // Update main button
+        document.getElementById('totalCount').textContent = `${completedItems}/${totalItems}`;
+        if (completedItems === totalItems) {
+            document.getElementById('btnSave').disabled = false;
+            document.getElementById('btnSave').style.background = 'var(--brand-success)';
+        } else {
+            document.getElementById('btnSave').disabled = true;
+            document.getElementById('btnSave').style.background = '#CBD5E1';
+        }
+    }
+
+    function saveAudit() {
+        document.getElementById('btnSave').innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Registrando...';
+        setTimeout(() => {
+            alert('¡Stock registrado exitosamente! Las alertas han sido enviadas al Dashboard.');
+            window.location.href = "dashboard_prototipo.html";
+        }, 800);
+    }
+</script>
+
+</body>
+</html>
