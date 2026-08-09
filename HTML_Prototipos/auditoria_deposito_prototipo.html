@@ -208,7 +208,7 @@
 
         .item-input {
             width: 100%;
-            padding: 12px 12px;
+            padding: 12px 6px;
             border: 2px solid var(--border-light);
             border-radius: 8px;
             font-family: 'Montserrat', sans-serif;
@@ -230,13 +230,13 @@
         }
 
         .status-indicator {
-            width: 40px;
-            height: 40px;
+            width: 32px;
+            height: 32px;
             border-radius: 8px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 20px;
+            font-size: 16px;
             background: #F1F5F9;
             color: #94A3B8;
             transition: all 0.3s;
@@ -300,17 +300,17 @@
     <div class="header-context">
         <div>
             <div class="context-label">Turno Actual</div>
-            <div class="context-value">Domingo - Noche</div>
+            <div class="context-value">Mediodía (Mariana)</div>
         </div>
         <div class="user-avatar">
-            FL
+            MA
         </div>
     </div>
 
     <!-- Contenido Scrollable -->
     <div class="scroll-content" id="auditContainer">
         
-        <!-- Categoría 1 -->
+        <!-- Categoría 1: CARNES -->
         <div class="category-card" id="cat-carnes">
             <div class="category-header">
                 <div class="category-icon" style="background: #FEE2E2; color: #DC2626;"><i class="ri-fire-line"></i></div>
@@ -324,7 +324,7 @@
                     <div class="item-unit">unidades</div>
                 </div>
                 <div class="item-input-wrapper">
-                    <input type="number" inputmode="numeric" class="item-input audit-input" data-min="50" data-cat="carnes" oninput="checkStatus(this)">
+                    <input type="number" step="any" inputmode="decimal" class="item-input audit-input" data-min="50" data-cat="carnes" oninput="checkStatus(this)">
                 </div>
                 <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
             </div>
@@ -334,7 +334,7 @@
                     <div class="item-unit">unidades</div>
                 </div>
                 <div class="item-input-wrapper">
-                    <input type="number" inputmode="numeric" class="item-input audit-input" data-min="4" data-cat="carnes" oninput="checkStatus(this)">
+                    <input type="number" step="any" inputmode="decimal" class="item-input audit-input" data-min="4" data-cat="carnes" oninput="checkStatus(this)">
                 </div>
                 <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
             </div>
@@ -344,18 +344,18 @@
                     <div class="item-unit">unidades</div>
                 </div>
                 <div class="item-input-wrapper">
-                    <input type="number" inputmode="numeric" class="item-input audit-input" data-min="2" data-cat="carnes" oninput="checkStatus(this)">
+                    <input type="number" step="any" inputmode="decimal" class="item-input audit-input" data-min="2" data-cat="carnes" oninput="checkStatus(this)">
                 </div>
                 <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
             </div>
         </div>
 
-        <!-- Categoría 2 -->
+        <!-- Categoría 2: PANES -->
         <div class="category-card" id="cat-panes">
             <div class="category-header">
                 <div class="category-icon" style="background: #FEF3C7; color: #D97706;"><i class="ri-bread-line"></i></div>
                 <div class="category-title">Panes</div>
-                <div class="progress-pill" id="prog-panes">0/4</div>
+                <div class="progress-pill" id="prog-panes">0/6</div>
             </div>
             
             <div class="item-row">
@@ -364,27 +364,47 @@
                     <div class="item-unit">unidades</div>
                 </div>
                 <div class="item-input-wrapper">
-                    <input type="number" inputmode="numeric" class="item-input audit-input" data-min="200" data-cat="panes" oninput="checkStatus(this)">
+                    <input type="number" step="any" inputmode="decimal" class="item-input audit-input" data-min="200" data-cat="panes" oninput="checkStatus(this)">
                 </div>
                 <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
             </div>
             <div class="item-row">
                 <div class="item-info">
-                    <div class="item-name">Pan Lunático</div>
+                    <div class="item-name">Lunático</div>
                     <div class="item-unit">unidades</div>
                 </div>
                 <div class="item-input-wrapper">
-                    <input type="number" inputmode="numeric" class="item-input audit-input" data-min="10" data-cat="panes" oninput="checkStatus(this)">
+                    <input type="number" step="any" inputmode="decimal" class="item-input audit-input" data-min="4" data-cat="panes" oninput="checkStatus(this)">
                 </div>
                 <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
             </div>
             <div class="item-row">
                 <div class="item-info">
-                    <div class="item-name">Pan Queso Gratinado</div>
+                    <div class="item-name">Queso Gratinado</div>
                     <div class="item-unit">unidades</div>
                 </div>
                 <div class="item-input-wrapper">
-                    <input type="number" inputmode="numeric" class="item-input audit-input" data-min="20" data-cat="panes" oninput="checkStatus(this)">
+                    <input type="number" step="any" inputmode="decimal" class="item-input audit-input" data-min="20" data-cat="panes" oninput="checkStatus(this)">
+                </div>
+                <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
+            </div>
+            <div class="item-row">
+                <div class="item-info">
+                    <div class="item-name">Sandwich</div>
+                    <div class="item-unit">unidades</div>
+                </div>
+                <div class="item-input-wrapper">
+                    <input type="number" step="any" inputmode="decimal" class="item-input audit-input" data-min="5" data-cat="panes" oninput="checkStatus(this)">
+                </div>
+                <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
+            </div>
+            <div class="item-row">
+                <div class="item-info">
+                    <div class="item-name">Pancho</div>
+                    <div class="item-unit">unidades</div>
+                </div>
+                <div class="item-input-wrapper">
+                    <input type="number" step="any" inputmode="decimal" class="item-input audit-input" data-min="5" data-cat="panes" oninput="checkStatus(this)">
                 </div>
                 <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
             </div>
@@ -394,18 +414,98 @@
                     <div class="item-unit">unidades</div>
                 </div>
                 <div class="item-input-wrapper">
-                    <input type="number" inputmode="numeric" class="item-input audit-input" data-min="5" data-cat="panes" oninput="checkStatus(this)">
+                    <input type="number" step="any" inputmode="decimal" class="item-input audit-input" data-min="5" data-cat="panes" oninput="checkStatus(this)">
                 </div>
                 <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
             </div>
         </div>
 
-        <!-- Categoría 3 -->
+        <!-- Categoría 3: QUESOS Y FIAMBRES -->
+        <div class="category-card" id="cat-quesos">
+            <div class="category-header">
+                <div class="category-icon" style="background: #FEF08A; color: #A16207;"><i class="ri-cheese-line"></i></div>
+                <div class="category-title">Quesos y Fiambres</div>
+                <div class="progress-pill" id="prog-quesos">0/7</div>
+            </div>
+            
+            <div class="item-row">
+                <div class="item-info">
+                    <div class="item-name">Cheddar Fetas</div>
+                    <div class="item-unit">barras</div>
+                </div>
+                <div class="item-input-wrapper">
+                    <input type="number" step="any" inputmode="decimal" class="item-input audit-input" data-min="2" data-cat="quesos" oninput="checkStatus(this)">
+                </div>
+                <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
+            </div>
+            <div class="item-row">
+                <div class="item-info">
+                    <div class="item-name">Cheddar Pouch</div>
+                    <div class="item-unit">pouches</div>
+                </div>
+                <div class="item-input-wrapper">
+                    <input type="number" step="any" inputmode="decimal" class="item-input audit-input" data-min="1" data-cat="quesos" oninput="checkStatus(this)">
+                </div>
+                <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
+            </div>
+            <div class="item-row">
+                <div class="item-info">
+                    <div class="item-name">Jamón</div>
+                    <div class="item-unit">unidades</div>
+                </div>
+                <div class="item-input-wrapper">
+                    <input type="number" step="any" inputmode="decimal" class="item-input audit-input" data-min="2" data-cat="quesos" oninput="checkStatus(this)">
+                </div>
+                <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
+            </div>
+            <div class="item-row">
+                <div class="item-info">
+                    <div class="item-name">Queso Dambo</div>
+                    <div class="item-unit">unidades / hormas</div>
+                </div>
+                <div class="item-input-wrapper">
+                    <input type="text" class="item-input audit-input" data-min="0" data-cat="quesos" placeholder="..." oninput="checkStatus(this)">
+                </div>
+                <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
+            </div>
+            <div class="item-row">
+                <div class="item-info">
+                    <div class="item-name">Provoleta</div>
+                    <div class="item-unit">unidades</div>
+                </div>
+                <div class="item-input-wrapper">
+                    <input type="text" class="item-input audit-input" data-min="0" data-cat="quesos" placeholder="..." oninput="checkStatus(this)">
+                </div>
+                <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
+            </div>
+            <div class="item-row">
+                <div class="item-info">
+                    <div class="item-name">Queso Parmesano</div>
+                    <div class="item-unit">kg</div>
+                </div>
+                <div class="item-input-wrapper">
+                    <input type="number" step="any" inputmode="decimal" class="item-input audit-input" data-min="1" data-cat="quesos" oninput="checkStatus(this)">
+                </div>
+                <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
+            </div>
+            <div class="item-row">
+                <div class="item-info">
+                    <div class="item-name">Panceta</div>
+                    <div class="item-unit">unidades</div>
+                </div>
+                <div class="item-input-wrapper">
+                    <input type="number" step="any" inputmode="decimal" class="item-input audit-input" data-min="2" data-cat="quesos" oninput="checkStatus(this)">
+                </div>
+                <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
+            </div>
+        </div>
+
+        <!-- Categoría 4: CONGELADOS -->
         <div class="category-card" id="cat-congelados">
             <div class="category-header">
                 <div class="category-icon" style="background: #E0F2FE; color: #0284C7;"><i class="ri-snowflake-line"></i></div>
                 <div class="category-title">Congelados</div>
-                <div class="progress-pill" id="prog-congelados">0/2</div>
+                <div class="progress-pill" id="prog-congelados">0/15</div>
             </div>
             
             <div class="item-row">
@@ -414,7 +514,27 @@
                     <div class="item-unit">bolsas</div>
                 </div>
                 <div class="item-input-wrapper">
-                    <input type="number" inputmode="numeric" class="item-input audit-input" data-min="10" data-cat="congelados" oninput="checkStatus(this)">
+                    <input type="number" step="any" inputmode="decimal" class="item-input audit-input" data-min="20" data-cat="congelados" oninput="checkStatus(this)">
+                </div>
+                <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
+            </div>
+            <div class="item-row">
+                <div class="item-info">
+                    <div class="item-name">Papas Noisette</div>
+                    <div class="item-unit">bolsas</div>
+                </div>
+                <div class="item-input-wrapper">
+                    <input type="number" step="any" inputmode="decimal" class="item-input audit-input" data-min="1" data-cat="congelados" oninput="checkStatus(this)">
+                </div>
+                <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
+            </div>
+            <div class="item-row">
+                <div class="item-info">
+                    <div class="item-name">Papas Rústicas</div>
+                    <div class="item-unit">bolsas</div>
+                </div>
+                <div class="item-input-wrapper">
+                    <input type="number" step="any" inputmode="decimal" class="item-input audit-input" data-min="1" data-cat="congelados" oninput="checkStatus(this)">
                 </div>
                 <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
             </div>
@@ -424,7 +544,157 @@
                     <div class="item-unit">paquetes</div>
                 </div>
                 <div class="item-input-wrapper">
-                    <input type="number" inputmode="numeric" class="item-input audit-input" data-min="5" data-cat="congelados" oninput="checkStatus(this)">
+                    <input type="number" step="any" inputmode="decimal" class="item-input audit-input" data-min="2" data-cat="congelados" oninput="checkStatus(this)">
+                </div>
+                <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
+            </div>
+            <div class="item-row">
+                <div class="item-info">
+                    <div class="item-name">Salchichas Alemanas</div>
+                    <div class="item-unit">paquetes</div>
+                </div>
+                <div class="item-input-wrapper">
+                    <input type="number" step="any" inputmode="decimal" class="item-input audit-input" data-min="2" data-cat="congelados" oninput="checkStatus(this)">
+                </div>
+                <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
+            </div>
+            <div class="item-row">
+                <div class="item-info">
+                    <div class="item-name">Med. Pollo Crunch Sadia</div>
+                    <div class="item-unit">bolsas</div>
+                </div>
+                <div class="item-input-wrapper">
+                    <input type="number" step="any" inputmode="decimal" class="item-input audit-input" data-min="1" data-cat="congelados" oninput="checkStatus(this)">
+                </div>
+                <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
+            </div>
+            <div class="item-row">
+                <div class="item-info">
+                    <div class="item-name">Med. Pollo Arroyos</div>
+                    <div class="item-unit">bolsas</div>
+                </div>
+                <div class="item-input-wrapper">
+                    <input type="number" step="any" inputmode="decimal" class="item-input audit-input" data-min="1" data-cat="congelados" oninput="checkStatus(this)">
+                </div>
+                <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
+            </div>
+            <div class="item-row">
+                <div class="item-info">
+                    <div class="item-name">Nuggets</div>
+                    <div class="item-unit">bolsas</div>
+                </div>
+                <div class="item-input-wrapper">
+                    <input type="number" step="any" inputmode="decimal" class="item-input audit-input" data-min="2" data-cat="congelados" oninput="checkStatus(this)">
+                </div>
+                <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
+            </div>
+            <div class="item-row">
+                <div class="item-info">
+                    <div class="item-name">Fingers</div>
+                    <div class="item-unit">bolsas</div>
+                </div>
+                <div class="item-input-wrapper">
+                    <input type="number" step="any" inputmode="decimal" class="item-input audit-input" data-min="1" data-cat="congelados" oninput="checkStatus(this)">
+                </div>
+                <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
+            </div>
+            <div class="item-row">
+                <div class="item-info">
+                    <div class="item-name">Ricosaurios</div>
+                    <div class="item-unit">bolsas</div>
+                </div>
+                <div class="item-input-wrapper">
+                    <input type="number" step="any" inputmode="decimal" class="item-input audit-input" data-min="1" data-cat="congelados" oninput="checkStatus(this)">
+                </div>
+                <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
+            </div>
+            <div class="item-row">
+                <div class="item-info">
+                    <div class="item-name">Bastones de Muzza</div>
+                    <div class="item-unit">unidades</div>
+                </div>
+                <div class="item-input-wrapper">
+                    <input type="number" step="any" inputmode="decimal" class="item-input audit-input" data-min="5" data-cat="congelados" oninput="checkStatus(this)">
+                </div>
+                <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
+            </div>
+            <div class="item-row">
+                <div class="item-info">
+                    <div class="item-name">Aros de Cebolla</div>
+                    <div class="item-unit">unidades</div>
+                </div>
+                <div class="item-input-wrapper">
+                    <input type="number" step="any" inputmode="decimal" class="item-input audit-input" data-min="10" data-cat="congelados" oninput="checkStatus(this)">
+                </div>
+                <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
+            </div>
+            <div class="item-row">
+                <div class="item-info">
+                    <div class="item-name">Medallón NotCo</div>
+                    <div class="item-unit">unidades</div>
+                </div>
+                <div class="item-input-wrapper">
+                    <input type="number" step="any" inputmode="decimal" class="item-input audit-input" data-min="10" data-cat="congelados" oninput="checkStatus(this)">
+                </div>
+                <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
+            </div>
+            <div class="item-row">
+                <div class="item-info">
+                    <div class="item-name">Medallón Ceb. Caramelizada</div>
+                    <div class="item-unit">unidades</div>
+                </div>
+                <div class="item-input-wrapper">
+                    <input type="number" step="any" inputmode="decimal" class="item-input audit-input" data-min="10" data-cat="congelados" oninput="checkStatus(this)">
+                </div>
+                <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
+            </div>
+            <div class="item-row">
+                <div class="item-info">
+                    <div class="item-name">Franui</div>
+                    <div class="item-unit">unidades</div>
+                </div>
+                <div class="item-input-wrapper">
+                    <input type="number" step="any" inputmode="decimal" class="item-input audit-input" data-min="5" data-cat="congelados" oninput="checkStatus(this)">
+                </div>
+                <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
+            </div>
+        </div>
+
+        <!-- Categoría 5: PRODUCCIÓN TURNO -->
+        <div class="category-card" id="cat-produccion">
+            <div class="category-header">
+                <div class="category-icon" style="background: #E8EAED; color: #5F6368;"><i class="ri-hammer-line"></i></div>
+                <div class="category-title">Total Producido (Cierre)</div>
+                <div class="progress-pill" id="prog-produccion">0/3</div>
+            </div>
+            
+            <div class="item-row">
+                <div class="item-info">
+                    <div class="item-name">Medallones de Carne</div>
+                    <div class="item-unit">unidades</div>
+                </div>
+                <div class="item-input-wrapper">
+                    <input type="number" step="any" inputmode="decimal" class="item-input audit-input" data-min="-1" data-cat="produccion" oninput="checkStatus(this)">
+                </div>
+                <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
+            </div>
+            <div class="item-row">
+                <div class="item-info">
+                    <div class="item-name">Pan PBT</div>
+                    <div class="item-unit">unidades</div>
+                </div>
+                <div class="item-input-wrapper">
+                    <input type="number" step="any" inputmode="decimal" class="item-input audit-input" data-min="-1" data-cat="produccion" oninput="checkStatus(this)">
+                </div>
+                <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
+            </div>
+            <div class="item-row">
+                <div class="item-info">
+                    <div class="item-name">Papas</div>
+                    <div class="item-unit">bolsas</div>
+                </div>
+                <div class="item-input-wrapper">
+                    <input type="number" step="any" inputmode="decimal" class="item-input audit-input" data-min="-1" data-cat="produccion" oninput="checkStatus(this)">
                 </div>
                 <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
             </div>
@@ -435,7 +705,7 @@
     <!-- Botón Inferior -->
     <div class="bottom-action">
         <button class="btn-save" id="btnSave" disabled onclick="saveAudit()">
-            <i class="ri-save-3-line"></i> Registrar Stock (<span id="totalCount">0/9</span>)
+            <i class="ri-save-3-line"></i> Registrar Stock (<span id="totalCount">0/38</span>)
         </button>
     </div>
 
@@ -450,7 +720,12 @@
         const indicator = row.querySelector('.status-indicator');
         const icon = indicator.querySelector('i');
         const minStock = parseFloat(inputElement.getAttribute('data-min'));
-        const val = parseFloat(inputElement.value);
+        let val = parseFloat(inputElement.value);
+
+        // Si es de tipo texto (ej. "11 de 10 unid"), le damos OK automático si no está vacío
+        if(inputElement.type === 'text') {
+            val = inputElement.value.trim() !== '' ? 9999 : NaN;
+        }
 
         // Reset classes
         indicator.className = 'status-indicator';
@@ -459,10 +734,10 @@
         if (isNaN(val) || inputElement.value === '') {
             inputElement.classList.remove('filled');
             icon.className = 'ri-checkbox-blank-circle-line';
-        } else if (val === 0) {
+        } else if (val === 0 && minStock > 0) {
             indicator.classList.add('status-crit');
             icon.className = 'ri-error-warning-fill';
-        } else if (val <= minStock) {
+        } else if (val <= minStock && minStock > 0) {
             indicator.classList.add('status-warn');
             icon.className = 'ri-alert-fill';
         } else {
@@ -477,7 +752,7 @@
         const allInputs = document.querySelectorAll('.audit-input');
         completedItems = 0;
         
-        let cats = { carnes: {c:0, t:3}, panes: {c:0, t:4}, congelados: {c:0, t:2} };
+        let cats = { carnes: {c:0, t:3}, panes: {c:0, t:6}, quesos: {c:0, t:7}, congelados: {c:0, t:15}, produccion: {c:0, t:3} };
 
         allInputs.forEach(input => {
             if (input.value !== '') {
