@@ -1,6 +1,6 @@
 # 🔍 Auditoría de Cobertura: Prototipos vs. Fuente de Verdad
 
-> **Fecha:** 05/08/2026  
+> **Fecha:** 10/08/2026
 > **Fuentes cruzadas:** `anexo_funcional_contrato.md` (18 módulos), `fuente_de_verdad_completa.md` (5 partes), `roadmap_auditoria.md`, y los 17 archivos HTML en `HTML_Prototipos/`.
 
 ---
@@ -13,7 +13,7 @@
 | 5.2 | **Compras y Proveedores** | [compras_inbox_prototipo.html](file:///D:/Musica%20Descargada/Burger_Music_OS/HTML_Prototipos/compras_inbox_prototipo.html) + 5 sub-flujos | ✅ Completo | ✅ Sí |
 | 5.3 | **Facturación Inteligente (IA)** | [compras_validacion_prototipo.html](file:///D:/Musica%20Descargada/Burger_Music_OS/HTML_Prototipos/compras_validacion_prototipo.html) + [compras_subir_pdf_prototipo.html](file:///D:/Musica%20Descargada/Burger_Music_OS/HTML_Prototipos/compras_subir_pdf_prototipo.html) | ✅ Completo | ⚠️ Accesible desde Compras |
 | 5.4 | **Producción** | [produccion_prototipo.html](file:///D:/Musica%20Descargada/Burger_Music_OS/HTML_Prototipos/produccion_prototipo.html) (Operario) + [produccion_gerencial_prototipo.html](file:///D:/Musica%20Descargada/Burger_Music_OS/HTML_Prototipos/produccion_gerencial_prototipo.html) (Gerente) | ✅ Completo (Dual) | ✅ Sí |
-| 5.5 | **Control de Stock** | [inventario_prototipo.html](file:///D:/Musica%20Descargada/Burger_Music_OS/HTML_Prototipos/inventario_prototipo.html) + [conteo_stock_prototipo.html](file:///D:/Musica%20Descargada/Burger_Music_OS/HTML_Prototipos/conteo_stock_prototipo.html) | ✅ Completo | ✅ Sí |
+| 5.5 | **Control de Stock** | [inventario_prototipo.html](file:///D:/Musica%20Descargada/Burger_Music_OS/HTML_Prototipos/inventario_prototipo.html) + [auditoria_deposito_prototipo.html](file:///D:/Musica%20Descargada/Burger_Music_OS/HTML_Prototipos/auditoria_deposito_prototipo.html) | ✅ Completo | ✅ Sí |
 | 5.6 | **Packaging** | — | ❌ Sin prototipo | ❌ No |
 | 5.7 | **Punto de Venta (POS)** | [pos_prototipo.html](file:///D:/Musica%20Descargada/Burger_Music_OS/HTML_Prototipos/pos_prototipo.html) | ✅ Completo | ✅ Sí |
 | 5.8 | **Cocina (KDS)** | [kds_prototipo.html](file:///D:/Musica%20Descargada/Burger_Music_OS/HTML_Prototipos/kds_prototipo.html) | ✅ Completo | ✅ Sí |
@@ -138,6 +138,17 @@ Estos módulos están planificados para fases posteriores y **no bloquean la dem
 
 | Artefacto MD | Estado | Última Actualización |
 |--------------|--------|---------------------|
+| [roadmap_auditoria.md](file:///D:/Musica%20Descargada/Burger_Music_OS/Docs/roadmap_auditoria.md) | ✅ Al día | Fuente única de la verdad |
+| [fuente_de_verdad_completa.md](file:///D:/Musica%20Descargada/Burger_Music_OS/Docs/fuente_de_verdad_completa.md) | ⚠️ Pendiente de Burger Music | Tiene ~120 campos ⬜ COMPLETAR |
+| [Handoff V2: Cimientos](file:///D:/Musica%20Descargada/Burger_Music_OS/Docs/Handoff_V2/01_cimientos_y_componentes.md) | ✅ Nuevo | Reglas visuales y CSS |
+| [Handoff V2: Estado](file:///D:/Musica%20Descargada/Burger_Music_OS/Docs/Handoff_V2/02_arquitectura_y_estado.md) | ✅ Nuevo | JWT, Redux, Validaciones |
+| [Handoff V2: Módulos Core](file:///D:/Musica%20Descargada/Burger_Music_OS/Docs/Handoff_V2/03_autopsia_modulos_core.md) | ✅ Nuevo | Interacciones detalladas |
+| [Handoff V2: Módulos Futuros](file:///D:/Musica%20Descargada/Burger_Music_OS/Docs/Handoff_V2/04_arquitectura_futura.md) | ✅ Nuevo | RRHH, Finanzas, BI |
+| [anexo_funcional_contrato.md](file:///D:/Musica%20Descargada/Burger_Music_OS/Docs/anexo_funcional_contrato.md) | ✅ Estable | Documento contractual base |
+| [analisis_stock_operativo.md](file:///D:/Musica%20Descargada/Burger_Music_OS/Docs/analisis_stock_operativo.md) | ✅ Al día | Relevamiento de WhatsApp |
+| [catalogo_music_burger.md](file:///D:/Musica%20Descargada/Burger_Music_OS/Docs/catalogo_music_burger.md) | ✅ Al día | Refleja carta activa de Pedix |
+
+--------------|--------|---------------------|
 | [roadmap_auditoria.md](file:///D:/Musica%20Descargada/Burger_Music_OS/MD_Artefactos/roadmap_auditoria.md) | ✅ Al día | Fase 2 UX cerrada, Onboarding completado |
 | [fuente_de_verdad_completa.md](file:///D:/Musica%20Descargada/Burger_Music_OS/MD_Artefactos/fuente_de_verdad_completa.md) | ⚠️ Pendiente de Burger Music | Tiene ~120 campos ⬜ COMPLETAR + 12 preguntas abiertas |
 | [estrategia_diseno.md](file:///D:/Musica%20Descargada/Burger_Music_OS/MD_Artefactos/estrategia_diseno.md) | ✅ Al día | Incluye Tangibilidad, Pulso, Onboarding, Dual Rol |
@@ -162,5 +173,5 @@ Estos módulos están planificados para fases posteriores y **no bloquean la dem
 3. **Cerrar las 4 brechas de conectividad** — Links profundos Dashboard→Inventario, toast post-cobro POS, badge de ingreso en timeline, widget de consumo en Producción
 
 ### Prioridad Media (Siguiente sprint):
-4. Prototipar **RRHH** como pantalla propia (fichaje, legajos, asistencia)
+4. Prototipar **RRHH** como pantalla propia (EN PROCESO) (fichaje, legajos, asistencia)
 5. Prototipar **Finanzas** como pantalla propia (flujo de fondos, ctas por cobrar/pagar)

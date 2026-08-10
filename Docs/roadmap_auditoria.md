@@ -3,7 +3,7 @@
 
 > **Propósito:** Documento maestro consolidado que cruza el **Anexo Funcional (ANEXO_FUNCIONAL_MUSIC_OS.docx)**, el relevamiento de **Catálogo Real (Pedix)**, el **Análisis Operativo (WhatsApp/BOM)**, las **Definiciones Directas de Gerencia (Gaby)** y **todo el trabajo de prototipado y diseño UX** realizado hasta la fecha.
 >
-> **Última actualización:** 06/08/2026
+> **Última actualización:** 10/08/2026
 
 > [!IMPORTANT]
 > Este documento es la **única referencia autorizada** del estado del proyecto. Cualquier decisión de diseño, estrategia UX o resolución funcional que no esté aquí, no existe oficialmente.
@@ -259,10 +259,10 @@ Esto elimina por completo la necesidad de que el usuario entienda "factores de c
 | 8 | IA | ¿Auto-aprobación? | No. Revisión visual obligatoria (lado a lado) | `compras_layout_prototipo.html` |
 | 9 | IA | ¿Quién revisa? | Mariana/Encargado confirma | `compras_validacion_prototipo.html` |
 | 10 | Producción | ¿Formato UI? | Mobile-first (celular) | `produccion_prototipo.html` |
-| 11 | Stock | ¿Dónde se cargan mermas? | En la misma pantalla de conteo (Container Transform) | `conteo_stock_prototipo.html` |
-| 12 | Stock | ¿Alertas de mínimo? | Sí, configurables por producto individual | `conteo_stock_prototipo.html` |
+| 11 | Stock | ¿Dónde se cargan mermas? | En la misma pantalla de conteo (Container Transform) | `auditoria_deposito_prototipo.html` |
+| 12 | Stock | ¿Alertas de mínimo? | Sí, configurables por producto individual | `auditoria_deposito_prototipo.html` |
 | 13 | Stock | ¿Quién recibe las alertas? | Dashboard central del responsable | `dashboard_prototipo.html` |
-| 14 | Stock | ¿Unidades estandarizadas? | Sí, "Smart Units" normalizadas por el sistema | `conteo_stock_prototipo.html` |
+| 14 | Stock | ¿Unidades estandarizadas? | Sí, "Smart Units" normalizadas por el sistema | `auditoria_deposito_prototipo.html` |
 
 ### ✅ Decisiones de Diseño CERRADAS (sin pregunta previa)
 
@@ -315,7 +315,7 @@ Todos los prototipos son archivos HTML interactivos funcionales alojados en:
 | 4 | `cajas_prototipo.html` | Gestión de Cajas | ✅ Completo |
 | 5 | `delivery_prototipo.html` | Delivery | ✅ Completo |
 | 6 | `produccion_prototipo.html` | Producción (Mobile) | ✅ Completo |
-| 7 | `conteo_stock_prototipo.html` | Control de Stock | ✅ Completo |
+| 7 | `auditoria_deposito_prototipo.html` | Control de Stock | ✅ Completo |
 | 8 | `compras_inbox_prototipo.html` | Compras — Bandeja | ✅ Completo |
 | 9 | `compras_layout_prototipo.html` | Compras — Layout IA | ✅ Completo |
 | 10 | `compras_validacion_prototipo.html` | Compras — Validación IA | ✅ Completo |
@@ -345,6 +345,14 @@ Todos los prototipos son archivos HTML interactivos funcionales alojados en:
 
 | Artefacto | Propósito |
 |-----------|-----------|
+| [roadmap_auditoria.md](file:///D:/Musica%20Descargada/Burger_Music_OS/Docs/roadmap_auditoria.md) | **Este documento.** Fuente única de la verdad. |
+| [fuente_de_verdad_completa.md](file:///D:/Musica%20Descargada/Burger_Music_OS/Docs/fuente_de_verdad_completa.md) | Catálogo completo, BOM, insumos base, precios y unidades. |
+| [anexo_funcional_contrato.md](file:///D:/Musica%20Descargada/Burger_Music_OS/Docs/anexo_funcional_contrato.md) | Copia del Anexo Funcional contractual (alcance legal). |
+| Carpeta `Docs/Handoff_V2/` | **Guía Definitiva de Diseño Frontend y Handoff Técnico V2.0** en 4 partes (Core, Estado, Prototipos, Futuro). |
+| [analisis_stock_operativo.md](file:///D:/Musica%20Descargada/Burger_Music_OS/Docs/analisis_stock_operativo.md) | Relevamiento crudo de WhatsApp (las "193 líneas"). |
+| [catalogo_music_burger.md](file:///D:/Musica%20Descargada/Burger_Music_OS/Docs/catalogo_music_burger.md) | Extracción original del catálogo Pedix. |
+
+-----------|-----------|
 | [roadmap_auditoria.md](file:///C:/Users/nahue/.gemini/antigravity/brain/6b80ff63-c4f2-470b-a96e-3ceabad9effc/roadmap_auditoria.md) | **Este documento.** Fuente única de la verdad. |
 | [fuente_de_verdad_completa.md](file:///C:/Users/nahue/.gemini/antigravity/brain/6b80ff63-c4f2-470b-a96e-3ceabad9effc/fuente_de_verdad_completa.md) | Catálogo completo, BOM, insumos base, precios y unidades. |
 | [anexo_funcional_contrato.md](file:///C:/Users/nahue/.gemini/antigravity/brain/6b80ff63-c4f2-470b-a96e-3ceabad9effc/anexo_funcional_contrato.md) | Copia del Anexo Funcional contractual (alcance legal). |
@@ -391,19 +399,8 @@ gantt
     Finanzas Categorías Semánticas      :done, f3g, 2026-08-07, 1d
 
     section Fase 4 — Pendiente
-    PDFs Multi-Página (Tijera/Splitter) :       f4a, after f3d, 2d
-    Backend 3-Way Match (Compras↔Stock↔Pagos):  f4b, after f4a, 3d
-    RRHH (Fichaje de Personal)          :       f4c, after f4b, 2d
+    Handoff Definitivo V2.0             :done, f4a, 2026-08-10, 1d
+    RRHH (Fichaje, Cta Cte, Legajos)    :active, f4b, after f4a, 2d
+    Backend 3-Way Match (Compras↔Stock) :       f4c, after f4b, 3d
     Finanzas (Cta Cte Empresas)         :       f4d, after f4c, 2d
 ```
-
----
-
-## 9. Próximos Pasos Técnicos (Acción Inmediata)
-
-| Prioridad | Tarea | Descripción |
-|-----------|-------|-------------|
-| 🔴 Alta | **Tijera/Splitter para PDFs** | Diseñar la interacción para extraer páginas específicas de PDFs largos de proveedores con múltiples facturas en un solo archivo. |
-| 🔴 Alta | **Definición Backend 3-Way Match** | Estructurar cómo las validaciones del frontend (Familias de Medida, Equivalencias) se auditan y cruzan a nivel base de datos entre Compras ↔ Stock ↔ Pagos. |
-| 🟡 Media | **Workflow de Salsas y Pan TBP** | Definir con Gerencia los rendimientos exactos de estos productos intermedios para calibrar el módulo de Producción. |
-| ⚪ Baja | **RRHH y Finanzas** | Prototipar módulos de Fase 3/4 una vez que el Core Operativo esté en producción. |

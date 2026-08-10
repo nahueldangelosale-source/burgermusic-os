@@ -1,7 +1,0 @@
-- `[x]` Extract the CSS for `.lines-table`, `.line-row`, `.line-input`, etc. from `compras_carga_manual_prototipo.html` and copy to `compras_validacion_prototipo.html`
-- `[x]` Replace `.grid-container` structure in `compras_validacion_prototipo.html` with `.lines-table`
-- `[x]` Create row for Match Perfecto (Green)
-- `[x]` Create row for Warning/Intelligent Mapping (Yellow)
-- `[x]` Create row for Price Alert (Red)
-- `[x]` Copy the `#modal-overlay` (Mad-Libs modal) from manual load to IA validation screen
-- `[x]` Test rendering and UI consistency
