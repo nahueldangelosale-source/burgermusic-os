@@ -283,6 +283,13 @@
             transform: scale(0.98);
         }
 
+    
+        .category-header { cursor: pointer; user-select: none; }
+        .chevron-icon { font-size: 24px; color: var(--text-muted); transition: transform 0.3s; margin-left: 4px; }
+        .chevron-icon.open { transform: rotate(180deg); }
+        .category-items { display: none; }
+        .category-items.open { display: block; }
+
     </style>
 </head>
 <body>
@@ -312,11 +319,13 @@
         
         <!-- Categoría 1: CARNES -->
         <div class="category-card" id="cat-carnes">
-            <div class="category-header">
+            <div class="category-header" onclick="toggleCategory('carnes')">
                 <div class="category-icon" style="background: #FEE2E2; color: #DC2626;"><i class="ri-fire-line"></i></div>
                 <div class="category-title">Carnes</div>
                 <div class="progress-pill" id="prog-carnes">0/3</div>
+                <i class="ri-arrow-down-s-line chevron-icon" id="chev-carnes"></i>
             </div>
+            <div class="category-items" id="items-carnes">
             
             <div class="item-row">
                 <div class="item-info">
@@ -348,15 +357,18 @@
                 </div>
                 <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
             </div>
+            </div>
         </div>
 
         <!-- Categoría 2: PANES -->
         <div class="category-card" id="cat-panes">
-            <div class="category-header">
+            <div class="category-header" onclick="toggleCategory('panes')">
                 <div class="category-icon" style="background: #FEF3C7; color: #D97706;"><i class="ri-bread-line"></i></div>
                 <div class="category-title">Panes</div>
                 <div class="progress-pill" id="prog-panes">0/6</div>
+                <i class="ri-arrow-down-s-line chevron-icon" id="chev-panes"></i>
             </div>
+            <div class="category-items" id="items-panes">
             
             <div class="item-row">
                 <div class="item-info">
@@ -418,15 +430,18 @@
                 </div>
                 <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
             </div>
+            </div>
         </div>
 
         <!-- Categoría 3: QUESOS Y FIAMBRES -->
         <div class="category-card" id="cat-quesos">
-            <div class="category-header">
+            <div class="category-header" onclick="toggleCategory('quesos')">
                 <div class="category-icon" style="background: #FEF08A; color: #A16207;"><i class="ri-cheese-line"></i></div>
                 <div class="category-title">Quesos y Fiambres</div>
                 <div class="progress-pill" id="prog-quesos">0/7</div>
+                <i class="ri-arrow-down-s-line chevron-icon" id="chev-quesos"></i>
             </div>
+            <div class="category-items" id="items-quesos">
             
             <div class="item-row">
                 <div class="item-info">
@@ -498,15 +513,18 @@
                 </div>
                 <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
             </div>
+            </div>
         </div>
 
         <!-- Categoría 4: CONGELADOS -->
         <div class="category-card" id="cat-congelados">
-            <div class="category-header">
+            <div class="category-header" onclick="toggleCategory('congelados')">
                 <div class="category-icon" style="background: #E0F2FE; color: #0284C7;"><i class="ri-snowflake-line"></i></div>
                 <div class="category-title">Congelados</div>
                 <div class="progress-pill" id="prog-congelados">0/15</div>
+                <i class="ri-arrow-down-s-line chevron-icon" id="chev-congelados"></i>
             </div>
+            <div class="category-items" id="items-congelados">
             
             <div class="item-row">
                 <div class="item-info">
@@ -658,15 +676,18 @@
                 </div>
                 <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
             </div>
+            </div>
         </div>
 
         <!-- Categoría 5: PRODUCCIÓN TURNO -->
         <div class="category-card" id="cat-produccion">
-            <div class="category-header">
+            <div class="category-header" onclick="toggleCategory('produccion')">
                 <div class="category-icon" style="background: #E8EAED; color: #5F6368;"><i class="ri-hammer-line"></i></div>
                 <div class="category-title">Total Producido (Cierre)</div>
                 <div class="progress-pill" id="prog-produccion">0/3</div>
+                <i class="ri-arrow-down-s-line chevron-icon" id="chev-produccion"></i>
             </div>
+            <div class="category-items" id="items-produccion">
             
             <div class="item-row">
                 <div class="item-info">
@@ -697,6 +718,7 @@
                     <input type="number" step="any" inputmode="decimal" class="item-input audit-input" data-min="-1" data-cat="produccion" oninput="checkStatus(this)">
                 </div>
                 <div class="status-indicator"><i class="ri-checkbox-blank-circle-line"></i></div>
+            </div>
             </div>
         </div>
         
@@ -746,6 +768,19 @@
         }
 
         updateProgress();
+    }
+
+    
+    function toggleCategory(catId) {
+        const items = document.getElementById('items-' + catId);
+        const chev = document.getElementById('chev-' + catId);
+        if(items.classList.contains('open')) {
+            items.classList.remove('open');
+            chev.classList.remove('open');
+        } else {
+            items.classList.add('open');
+            chev.classList.add('open');
+        }
     }
 
     function updateProgress() {
